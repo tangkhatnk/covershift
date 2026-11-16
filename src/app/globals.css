@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Chữ gốc 18px: dễ đọc cho chủ quán lớn tuổi trên điện thoại 360–414px. */
+html {
+  font-size: 18px;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+}
+/* Tránh iOS tự phóng to khi chạm ô nhập */
+input, select, textarea {
+  font-size: 1rem;
+}
+:focus-visible {
+  outline: 3px solid #047857;
+  outline-offset: 2px;
+}
+@media print {
+  body { background: #fff; }
+  header, footer, nav, .print\:hidden { display: none !important; }
+  main { padding: 0 !important; max-width: none !important; }
+}
