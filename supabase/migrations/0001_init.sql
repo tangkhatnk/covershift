@@ -1468,7 +1468,8 @@ create policy private_contacts_read on public.private_contacts for select to aut
 create policy worker_profiles_read on public.worker_profiles for select to authenticated
   using (user_id = auth.uid() or public.is_admin());
 
--- parental_consents: người làm đọc phiếu của mình (để lấy link); admin đọc tất cả.
+-- parental_consents: người làm đọc phiếu của mình (để lấy link), chỉ các cột được grant theo cột ở khối QUYỀN
+-- (không có SĐT/tên phụ huynh); admin đọc qua RPC.
 create policy parental_consents_read on public.parental_consents for select to authenticated
   using (worker_id = auth.uid() or public.is_admin());
 
@@ -1522,11 +1523,16 @@ revoke execute on all functions in schema public from public, anon, authenticate
 
 grant usage on schema public to anon, authenticated;
 grant select on public.app_config to anon, authenticated;
-grant select on public.profiles, public.private_contacts, public.worker_profiles, public.parental_consents,
+grant select on public.profiles, public.private_contacts, public.worker_profiles,
                 public.facilities, public.facility_verifications, public.shifts, public.shift_claims,
                 public.shift_results, public.payment_feedback, public.reports, public.worker_events,
                 public.admin_audit_log
   to authenticated;
+-- parental_consents: chỉ cấp theo CỘT. parent_name, parent_phone, reviewed_by KHÔNG cấp cho client:
+-- người làm không đọc được SĐT/tên phụ huynh qua REST; admin xem qua RPC admin_list_workers().
+-- Cột chỉ xuất hiện trong biểu thức policy thì không cần quyền cột.
+grant select (id, worker_id, token, status, expires_at, agreed_at, reviewed_at, created_at)
+  on public.parental_consents to authenticated;
 
 -- Hàm dùng trong biểu thức RLS
 grant execute on function public.is_admin(), public._owns_facility(uuid), public._owns_shift(uuid), public._has_claim(uuid),

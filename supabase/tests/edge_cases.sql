@@ -256,6 +256,17 @@ select pg_temp.t_true('7i. Hồ sơ công khai không có số điện thoại, 
   $$select j is not null and j::text not like '%0900000%' and not (j ? 'date_of_birth') from get_public_profile('demo-thu-ha') j$$, 'anon');
 select pg_temp.t_true('7j. Hồ sơ đang tắt chia sẻ: người ngoài không xem được', null,
   $$select get_public_profile('demo-quoc-bao') is null$$, 'anon');
+select pg_temp.t_err('7k. Người làm không đọc được parent_phone trong phiếu của chính mình (grant theo cột)', 'a0000000-0000-4000-a000-000000000007',
+  $$select parent_phone from parental_consents where worker_id = 'a0000000-0000-4000-a000-000000000007'$$, '%permission denied%', 'authenticated');
+select pg_temp.t_err('7l. Người làm không đọc được parent_name trong phiếu của chính mình', 'a0000000-0000-4000-a000-000000000007',
+  $$select parent_name from parental_consents where worker_id = 'a0000000-0000-4000-a000-000000000007'$$, '%permission denied%', 'authenticated');
+select pg_temp.t_err('7m. select * trên parental_consents bị chặn vì có cột parent_phone', 'a0000000-0000-4000-a000-000000000007',
+  $$select * from parental_consents$$, '%permission denied%', 'authenticated');
+select pg_temp.t_true('7n. Người làm vẫn đọc được token, status, expires_at của phiếu mình: đúng 1 dòng', 'a0000000-0000-4000-a000-000000000007',
+  $$select count(*) = 1 and bool_and(token is not null and status = 'approved' and expires_at is not null)
+    from (select token, status, expires_at from parental_consents where worker_id = 'a0000000-0000-4000-a000-000000000007') x$$, 'authenticated');
+select pg_temp.t_true('7o. Người làm chỉ thấy phiếu của mình (RLS còn hiệu lực với cột được cấp)', 'a0000000-0000-4000-a000-000000000007',
+  $$select count(*) = 1 from (select worker_id, status from parental_consents) x$$, 'authenticated');
 
 -- ---------------------------------------------------------------
 -- 8. Hủy ca
