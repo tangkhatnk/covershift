@@ -106,6 +106,13 @@ try {
   console.log(`\n${last.rows.length - fail}/${last.rows.length} test đạt`);
   if (fail) code = 1;
 
+  // Kiểm quyền bảng/hàm của anon/authenticated (file chỉ đọc, một câu select).
+  const priv = await runFile(client, 'supabase/tests/privileges_check.sql');
+  const bad = priv.rows.filter((r) => /^(SAI|KIỂM)/.test(r.ket_luan));
+  for (const r of bad) console.log(`✘ ${r.loai} ${r.doi_tuong}: ${r.ket_luan}  (${r.quyen_dang_co})`);
+  console.log(`\nprivileges_check: ${priv.rows.length} dòng, ${bad.length} dòng SAI/KIỂM`);
+  if (bad.length) code = 1;
+
   if (process.argv.includes('--race')) {
     const { raceTest } = await import('./race.mjs');
     const ok = await raceTest({ host: 'localhost', port: PORT, user: 'postgres', password: 'postgres', database: 'postgres' });
