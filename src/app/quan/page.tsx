@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Alert, Empty, PageTitle, ShiftCard, btn } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
+import { friendlyError } from '@/lib/errors';
 import { shiftState } from '@/lib/format';
 import type { Shift } from '@/lib/types';
 
@@ -80,7 +81,7 @@ export default async function EmployerHomePage() {
         </Link>
       ) : null}
 
-      {shiftError ? <Alert tone="red">{shiftError.message}</Alert> : null}
+      {shiftError ? <Alert tone="red">{friendlyError(shiftError)}</Alert> : null}
 
       {awaiting.length ? (
         <div className="space-y-3 rounded-2xl border-2 border-amber-300 bg-amber-50 p-3">

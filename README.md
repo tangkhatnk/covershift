@@ -50,7 +50,9 @@ Trình duyệt ──► Next.js trên Vercel (Server Component + Server Action,
 ```
 supabase/migrations/0001_init.sql   toàn bộ schema, trigger, RPC, RLS, quyền
 supabase/seed.sql                   dữ liệu demo (chạy lại được nhiều lần)
-supabase/tests/edge_cases.sql       79 test biên ở tầng database
+supabase/tests/edge_cases.sql       84 test biên ở tầng database
+supabase/tests/check_before_migration.sql  kiểm project Supabase mới TRƯỚC khi dán migration (chỉ đọc)
+supabase/tests/privileges_check.sql kiểm quyền bảng/hàm của anon/authenticated SAU migration (chỉ đọc)
 supabase/functions/shift-reminders  Edge Function nhắc ca qua email (tùy chọn, mặc định tắt)
 db-test/                            chạy migration + seed + test + chạy đua trên Postgres nhúng (không cần Docker)
 src/app/actions.ts                  mọi server action (mỗi action = 1 lời gọi RPC)
@@ -62,9 +64,13 @@ src/lib, src/components             hằng số, định dạng giờ VN, kiểu
 ## 2. Tạo Supabase project
 
 1. https://supabase.com → **New project** (region Singapore). Lưu mật khẩu database.
-2. **SQL Editor** → dán toàn bộ `supabase/migrations/0001_init.sql` → **Run**. (Hoặc dùng CLI: `supabase link --project-ref <ref>` rồi `supabase db push`.)
-3. (Chỉ cho demo/thử nghiệm) dán `supabase/seed.sql` → **Run**.
-4. **Project Settings → API**: chép `Project URL` và `anon public key`.
+2. **SQL Editor** → dán `supabase/tests/check_before_migration.sql` → **Run** → mọi dòng khớp cột `ky_vong` (chỉ đọc, không ghi gì).
+3. **SQL Editor** → dán toàn bộ `supabase/migrations/0001_init.sql` → **Run**.
+4. Dán `supabase/tests/privileges_check.sql` → **Run** → không có dòng nào cột `ket_luan` bắt đầu bằng `SAI` hoặc `KIỂM` (các dòng đó được xếp lên đầu).
+5. (Chỉ cho demo/thử nghiệm) dán `supabase/seed.sql` → **Run**. Chạy seed bằng **SQL Editor**, không dùng CLI: `_bypass()` chỉ bật khi phiên là `postgres`/`supabase_admin`.
+6. **Project Settings → API**: chép `Project URL` và `anon public key`.
+
+Gặp lỗi `PGRST202` (không tìm thấy hàm) ngay sau khi dán migration: chạy `notify pgrst, 'reload schema';`.
 
 ### Tạo tài khoản admin
 
@@ -97,8 +103,10 @@ Tải lại trang web → vào thẳng `/admin`. Hàm `make_admin` không gọi 
 
 **Magic link (email)**
 
-- **Authentication → Providers → Email**: bật *Email*, tắt *Confirm email* cũng được (magic link tự xác minh).
-- ⚠️ SMTP mặc định của Supabase chỉ gửi được **vài email mỗi giờ** và chỉ nên dùng thử. Trước ngày chạy thật, vào **Authentication → SMTP Settings** và nối SMTP riêng (Resend gói miễn phí: host `smtp.resend.com`, port `465`, user `resend`, password = API key; cần một tên miền đã xác minh). Nếu không có tên miền: hướng dẫn mọi người **đăng nhập bằng Google** — magic link chỉ là phương án phụ.
+- **Authentication → Providers → Email**: bật *Email* và **giữ *Confirm email* BẬT** (mặc định). Nếu tắt, ai cầm anon key (công khai trong web) cũng tạo được tài khoản email + mật khẩu qua API mà không cần xác minh email.
+- ⚠️ SMTP mặc định của Supabase chỉ gửi **2 email/giờ** và **chỉ tới email thành viên team của project** — người ngoài nhận lỗi "Email address not authorized" ([tài liệu](https://supabase.com/docs/guides/auth/auth-smtp)). Tức là magic link **không dùng được** với người làm/chủ quán thật nếu chưa nối SMTP riêng (**Authentication → SMTP Settings**; Resend: host `smtp.resend.com`, port `465`, user `resend`, password = API key; bắt buộc có tên miền đã xác minh). Không có tên miền: mọi người **đăng nhập bằng Google**.
+- Magic link dùng PKCE: phải bấm link **trên cùng trình duyệt** đã yêu cầu link. Muốn bấm ở trình duyệt nào cũng được: sửa template *Magic Link* (Authentication → Email Templates) thành `<a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email">Đăng nhập</a>` — `/auth/callback` đã hỗ trợ `token_hash` (cách này chưa thử thật).
+- Google chặn đăng nhập trong trình duyệt nhúng của Zalo/Facebook. Trang `/dang-nhap` tự hiện cảnh báo "Mở bằng trình duyệt" khi phát hiện; khi gửi link qua Zalo nên nhắc mọi người mở bằng Chrome/Safari.
 - Email template mặc định (`{{ .ConfirmationURL }}`) chạy được ngay với `/auth/callback`.
 
 ---
@@ -133,7 +141,7 @@ Kiểm tra tầng database mà không cần Supabase/Docker (Postgres nhúng, t�
 npm run test:db
 ```
 
-Kỳ vọng: `79/79 test đạt` và 5 dòng `✔ chạy đua`.
+Kỳ vọng: `84/84 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM` và 5 dòng `✔ chạy đua`.
 
 ## 6. Deploy Vercel
 
@@ -161,6 +169,9 @@ select * from public.app_config;   -- min_hourly_wage = 25500, weekly_hours_cap 
 ## 8. Nhắc ca qua email (tùy chọn — mặc định TẮT)
 
 Kênh nhắc chính là nút **"Sao chép tin nhắn nhắc ca"** ở `/admin` (dán vào Zalo). Email là phần phụ; chỉ bật khi đã có tên miền xác minh trên Resend (gói miễn phí không gửi được cho người nhận tùy ý nếu thiếu tên miền).
+
+⚠️ Chưa từng chạy thử. Project Supabase tạo sau 30/5/2026 **không còn tự cấp quyền bảng** cho `service_role`, mà Edge Function này đọc/ghi bảng bằng `service_role` → cần thêm một migration mới trước khi bật:
+`grant select on public.shift_claims, public.shifts, public.facilities to service_role; grant update (reminder_sent_at) on public.shift_claims to service_role;`
 
 ```bash
 supabase secrets set RESEND_API_KEY=re_xxx CRON_SECRET=<chuoi-ngau-nhien> REMINDER_FROM="SafeShift <nhac-ca@ten-mien>" SITE_URL=https://<ten-du-an>.vercel.app

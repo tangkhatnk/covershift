@@ -29,7 +29,11 @@ export default async function ConfirmPage({ params }: { params: Promise<{ token:
       <div className="space-y-4">
         <PageTitle>Xác nhận sau ca</PageTitle>
         {c.state === 'used' ? (
-          <Alert tone="green"><span className="text-lg font-semibold">Link này đã được dùng. Cảm ơn anh/chị.</span></Alert>
+          // Cũng là màn hình chủ quán thấy ngay sau khi gửi thành công (trang được tải lại).
+          <Alert tone="green">
+            <span className="block text-lg font-semibold">Ca này đã được xác nhận. Cảm ơn anh/chị!</span>
+            <span className="mt-1 block">Mỗi link chỉ dùng được một lần.</span>
+          </Alert>
         ) : c.state === 'expired' ? (
           <Alert tone="amber">
             <span className="text-lg">Link đã hết hạn (quá 72 giờ sau ca). Vui lòng liên hệ nhóm vận hành.</span>

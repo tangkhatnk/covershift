@@ -7,8 +7,39 @@ import { btn, type BtnVariant } from './ui';
 
 type Action = (prev: ActionState, formData: FormData) => Promise<ActionState>;
 
+const SKIP_TYPES = new Set(['hidden', 'file', 'submit', 'button', 'reset', 'image']);
+
+/**
+ * React 19 tự xóa các ô của form sau mỗi lần form action chạy xong — kể cả khi action trả lỗi,
+ * và kể cả ô radio "kiểm soát" (DOM bị bỏ chọn trong khi giao diện vẫn hiện đã chọn).
+ * Điền lại đúng những gì người dùng đã gửi để họ chỉ cần sửa ô sai.
+ */
+function restoreFields(form: HTMLFormElement, data: FormData) {
+  const seen = new Map<string, number>();
+  for (const el of Array.from(form.elements)) {
+    if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement)) continue;
+    if (!el.name || el.disabled) continue;
+    const values = data.getAll(el.name).filter((v): v is string => typeof v === 'string');
+    if (el instanceof HTMLInputElement) {
+      if (SKIP_TYPES.has(el.type)) continue;
+      if (el.type === 'checkbox' || el.type === 'radio') {
+        el.checked = values.includes(el.value);
+        continue;
+      }
+    }
+    if (el instanceof HTMLSelectElement && el.multiple) {
+      for (const o of Array.from(el.options)) o.selected = values.includes(o.value);
+      continue;
+    }
+    const i = seen.get(el.name) ?? 0;
+    seen.set(el.name, i + 1);
+    if (i < values.length) el.value = values[i];
+  }
+}
+
 /**
  * Form gọi server action và tự hiện lỗi / thông báo thành công ngay trên form.
+ * Gửi lỗi thì giữ nguyên dữ liệu đã nhập; thông báo được cuộn vào tầm nhìn.
  * `resetOnOk`: xóa trắng form sau khi thành công.
  */
 export function ActionForm({ action, children, className = 'space-y-4', resetOnOk = false }: {
@@ -16,16 +47,35 @@ export function ActionForm({ action, children, className = 'space-y-4', resetOnO
 }) {
   const [state, formAction] = useActionState(action, null);
   const ref = useRef<HTMLFormElement>(null);
+  const msgRef = useRef<HTMLParagraphElement>(null);
+  const submitted = useRef<FormData | null>(null);
   useEffect(() => {
-    if (state?.ok && resetOnOk) ref.current?.reset();
+    if (!state) return;
+    if (state.error && ref.current && submitted.current) restoreFields(ref.current, submitted.current);
+    if (state.ok && resetOnOk) ref.current?.reset();
+    // Thông báo nằm ở đầu form còn nút gửi ở cuối: cuộn tới để người dùng thấy ngay.
+    msgRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [state, resetOnOk]);
+  const msg = state?.error ?? state?.ok;
   return (
-    <form ref={ref} action={formAction} className={className}>
-      {state?.error ? (
-        <p role="alert" className="rounded-xl border-2 border-red-300 bg-red-50 px-4 py-3 text-base font-medium text-red-900">{state.error}</p>
-      ) : null}
-      {state?.ok ? (
-        <p role="status" className="rounded-xl border-2 border-emerald-300 bg-emerald-50 px-4 py-3 text-base font-medium text-emerald-900">{state.ok}</p>
+    <form
+      ref={ref}
+      action={formAction}
+      onSubmit={(e) => {
+        submitted.current = new FormData(e.currentTarget);
+      }}
+      className={className}
+    >
+      {msg ? (
+        <p
+          ref={msgRef}
+          role={state?.error ? 'alert' : 'status'}
+          className={`rounded-xl border-2 px-4 py-3 text-base font-medium ${
+            state?.error ? 'border-red-300 bg-red-50 text-red-900' : 'border-emerald-300 bg-emerald-50 text-emerald-900'
+          }`}
+        >
+          {msg}
+        </p>
       ) : null}
       {children}
     </form>

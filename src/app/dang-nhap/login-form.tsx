@@ -1,14 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { btn, inputCls } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
+
+// Trình duyệt nhúng trong app (Zalo, Facebook, Messenger, Instagram, TikTok): Google chặn đăng nhập
+// ("disallowed_useragent") và link email mở ở trình duyệt khác nên mất phiên PKCE.
+const IN_APP_BROWSER = /Zalo|FBAN|FBAV|FB_IAB|Instagram|musical_ly|TikTok/i;
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [inApp, setInApp] = useState(false);
+  useEffect(() => setInApp(IN_APP_BROWSER.test(navigator.userAgent)), []);
 
   const redirectTo = () => `${window.location.origin}/auth/callback`;
 
@@ -45,6 +51,12 @@ export function LoginForm() {
 
   return (
     <div className="space-y-5">
+      {inApp ? (
+        <p role="alert" className="rounded-xl border-2 border-amber-300 bg-amber-50 px-4 py-3 text-base text-amber-900">
+          Bạn đang mở trang trong Zalo/Facebook nên đăng nhập sẽ không thành công. Hãy bấm nút <b>⋯</b> ở góc màn hình,
+          chọn <b>Mở bằng trình duyệt</b> (Chrome hoặc Safari), rồi đăng nhập ở đó.
+        </p>
+      ) : null}
       {error ? <p role="alert" className="rounded-xl border-2 border-red-300 bg-red-50 px-4 py-3 text-base text-red-900">{error}</p> : null}
       <button type="button" onClick={google} disabled={busy} className={btn('primary')}>
         Đăng nhập bằng Google

@@ -88,7 +88,7 @@ export default function TermsPage() {
 
       <Section n={7} title="Hủy ca">
         <UL>
-          <li>Người làm hủy khi còn <b>hơn 2 tiếng</b> trước ca: không bị ghi nhận gì.</li>
+          <li>Người làm hủy khi còn <b>hơn 2 tiếng</b> trước ca: không bị tính là hủy sát giờ.</li>
           <li>
             Hủy khi còn <b>dưới 2 tiếng</b>: được ghi vào lịch sử là &ldquo;hủy sát giờ&rdquo; và nhóm vận hành được báo.
           </li>

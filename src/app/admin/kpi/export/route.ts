@@ -26,7 +26,7 @@ export async function GET() {
     ...KPI_LABELS.map(([key, label, unit]) => [label, kpis[key] ?? null, unit]),
     ['Thời điểm xuất', fmtDateTime(new Date().toISOString()), ''],
   ];
-  const csv = '﻿' + rows.map((r) => r.map(cell).join(',')).join('\r\n') + '\r\n';
+  const csv = '\uFEFF' + rows.map((r) => r.map(cell).join(',')).join('\r\n') + '\r\n';
   return new Response(csv, {
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',

@@ -3,9 +3,11 @@ import type { Shift } from './types';
 
 // Server Vercel chạy giờ UTC => LUÔN định dạng theo múi giờ Việt Nam.
 const dateFmt = new Intl.DateTimeFormat('vi-VN', { timeZone: TZ, weekday: 'short', day: '2-digit', month: '2-digit' });
-const timeFmt = new Intl.DateTimeFormat('vi-VN', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false });
+// hourCycle 'h23' (không dùng hour12: false) để nửa đêm luôn là "00:00", không bao giờ "24:00" — giá trị
+// này còn được điền vào <input type="time"> ở form nhân bản ca.
+const timeFmt = new Intl.DateTimeFormat('vi-VN', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 const fullFmt = new Intl.DateTimeFormat('vi-VN', {
-  timeZone: TZ, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false,
+  timeZone: TZ, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
 });
 const isoDateFmt = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
 

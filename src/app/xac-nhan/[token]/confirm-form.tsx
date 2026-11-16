@@ -120,7 +120,7 @@ export function ConfirmForm({ token, workers }: { token: string; workers: Worker
                     placeholder="Ví dụ: chăm chỉ, lễ phép"
                     className={inputCls}
                   />
-                  <span className="mt-1 block text-sm text-slate-600">
+                  <span className="mt-1 block text-base text-slate-600">
                     Tối đa 500 ký tự. Nhận xét sẽ hiện trên hồ sơ ca làm công khai của người làm.
                   </span>
                 </label>
@@ -137,8 +137,10 @@ export function ConfirmForm({ token, workers }: { token: string; workers: Worker
       })}
 
       {missing > 0 ? (
-        <p className="text-base text-slate-600">
-          {workers.length > 1 ? `Còn ${missing} người chưa chọn xong.` : 'Anh/chị chọn xong các mục ở trên rồi bấm gửi.'}
+        <p className="rounded-xl border-2 border-amber-300 bg-amber-50 px-4 py-3 text-base font-medium text-amber-900">
+          {workers.length > 1
+            ? `Còn ${missing} người chưa chọn xong (đã làm / không đến, đúng giờ, số sao).`
+            : 'Anh/chị chọn xong các mục ở trên (đã làm / không đến, đúng giờ, số sao) rồi bấm gửi.'}
         </p>
       ) : null}
       <SubmitButton confirm="Gửi xác nhận? Sau khi gửi sẽ không sửa lại được.">Gửi xác nhận</SubmitButton>
