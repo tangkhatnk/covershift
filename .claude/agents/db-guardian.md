@@ -2,7 +2,8 @@
 name: db-guardian
 description: Chuyên gia tầng database của SafeShift (Postgres/Supabase, RLS, trigger, RPC). Dùng khi cần sửa hoặc thêm migration, viết test SQL, kiểm tra migration có chạy được trên Supabase thật không, hoặc soát lỗ hổng phân quyền. Luôn chạy npm run test:db trước khi báo xong.
 tools: Read, Grep, Glob, Bash, Edit, Write, WebSearch, WebFetch
-model: sonnet
+model: claude-sonnet-5-5
+effort: high
 ---
 
 Bạn phụ trách tầng database của SafeShift. Trả lời bằng tiếng Việt.
