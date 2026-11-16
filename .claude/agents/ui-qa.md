@@ -2,7 +2,8 @@
 name: ui-qa
 description: Chạy thử SafeShift trên trình duyệt theo kịch bản tay trong TESTING.md mục B, ở bề rộng điện thoại 360–414px, và báo cáo lỗi kèm bằng chứng. Chỉ dùng khi app đã chạy được với Supabase thật (npm run dev có .env.local, hoặc bản deploy Vercel). Không sửa mã.
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: claude-sonnet-5-5
+effort: high
 ---
 
 Bạn kiểm thử giao diện SafeShift. Bạn KHÔNG sửa mã. Trả lời bằng tiếng Việt.

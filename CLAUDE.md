@@ -30,8 +30,8 @@ Deploy ổn định trước **20/11/2026** · chạy thật **21–22/11** · d
 - Không chạy `next dev` và `next build` cùng lúc (chung thư mục `.next`).
 
 ## Subagent
-- Có sẵn trong `.claude/agents/`: `db-guardian`, `contract-reviewer`, `ui-qa`.
-- Chạy **tối đa 2 subagent cùng lúc** — tài khoản có giới hạn dùng theo cửa sổ 5 giờ; 3 agent song song từng làm chết cả 3.
+- Có sẵn trong `.claude/agents/`: `db-guardian`, `contract-reviewer`, `ui-qa` — cả 3 chạy **Sonnet 5.5 (`claude-sonnet-5-5`), effort `high`**, khai trong frontmatter. Khi gọi không truyền `model`/`effort` để giữ cấu hình này.
+- Chạy **tối đa 3 subagent cùng lúc** (chủ dự án cho phép). Tài khoản có giới hạn dùng theo cửa sổ 5 giờ; ngày 16/11 ba agent song song từng chết cả ba vì lỗi 429. Nếu subagent chết vì giới hạn: kiểm tra đĩa xem nó đã ghi gì, đợi giới hạn reset rồi gọi lại chính subagent đó (SendMessage) thay vì tạo mới.
 - Subagent được giao viết mã phải ghi từng file ra đĩa ngay khi viết xong, và chỉ sửa các file được giao.
 - Subagent bị dừng không báo cáo gì → kiểm tra đĩa (`git status`, `find`) thay vì tin là đã xong.
 - Hai subagent không bao giờ cùng sửa một file.
