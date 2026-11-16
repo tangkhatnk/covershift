@@ -342,6 +342,9 @@ select pg_temp.t_true('10k. KPI trả đủ 12 chỉ số', '00000000-0000-4000-
   $$select (select count(*) from jsonb_object_keys(admin_kpis())) = 12$$);
 select pg_temp.t_true('10l. Bảng điều phối 24 giờ tới chạy được', '00000000-0000-4000-a000-000000000001',
   $$select jsonb_typeof(admin_dispatch_board() -> 'upcoming') = 'array'$$);
+select pg_temp.t_true('10m. Không user demo nào có mật khẩu (không đăng nhập bằng mật khẩu được)', null,
+  $$select count(*) >= 16 and count(*) filter (where coalesce(encrypted_password, '') <> '') = 0
+    from auth.users where email like '%@demo.safeshift.test'$$);
 
 -- ---------------------------------------------------------------
 -- 11. Xóa tài khoản và toàn bộ dữ liệu
