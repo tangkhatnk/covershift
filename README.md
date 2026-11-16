@@ -1,2 +1,197 @@
-# covershift
-Web app kết nối ca làm an toàn giữa quán nhỏ và học sinh, sinh viên Vũng Tàu
+# SafeShift
+
+Web app kết nối ca làm ngắn hạn giữa cơ sở dịch vụ nhỏ ở Vũng Tàu (quán cà phê, nhà hàng, homestay, khách sạn nhỏ) và học sinh từ 15 tuổi / sinh viên.
+
+**Stack:** Next.js 15 (App Router) · TypeScript · Tailwind 3 · Supabase (Postgres, Auth, RLS, Edge Functions) · Vercel. Chỉ dùng gói miễn phí.
+
+> SafeShift chỉ kết nối người làm và nơi thuê. Lương, hợp đồng và điều kiện làm việc do hai bên tự thỏa thuận. Không bao giờ thu phí người làm.
+
+---
+
+## 1. Kiến trúc trong 1 phút
+
+```
+Trình duyệt ──► Next.js trên Vercel (Server Component + Server Action, dùng anon key + cookie phiên)
+                    │  supabase.rpc(...) / select
+                    ▼
+              Supabase Postgres
+              ├─ RLS: mọi bảng chỉ có policy SELECT. Client KHÔNG insert/update/delete trực tiếp được bảng nào.
+              ├─ RPC (SECURITY DEFINER): cách DUY NHẤT để ghi. Mỗi hàm tự kiểm tra vai trò + quy tắc.
+              └─ Trigger/constraint: chặn lần hai các quy tắc cốt lõi (tuổi, lương tối thiểu, cơ sở đã xác minh,
+                 giờ làm của người dưới 18, 40 giờ/tuần, số chỗ) — kể cả khi ghi bằng service-role.
+```
+
+- Ứng dụng **không dùng service-role key**. Vercel chỉ giữ anon key. Lộ mã nguồn frontend không lộ quyền gì.
+- Số điện thoại nằm ở bảng riêng `private_contacts`; chỉ lộ qua `get_shift_contacts()` cho hai bên đã ghép ca.
+- Trang không cần đăng nhập (`/xac-nhan/[token]`, `/dong-y/[token]`, `/h/[slug]`) gọi RPC bằng quyền `anon`, bảo vệ bằng token ngẫu nhiên 244 bit.
+
+### Sơ đồ route
+
+| Đường dẫn | Ai dùng | Việc |
+|---|---|---|
+| `/` | mọi người | Giới thiệu; đã đăng nhập thì tự chuyển theo vai trò |
+| `/dang-nhap`, `/auth/callback`, `/auth/dang-xuat` | mọi người | Google OAuth / magic link |
+| `/dang-ky`, `/dang-ky/nguoi-lam`, `/dang-ky/chu-quan` | người mới | Chọn vai trò, đồng ý xử lý dữ liệu, đăng ký |
+| `/dieu-khoan`, `/chinh-sach-du-lieu` | mọi người | Điều khoản, chính sách dữ liệu |
+| `/ca`, `/ca/[id]` | người làm | Feed ca (gấp lên đầu, lọc ngày/khu vực/loại việc); nhận ca, hủy, xem SĐT quán, trả lời "đã trả đủ chưa", báo cáo |
+| `/ca-cua-toi` | người làm | Ca sắp tới / cần trả lời / đã qua |
+| `/ho-so` | người làm | Trạng thái duyệt, link phụ huynh, bật/tắt hồ sơ công khai, sửa thông tin |
+| `/h/[slug]` | công khai | Hồ sơ ca làm (in / lưu PDF), không có SĐT |
+| `/dong-y/[token]` | phụ huynh | Phiếu đồng ý, không đăng nhập |
+| `/quan`, `/quan/dang-ca`, `/quan/ca/[id]` | chủ quán | Danh sách ca; đăng ca / nhân bản (`?from=id`); xem người chính–dự phòng, đổi thứ tự, hủy ca, link xác nhận |
+| `/xac-nhan/[token]` | chủ quán | Xác nhận sau ca, không đăng nhập, dùng một lần, hết hạn 72 giờ |
+| `/tai-khoan` | mọi vai trò | Đăng xuất, xóa tài khoản và toàn bộ dữ liệu |
+| `/admin` | admin | Bảng điều phối 24 giờ tới, sao chép tin nhắc ca, "người chính báo bận", ca chờ xác nhận |
+| `/admin/co-so`, `/admin/nguoi-lam` | admin | Duyệt cơ sở (checklist), duyệt người làm + phiếu phụ huynh, khóa/mở, gỡ cơ sở |
+| `/admin/bao-cao`, `/admin/kpi`, `/admin/kpi/export`, `/admin/nhat-ky` | admin | Hộp báo cáo; KPI + CSV + cấu hình lương tối thiểu; audit log |
+
+### Cấu trúc thư mục
+
+```
+supabase/migrations/0001_init.sql   toàn bộ schema, trigger, RPC, RLS, quyền
+supabase/seed.sql                   dữ liệu demo (chạy lại được nhiều lần)
+supabase/tests/edge_cases.sql       79 test biên ở tầng database
+supabase/functions/shift-reminders  Edge Function nhắc ca qua email (tùy chọn, mặc định tắt)
+db-test/                            chạy migration + seed + test + chạy đua trên Postgres nhúng (không cần Docker)
+src/app/actions.ts                  mọi server action (mỗi action = 1 lời gọi RPC)
+src/lib, src/components             hằng số, định dạng giờ VN, kiểu dữ liệu, UI dùng chung
+```
+
+---
+
+## 2. Tạo Supabase project
+
+1. https://supabase.com → **New project** (region Singapore). Lưu mật khẩu database.
+2. **SQL Editor** → dán toàn bộ `supabase/migrations/0001_init.sql` → **Run**. (Hoặc dùng CLI: `supabase link --project-ref <ref>` rồi `supabase db push`.)
+3. (Chỉ cho demo/thử nghiệm) dán `supabase/seed.sql` → **Run**.
+4. **Project Settings → API**: chép `Project URL` và `anon public key`.
+
+### Tạo tài khoản admin
+
+Admin đăng nhập vào web **một lần** (Google hoặc magic link; dừng ở màn hình "Đăng ký", không cần điền), rồi chạy trong SQL Editor:
+
+```sql
+select public.make_admin('email-cua-admin@gmail.com', 'Tên hiển thị');
+```
+
+Tải lại trang web → vào thẳng `/admin`. Hàm `make_admin` không gọi được từ client.
+
+---
+
+## 3. Đăng nhập: Google OAuth, magic link, redirect URL
+
+**Authentication → URL Configuration**
+
+- **Site URL**: `https://<ten-du-an>.vercel.app`
+- **Redirect URLs** (thêm cả hai):
+  - `https://<ten-du-an>.vercel.app/auth/callback`
+  - `http://localhost:3000/auth/callback`
+
+**Google OAuth**
+
+1. https://console.cloud.google.com → tạo project → **APIs & Services → OAuth consent screen**: loại *External*, điền tên app + email, rồi **Publish app** (để ở chế độ *Testing* thì chỉ email trong danh sách test đăng nhập được).
+2. **Credentials → Create credentials → OAuth client ID → Web application**:
+   - *Authorized JavaScript origins*: `https://<ten-du-an>.vercel.app`, `http://localhost:3000`
+   - *Authorized redirect URIs*: `https://<project-ref>.supabase.co/auth/v1/callback` (đây là địa chỉ của **Supabase**, không phải của web)
+3. Chép Client ID + Client secret vào **Supabase → Authentication → Providers → Google** → Enable.
+
+**Magic link (email)**
+
+- **Authentication → Providers → Email**: bật *Email*, tắt *Confirm email* cũng được (magic link tự xác minh).
+- ⚠️ SMTP mặc định của Supabase chỉ gửi được **vài email mỗi giờ** và chỉ nên dùng thử. Trước ngày chạy thật, vào **Authentication → SMTP Settings** và nối SMTP riêng (Resend gói miễn phí: host `smtp.resend.com`, port `465`, user `resend`, password = API key; cần một tên miền đã xác minh). Nếu không có tên miền: hướng dẫn mọi người **đăng nhập bằng Google** — magic link chỉ là phương án phụ.
+- Email template mặc định (`{{ .ConfirmationURL }}`) chạy được ngay với `/auth/callback`.
+
+---
+
+## 4. Biến môi trường
+
+Chép `.env.example` thành `.env.local`:
+
+| Biến | Giá trị |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon public key |
+| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` (local) hoặc `https://<ten-du-an>.vercel.app` — dùng để tạo link gửi phụ huynh / chủ quán |
+
+Không có biến bí mật nào phía web.
+
+## 5. Chạy local
+
+```bash
+npm install
+```
+
+```bash
+npm run dev
+```
+
+Mở http://localhost:3000 (cần Node 20+). Web local nối thẳng tới Supabase project trên cloud.
+
+Kiểm tra tầng database mà không cần Supabase/Docker (Postgres nhúng, tải về lần đầu ~1 phút):
+
+```bash
+npm run test:db
+```
+
+Kỳ vọng: `79/79 test đạt` và 5 dòng `✔ chạy đua`.
+
+## 6. Deploy Vercel
+
+1. Đẩy mã nguồn lên GitHub → https://vercel.com → **Add New → Project** → chọn repo (framework tự nhận Next.js).
+2. **Environment Variables**: thêm 3 biến ở mục 4 (với `NEXT_PUBLIC_SITE_URL` là domain Vercel thật).
+3. **Deploy**. Sau đó quay lại mục 3 để điền đúng domain vào Supabase (Site URL, Redirect URLs) và Google (origins).
+4. Đổi domain → phải sửa cả 3 chỗ: biến `NEXT_PUBLIC_SITE_URL` (rồi redeploy), Supabase URL Configuration, Google OAuth origins.
+
+## 7. Trước ngày chạy thật (21–22/11)
+
+```sql
+-- 1) Xóa toàn bộ dữ liệu demo (cascade sạch mọi bảng)
+delete from auth.users where email like '%@demo.safeshift.test';
+delete from public.reports where reporter_id is null and subject_id is null and shift_id is null;
+delete from public.admin_audit_log;
+
+-- 2) Kiểm tra cấu hình
+select * from public.app_config;   -- min_hourly_wage = 25500, weekly_hours_cap = 40
+```
+
+- Mức lương tối thiểu và giới hạn giờ/tuần đổi được ở `/admin/kpi` (có ghi audit log).
+- Gói Supabase miễn phí **tự tạm dừng project sau khoảng 1 tuần không có truy cập**: mở web/SQL editor mỗi vài ngày từ nay đến 26/11.
+- Sao lưu trước demo: **Database → Backups** không có ở gói miễn phí → xuất CSV KPI ở `/admin/kpi` sau đợt chạy thật và giữ lại.
+
+## 8. Nhắc ca qua email (tùy chọn — mặc định TẮT)
+
+Kênh nhắc chính là nút **"Sao chép tin nhắn nhắc ca"** ở `/admin` (dán vào Zalo). Email là phần phụ; chỉ bật khi đã có tên miền xác minh trên Resend (gói miễn phí không gửi được cho người nhận tùy ý nếu thiếu tên miền).
+
+```bash
+supabase secrets set RESEND_API_KEY=re_xxx CRON_SECRET=<chuoi-ngau-nhien> REMINDER_FROM="SafeShift <nhac-ca@ten-mien>" SITE_URL=https://<ten-du-an>.vercel.app
+```
+
+```bash
+supabase functions deploy shift-reminders --no-verify-jwt
+```
+
+Bật extension `pg_cron` và `pg_net` (Database → Extensions), rồi chạy trong SQL Editor:
+
+```sql
+select cron.schedule('shift-reminders', '*/10 * * * *', $$
+  select net.http_post(
+    url := 'https://<project-ref>.supabase.co/functions/v1/shift-reminders',
+    headers := jsonb_build_object('Content-Type', 'application/json', 'x-cron-secret', '<chuoi-ngau-nhien>'),
+    body := '{}'::jsonb)
+$$);
+-- tắt: select cron.unschedule('shift-reminders');
+```
+
+Link xác nhận sau ca **không phụ thuộc cron**: token được sinh khi chủ quán mở trang ca hoặc admin mở bảng điều phối, và hạn luôn tính là *giờ kết thúc ca + 72 giờ*.
+
+## 9. Việc vận hành hay gặp
+
+| Việc | Cách làm |
+|---|---|
+| Duyệt cơ sở | `/admin/co-so` → điền phiếu xác minh (đúng địa chỉ, đúng người liên hệ là bắt buộc) |
+| Duyệt người dưới 18 | Người làm vào `/ho-so` sao chép link gửi phụ huynh → phụ huynh điền → `/admin/nguoi-lam` bấm Duyệt |
+| Nhắc ca | `/admin` → "Sao chép tin nhắn nhắc ca" → dán Zalo |
+| Người chính báo bận | `/admin` → "Người chính báo bận" → hệ thống đưa người dự phòng lên, ghi sự cố; admin gọi báo hai bên |
+| Gửi link xác nhận cho chủ quán | `/admin` → mục "Ca chờ chủ quán xác nhận" → sao chép tin nhắn |
+| Đổi tên / ngày sinh người làm | Không có trong app (chống gian lận tuổi). Sửa bằng SQL với quyền postgres |
+| Thêm admin | `select public.make_admin('email');` |
