@@ -50,7 +50,7 @@ Trình duyệt ──► Next.js trên Vercel (Server Component + Server Action,
 ```
 supabase/migrations/0001_init.sql   toàn bộ schema, trigger, RPC, RLS, quyền
 supabase/seed.sql                   dữ liệu demo (chạy lại được nhiều lần)
-supabase/tests/edge_cases.sql       84 test biên ở tầng database
+supabase/tests/edge_cases.sql       85 test biên ở tầng database
 supabase/tests/check_before_migration.sql  kiểm project Supabase mới TRƯỚC khi dán migration (chỉ đọc)
 supabase/tests/privileges_check.sql kiểm quyền bảng/hàm của anon/authenticated SAU migration (chỉ đọc)
 supabase/functions/shift-reminders  Edge Function nhắc ca qua email (tùy chọn, mặc định tắt)
@@ -141,7 +141,7 @@ Kiểm tra tầng database mà không cần Supabase/Docker (Postgres nhúng, t�
 npm run test:db
 ```
 
-Kỳ vọng: `84/84 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM` và 5 dòng `✔ chạy đua`.
+Kỳ vọng: `85/85 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM` và 5 dòng `✔ chạy đua`.
 
 ## 6. Deploy Vercel
 

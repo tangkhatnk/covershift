@@ -2,7 +2,7 @@
 
 Có hai tầng:
 
-- **A. Test tự động ở tầng database** — 84 test + kiểm quyền + chạy đua, không cần Supabase. Đây là nơi mọi quy tắc nghiệp vụ được chặn.
+- **A. Test tự động ở tầng database** — 85 test + kiểm quyền + chạy đua, không cần Supabase. Đây là nơi mọi quy tắc nghiệp vụ được chặn.
 - **B. Test tay trên giao diện** — chạy trên bản deploy (hoặc local) nối với Supabase thật, sau khi đã chạy `seed.sql`.
 
 ---
@@ -13,7 +13,7 @@ Có hai tầng:
 npm run test:db
 ```
 
-Lệnh này dựng một Postgres nhúng, giả lập môi trường Supabase (role `anon` / `authenticated`, `auth.uid()`), chạy `0001_init.sql` → `seed.sql` → `supabase/tests/edge_cases.sql`, rồi `supabase/tests/privileges_check.sql` (quyền bảng/hàm của `anon`/`authenticated`), rồi chạy đua thật trên nhiều kết nối. Kỳ vọng: `84/84 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM` + 5 dòng `✔ chạy đua`.
+Lệnh này dựng một Postgres nhúng, giả lập môi trường Supabase (role `anon` / `authenticated`, `auth.uid()`), chạy `0001_init.sql` → `seed.sql` → `supabase/tests/edge_cases.sql`, rồi `supabase/tests/privileges_check.sql` (quyền bảng/hàm của `anon`/`authenticated`), rồi chạy đua thật trên nhiều kết nối. Kỳ vọng: `85/85 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM` + 5 dòng `✔ chạy đua`.
 
 Lưu ý: Postgres nhúng chạy bằng superuser nên **không bắt được lỗi quyền riêng của Supabase** (role `postgres` ở Supabase không phải superuser). Vì vậy trên Supabase thật chạy thêm `check_before_migration.sql` trước khi dán migration và `privileges_check.sql` sau đó (README mục 2).
 
@@ -43,6 +43,7 @@ Các trường hợp biên bắt buộc và test tương ứng:
 | Hủy < 2 tiếng → `late_cancel` | 8c | `cancel_claim` + báo cáo cho admin |
 | Trả lời khác "Đủ" → báo cáo | 9a | trigger `payment_feedback_report` |
 | Tự nâng quyền / ghi thẳng bảng / gọi hàm nội bộ | 10a–10f | quyền bảng + quyền hàm |
+| Đăng nhập bằng mật khẩu vào tài khoản demo | 10m | seed không đặt mật khẩu (`encrypted_password = ''`) |
 | Thao tác admin có audit log | 10g, 10h | mọi RPC `admin_*` |
 | Xóa tài khoản xóa sạch dữ liệu | 11a | `delete_my_account` + `ON DELETE CASCADE` |
 

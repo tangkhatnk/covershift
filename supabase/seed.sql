@@ -1,8 +1,8 @@
 -- =====================================================================
 -- SafeShift — seed demo. Chạy lại bao nhiêu lần cũng được (tự xóa dữ liệu demo cũ).
 -- 1 admin, 5 chủ quán ("Quán Demo 1…5"), 10 người làm (3 người dưới 18), 12 ca đủ trạng thái.
--- Mọi tài khoản demo có email @demo.safeshift.test và mật khẩu: SafeShift-demo-2026
--- (mật khẩu chỉ để chạy script test; giao diện chỉ có Google / magic link).
+-- Mọi tài khoản demo có email @demo.safeshift.test và KHÔNG có mật khẩu (encrypted_password = '',
+-- như user tạo qua Google OAuth) nên không đăng nhập bằng mật khẩu được; giao diện chỉ có Google / magic link.
 -- TRƯỚC KHI CHẠY THẬT: delete from auth.users where email like '%@demo.safeshift.test';
 -- =====================================================================
 begin;
@@ -33,7 +33,7 @@ with u(id, email) as (values
                           raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
                           confirmation_token, recovery_token, email_change, email_change_token_new)
   select '00000000-0000-0000-0000-000000000000', id, 'authenticated', 'authenticated', email,
-         extensions.crypt('SafeShift-demo-2026', extensions.gen_salt('bf')), now(),
+         '', now(),
          '{"provider":"email","providers":["email"]}', '{}', now(), now(), '', '', '', ''
   from u
   returning id, email
