@@ -138,8 +138,9 @@ function PendingCard({ s }: { s: PendingConfirmation }) {
   );
 }
 
-export default async function DispatchPage() {
+export default async function DispatchPage({ searchParams }: { searchParams: Promise<{ 'bao-ban'?: string }> }) {
   const { supabase } = await requireRole('admin');
+  const busyResult = (await searchParams)['bao-ban'];
   const { data, error } = await supabase.rpc('admin_dispatch_board');
   if (error) {
     return (
@@ -160,6 +161,17 @@ export default async function DispatchPage() {
       <PageTitle sub={`Cập nhật lúc ${fmtDateTime(new Date(now).toISOString())}. Tải lại trang để xem mới nhất.`}>
         Bảng điều phối
       </PageTitle>
+
+      {/* Kết quả "Người chính báo bận" (action primaryBusy chuyển hướng về đây). */}
+      {busyResult === 'da-thay' ? (
+        <Alert tone="green">
+          Đã chuyển người dự phòng lên làm người chính và ghi sự cố. Hãy gọi báo cho người dự phòng và chủ quán.
+        </Alert>
+      ) : busyResult === 'khong-du-phong' ? (
+        <Alert tone="red">
+          <b>Đã ghi sự cố nhưng ca này KHÔNG có người dự phòng.</b> Cần tìm người thay ngay.
+        </Alert>
+      ) : null}
 
       <section className="space-y-3">
         <h2 className="text-xl font-bold text-slate-900">Ca trong 24 giờ tới ({upcoming.length})</h2>

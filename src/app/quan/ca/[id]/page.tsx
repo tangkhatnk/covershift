@@ -2,9 +2,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ActionForm, SubmitButton } from '@/components/client';
 import { Alert, Badge, Card, Empty, PageTitle, Stars, Tel, btn } from '@/components/ui';
-import { cancelShift, swapRoles } from '@/app/actions';
+import { cancelShift, hideComment, swapRoles } from '@/app/actions';
 import { requireRole } from '@/lib/auth';
 import { AREA_LABEL, JOB_LABEL } from '@/lib/constants';
+import { friendlyError } from '@/lib/errors';
 import { fmtDateTime, fmtMoney, fmtRange, hoursBetween, shiftState, SHIFT_STATE_LABEL, SHIFT_STATE_TONE } from '@/lib/format';
 import type { Contacts, ShiftDetail } from '@/lib/types';
 
@@ -38,7 +39,9 @@ export default async function EmployerShiftPage({
   if (!UUID_RE.test(id)) notFound();
 
   const { data, error } = await supabase.rpc('shift_detail', { p_shift: id });
-  if (error || !data) notFound();
+  // P0001 = "Không tìm thấy ca." từ database. Lỗi kỹ thuật (mạng…) thì báo thử lại, đừng giả là ca không tồn tại.
+  if (error?.code === 'P0001' || (!error && !data)) notFound();
+  if (error) return <Alert tone="red">{friendlyError(error)}</Alert>;
   const shift = data as ShiftDetail;
   const isAdmin = profile.role === 'admin';
   if (!shift.is_owner && !isAdmin) notFound();
@@ -121,9 +124,20 @@ export default async function EmployerShiftPage({
                   ) : null}
                   <span className="text-xl"><Stars value={r.rating} /></span>
                 </div>
-                {r.comment ? <p className="text-base text-slate-800">“{r.comment}”</p> : null}
+                {r.comment ? <p className="break-words text-base text-slate-800">“{r.comment}”</p> : null}
                 {r.comment && r.comment_hidden ? (
-                  <p className="text-sm text-slate-500">(Nhận xét này đã được nhóm vận hành ẩn khỏi hồ sơ công khai.)</p>
+                  <p className="text-base text-slate-500">(Nhận xét này đã được nhóm vận hành ẩn khỏi hồ sơ công khai.)</p>
+                ) : null}
+                {isAdmin && r.comment ? (
+                  <ActionForm action={hideComment} className="space-y-2 pt-1">
+                    <input type="hidden" name="result_id" value={r.id} />
+                    <input type="hidden" name="shift_id" value={shift.id} />
+                    <input type="hidden" name="hidden" value={r.comment_hidden ? 'false' : 'true'} />
+                    <SubmitButton variant="secondary" full={false}
+                      confirm={r.comment_hidden ? undefined : `Ẩn nhận xét về ${r.name} khỏi hồ sơ công khai?`}>
+                      {r.comment_hidden ? 'Hiện lại' : 'Ẩn nhận xét'}
+                    </SubmitButton>
+                  </ActionForm>
                 ) : null}
               </li>
             ))}
@@ -134,7 +148,11 @@ export default async function EmployerShiftPage({
       <section className="space-y-3">
         <h2 className="text-xl font-bold text-slate-900">Người nhận ca</h2>
         {workers.length === 0 ? (
-          contactError && claimed ? (
+          shift.status === 'cancelled' ? (
+            <Alert tone="gray">
+              Ca đã hủy. Nếu đã có người nhận mà anh/chị chưa kịp báo cho họ, vui lòng liên hệ nhóm vận hành.
+            </Alert>
+          ) : contactError && claimed ? (
             <Alert tone="gray">Tên và số điện thoại người làm chỉ hiện đến 7 ngày sau ca.</Alert>
           ) : (
             <Empty>Chưa ai nhận ca này.</Empty>
@@ -171,7 +189,7 @@ export default async function EmployerShiftPage({
                   <ul className="divide-y divide-slate-200">
                     {backups.map((w) => <WorkerRow key={w.claim_id} w={w} />)}
                   </ul>
-                  <p className="text-sm text-slate-600">Nếu người chính hủy, người dự phòng tự động được lên thay.</p>
+                  <p className="text-base text-slate-600">Nếu người chính hủy, người dự phòng tự động được lên thay.</p>
                 </>
               ) : (
                 <p className="py-2 text-base text-slate-600">Chưa có người dự phòng.</p>
@@ -181,7 +199,9 @@ export default async function EmployerShiftPage({
         )}
       </section>
 
-      <Link href={`/quan/dang-ca?from=${shift.id}`} className={btn('secondary')}>Nhân bản ca này</Link>
+      {shift.is_owner ? (
+        <Link href={`/quan/dang-ca?from=${shift.id}`} className={btn('secondary')}>Nhân bản ca này</Link>
+      ) : null}
 
       {notStarted ? (
         <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">

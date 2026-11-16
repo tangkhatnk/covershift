@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Alert, Badge, Empty, Field, PageTitle, ShiftCard, btn, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { AREA_LABEL, JOB_LABEL } from '@/lib/constants';
+import { friendlyError } from '@/lib/errors';
 import { vnDateInput } from '@/lib/format';
 import type { Shift } from '@/lib/types';
 
@@ -9,6 +10,12 @@ export const metadata = { title: 'Tìm ca' };
 
 const linkCls = 'font-semibold underline underline-offset-4';
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? '';
+/** Ngày YYYY-MM-DD có thật (loại 2026-13-45, 2026-02-30). */
+const isYmd = (v: string) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+  const d = new Date(`${v}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
+};
 
 export default async function FeedPage({ searchParams }: {
   searchParams: Promise<{ ngay?: string | string[]; khu?: string | string[]; viec?: string | string[] }>;
@@ -16,9 +23,10 @@ export default async function FeedPage({ searchParams }: {
   const { supabase, profile, user } = await requireRole('worker', 'admin');
   const sp = await searchParams;
   // Chỉ nhận giá trị hợp lệ; giá trị lạ coi như không lọc.
-  const ngay = /^\d{4}-\d{2}-\d{2}$/.test(one(sp.ngay)) ? one(sp.ngay) : '';
-  const khu = one(sp.khu) in AREA_LABEL ? one(sp.khu) : '';
-  const viec = one(sp.viec) in JOB_LABEL ? one(sp.viec) : '';
+  const ngay = isYmd(one(sp.ngay)) ? one(sp.ngay) : '';
+  // Object.hasOwn thay cho `in`: `in` coi cả "constructor", "toString"… là hợp lệ.
+  const khu = Object.hasOwn(AREA_LABEL, one(sp.khu)) ? one(sp.khu) : '';
+  const viec = Object.hasOwn(JOB_LABEL, one(sp.viec)) ? one(sp.viec) : '';
   const filtering = Boolean(ngay || khu || viec);
 
   let approval: string | null = null;
@@ -96,7 +104,7 @@ export default async function FeedPage({ searchParams }: {
       </form>
 
       {error ? (
-        <Alert tone="red">{error.message}</Alert>
+        <Alert tone="red">{friendlyError(error)}</Alert>
       ) : shifts.length === 0 ? (
         <Empty>
           {filtering ? 'Không có ca nào khớp bộ lọc. Thử bỏ lọc xem sao.' : 'Hiện chưa có ca nào đang tìm người. Bạn quay lại sau nhé.'}

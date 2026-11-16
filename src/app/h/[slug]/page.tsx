@@ -22,7 +22,15 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
   const { slug } = await params;
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('get_public_profile', { p_slug: slug });
-  const p = error ? null : (data as PublicProfile);
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <PageTitle>Hồ sơ ca làm</PageTitle>
+        <Alert tone="red"><span className="text-lg">Chưa tải được hồ sơ. Vui lòng thử lại sau ít phút.</span></Alert>
+      </div>
+    );
+  }
+  const p = data as PublicProfile;
 
   if (!p) {
     return (

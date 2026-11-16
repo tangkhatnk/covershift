@@ -19,8 +19,10 @@ function ReviewForm({ w }: { w: AdminWorker }) {
   return (
     <ActionForm action={reviewWorker} className="space-y-3">
       <input type="hidden" name="worker_id" value={w.user_id} />
+      {/* textarea, không dùng input: nhấn Enter trong input sẽ bấm nút submit đầu tiên ("Duyệt").
+          Để trống: ghi chú cũ (vd. lý do từ chối) đã hiện ở trên, không tự thành ghi chú của lần quyết định mới. */}
       <Field label="Ghi chú">
-        <input name="note" defaultValue={w.review_note ?? ''} maxLength={300} className={inputCls} />
+        <textarea name="note" rows={2} maxLength={300} className={inputCls} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <SubmitButton name="decision" value="approve">Duyệt</SubmitButton>

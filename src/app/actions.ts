@@ -7,19 +7,9 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { friendlyError as friendly } from '@/lib/errors';
 import { normalizePhone } from '@/lib/format';
 import type { ActionState } from '@/lib/types';
-
-type RpcError = { code?: string; message: string };
-
-function friendly(error: RpcError): string {
-  // Lỗi nghiệp vụ do database raise (tiếng Việt) thì hiện nguyên văn; lỗi kỹ thuật thì hiện câu chung.
-  const business = error.code === 'P0001' || (error.code === '42501' && !/^permission denied/i.test(error.message));
-  if (business) return error.message;
-  if (error.code === '22P02') return 'Dữ liệu chưa hợp lệ. Vui lòng kiểm tra lại các ô đã nhập.';
-  console.error('[rpc]', error.code, error.message);
-  return 'Có lỗi xảy ra. Vui lòng thử lại sau ít phút.';
-}
 
 const str = (fd: FormData, key: string) => String(fd.get(key) ?? '').trim();
 const strOrNull = (fd: FormData, key: string) => str(fd, key) || null;
@@ -276,9 +266,8 @@ export async function primaryBusy(_: ActionState, fd: FormData): Promise<ActionS
   if (error) return { error: friendly(error) };
   revalidatePath('/admin');
   revalidatePath('/admin/bao-cao');
-  return data
-    ? { ok: 'Đã chuyển người dự phòng lên làm người chính và ghi sự cố. Hãy gọi báo cho người dự phòng và chủ quán.' }
-    : { error: 'Đã ghi sự cố nhưng ca này KHÔNG có người dự phòng. Cần tìm người thay ngay.' };
+  // Form nằm trong dòng của người chính; dòng đó biến mất sau khi tải lại nên báo kết quả ở đầu trang /admin.
+  redirect(`/admin?bao-ban=${data ? 'da-thay' : 'khong-du-phong'}`);
 }
 
 /** Form: report_id, note */
@@ -288,10 +277,12 @@ export async function resolveReport(_: ActionState, fd: FormData): Promise<Actio
   });
 }
 
-/** Form: result_id, hidden ("true" | "false") */
+/** Form: result_id, hidden ("true" | "false"), shift_id (để tải lại trang ca sau khi đổi) */
 export async function hideComment(_: ActionState, fd: FormData): Promise<ActionState> {
+  const shiftId = str(fd, 'shift_id');
   return call('admin_hide_comment', { p_result: str(fd, 'result_id'), p_hidden: str(fd, 'hidden') === 'true' }, {
     ok: 'Đã cập nhật nhận xét.',
+    revalidate: shiftId ? [`/quan/ca/${shiftId}`] : [],
   });
 }
 

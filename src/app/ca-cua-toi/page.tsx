@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Alert, Badge, Empty, PageTitle, ShiftCard, btn } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
+import { friendlyError } from '@/lib/errors';
 import type { MyShift } from '@/lib/types';
 
 export const metadata = { title: 'Ca của tôi' };
@@ -62,7 +63,7 @@ export default async function MyShiftsPage() {
   return (
     <div className="space-y-6">
       <PageTitle sub="Các ca bạn đã nhận.">Ca của tôi</PageTitle>
-      {error ? <Alert tone="red">{error.message}</Alert> : null}
+      {error ? <Alert tone="red">{friendlyError(error)}</Alert> : null}
 
       {!error && all.length === 0 ? (
         <div className="space-y-3">

@@ -2,7 +2,7 @@
 
 Có hai tầng:
 
-- **A. Test tự động ở tầng database** — 79 test + chạy đua, không cần Supabase. Đây là nơi mọi quy tắc nghiệp vụ được chặn.
+- **A. Test tự động ở tầng database** — 84 test + kiểm quyền + chạy đua, không cần Supabase. Đây là nơi mọi quy tắc nghiệp vụ được chặn.
 - **B. Test tay trên giao diện** — chạy trên bản deploy (hoặc local) nối với Supabase thật, sau khi đã chạy `seed.sql`.
 
 ---
@@ -13,7 +13,9 @@ Có hai tầng:
 npm run test:db
 ```
 
-Lệnh này dựng một Postgres nhúng, giả lập môi trường Supabase (role `anon` / `authenticated`, `auth.uid()`), chạy `0001_init.sql` → `seed.sql` → `supabase/tests/edge_cases.sql`, rồi chạy đua thật trên nhiều kết nối. Kỳ vọng: `79/79 test đạt` + 5 dòng `✔ chạy đua`.
+Lệnh này dựng một Postgres nhúng, giả lập môi trường Supabase (role `anon` / `authenticated`, `auth.uid()`), chạy `0001_init.sql` → `seed.sql` → `supabase/tests/edge_cases.sql`, rồi `supabase/tests/privileges_check.sql` (quyền bảng/hàm của `anon`/`authenticated`), rồi chạy đua thật trên nhiều kết nối. Kỳ vọng: `84/84 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM` + 5 dòng `✔ chạy đua`.
+
+Lưu ý: Postgres nhúng chạy bằng superuser nên **không bắt được lỗi quyền riêng của Supabase** (role `postgres` ở Supabase không phải superuser). Vì vậy trên Supabase thật chạy thêm `check_before_migration.sql` trước khi dán migration và `privileges_check.sql` sau đó (README mục 2).
 
 Chạy trên Supabase thật: dán `supabase/tests/edge_cases.sql` vào SQL Editor (sau `seed.sql`) → kết quả là bảng `name / passed / detail`, mọi dòng `passed = true`. **Test có ghi dữ liệu → chạy lại `seed.sql` sau khi test.**
 
@@ -36,6 +38,7 @@ Các trường hợp biên bắt buộc và test tương ứng:
 | Token hết hạn | 5f, 5g | `get_confirmation` / `submit_confirmation` |
 | Hai người cùng nhận chỗ cuối cùng | 6a, 6b + **chạy đua** | `SELECT … FOR UPDATE` trên dòng ca + unique index một-dự-phòng |
 | Người chưa ghép ca gọi API lấy SĐT | 7a, 7b, 7c, 7e | `get_shift_contacts` + RLS `private_contacts` |
+| Người làm đọc SĐT / tên phụ huynh qua API | 7k–7o | quyền theo cột trên `parental_consents` (không cấp `parent_phone`, `parent_name`) |
 | Hủy > 2 tiếng → dự phòng lên chính | 8a | `cancel_claim` |
 | Hủy < 2 tiếng → `late_cancel` | 8c | `cancel_claim` + báo cáo cho admin |
 | Trả lời khác "Đủ" → báo cáo | 9a | trigger `payment_feedback_report` |
@@ -70,7 +73,7 @@ Dữ liệu seed dùng trong kịch bản: "Quán Demo 1–4" đã xác minh, "Q
 ### B1. Đăng ký người làm từ 18 tuổi → nhận ca (luồng chính)
 
 1. N đăng nhập → `/dang-ky` → "Tôi tìm việc" → điền form, ngày sinh 20 tuổi, tick đồng ý → Gửi.
-   ✔ Sang `/ho-so`, trạng thái "Chờ duyệt". Vào `/ca`: có thông báo chờ duyệt; bấm "Nhận ca" → báo *"Hồ sơ của bạn chưa được duyệt…"*.
+   ✔ Sang `/ho-so`, trạng thái "Chờ duyệt". Vào `/ca`: có thông báo chờ duyệt; mở một ca → **không có** nút "Nhận ca này", thay bằng *"Hồ sơ của bạn chưa được nhóm vận hành duyệt…"* + link "Xem hồ sơ của tôi".
 2. A vào `/admin/nguoi-lam` → Duyệt N. ✔ `/admin/nhat-ky` có dòng "Duyệt người làm".
 3. N vào `/ca` → ✔ ca GẤP nằm trên cùng; lọc theo khu vực / loại việc / ngày ra đúng ca.
 4. N mở ca chưa ai nhận → "Nhận ca này" → ✔ báo "Bạn là NGƯỜI CHÍNH", hiện tên + số điện thoại của quán.
@@ -92,7 +95,7 @@ Dữ liệu seed dùng trong kịch bản: "Quán Demo 1–4" đã xác minh, "Q
 2. Thử đặt tên cơ sở "Karaoke ABC" khi đăng ký → ✔ bị từ chối.
 3. A vào `/admin/co-so` → phiếu xác minh: bỏ trống "đúng địa chỉ" → ✔ lỗi; tick đủ → ✔ cơ sở "Đang hoạt động".
 4. Q vào `/quan/dang-ca`:
-   - lương 20.000 → ✔ *"Lương/giờ phải từ 25500 đ trở lên."*
+   - lương 20.000 → ✔ *"Lương/giờ phải từ 25500 đ trở lên."* và các ô đã nhập (ngày, giờ, loại việc, tick cam kết) **vẫn còn nguyên**, chỉ cần sửa lương
    - không tick cam kết → ✔ không gửi được
    - tick "Nhận dưới 18" với giờ 18:00–23:00 → ✔ lỗi 06:00–22:00
    - hợp lệ → ✔ sang trang ca, báo "Đã đăng ca".
@@ -125,8 +128,8 @@ Dữ liệu seed dùng trong kịch bản: "Quán Demo 1–4" đã xác minh, "Q
 Dùng ca seed "vừa hết giờ" (Quán Demo 3, dọn phòng) — link: `/xac-nhan/demo-token-con-han`.
 
 1. Mở link ở trình duyệt ẩn danh → ✔ thấy tên quán, giờ, tên người làm; không cần đăng nhập.
-2. Chọn "Đã làm" → "Đúng giờ" → 5 sao → nhận xét → Gửi → ✔ cảm ơn.
-3. Mở lại link → ✔ "Link này đã được dùng".
+2. Chọn "Đã làm" → "Đúng giờ" → **chưa chấm sao** → Gửi → ✔ lỗi *"Vui lòng chọn Đúng giờ / Trễ và số sao."* hiện trong tầm nhìn, các lựa chọn đã chọn vẫn giữ. Chấm 5 sao → nhận xét → Gửi → ✔ *"Ca này đã được xác nhận. Cảm ơn anh/chị!"*.
+3. Mở lại link → ✔ vẫn là *"Ca này đã được xác nhận…"*, không còn form (link chỉ dùng một lần).
 4. Mở `/xac-nhan/demo-token-het-han` → ✔ "Link đã hết hạn".
 5. Mở `/xac-nhan/abc` → ✔ "Link không hợp lệ".
 6. Với ca thật: sau giờ kết thúc, Q vào `/quan/ca/[id]` thấy nút "Xác nhận ngay"; A thấy ca ở `/admin` mục "chờ xác nhận" kèm nút sao chép tin nhắn.
@@ -141,12 +144,14 @@ Dùng ca seed "vừa hết giờ" (Quán Demo 3, dọn phòng) — link: `/xac-n
 ### B8. Admin
 
 1. `/admin`: ca trong 24 giờ tới hiện người chính / dự phòng; "Sao chép tin nhắn nhắc ca" → dán vào ghi chú → ✔ có tên quán, địa chỉ, giờ, link Google Maps.
-2. "Người chính báo bận" trên ca có dự phòng → ✔ dự phòng lên chính; `/admin/bao-cao` có sự cố; `/admin/nhat-ky` có dòng tương ứng. Trên ca không có dự phòng → ✔ cảnh báo đỏ "KHÔNG có người dự phòng".
+2. "Người chính báo bận" trên ca có dự phòng → ✔ thông báo xanh ở đầu trang `/admin`, dự phòng lên chính; `/admin/bao-cao` có sự cố; `/admin/nhat-ky` có dòng tương ứng. Trên ca không có dự phòng → ✔ cảnh báo đỏ "KHÔNG có người dự phòng" ở đầu trang `/admin`.
 3. Khóa tài khoản N → N tải lại trang → ✔ bị đưa về `/tai-khoan` với thông báo khóa; các ca sắp tới của N bị hủy. Mở khóa → dùng lại bình thường.
 4. Gỡ một cơ sở → ✔ các ca sắp tới của cơ sở bị hủy; chủ quán không đăng ca được nữa.
 5. `/admin/kpi` → đủ 12 chỉ số → "Tải CSV" → mở bằng Excel ✔ tiếng Việt không lỗi font.
 6. Đổi lương tối thiểu thành 30.000 → Q đăng ca 27.000 → ✔ bị từ chối. Đổi lại 25.500.
 7. Đăng nhập bằng tài khoản không phải admin rồi mở `/admin` → ✔ bị chuyển về trang của vai trò đó.
+8. `/admin/nguoi-lam`: gõ ghi chú rồi nhấn Enter → ✔ chỉ xuống dòng, **không** tự duyệt.
+9. Ẩn nhận xét: A mở `/quan/ca/[id]` của ca đã xác nhận có nhận xét (vd. ca ở B6) → "Ẩn nhận xét" → ✔ nút đổi thành "Hiện lại"; hồ sơ công khai `/h/[slug]` của người làm đó không còn nhận xét; `/admin/nhat-ky` có dòng "Ẩn/hiện nhận xét". Bấm "Hiện lại" → nhận xét hiện lại.
 
 ### B9. Xóa tài khoản
 
@@ -159,3 +164,4 @@ Dùng ca seed "vừa hết giờ" (Quán Demo 3, dọn phòng) — link: `/xac-n
 - Bề rộng 360px: không có thanh cuộn ngang ở mọi trang; nút cao ≥ 48px; chữ ≥ 18px.
 - Đưa điện thoại cho một người lớn tuổi thử: đăng ca (mở form → điền → gửi) và xác nhận sau ca (mở link → chọn → gửi) đều ≤ 3 bước.
 - Chân mọi trang có "Không bao giờ thu phí người làm."; `/dieu-khoan` có câu "SafeShift chỉ kết nối người làm và nơi thuê…".
+- Gửi link trang web cho chính mình qua Zalo, bấm mở **trong Zalo** → `/dang-nhap` ✔ có khung cảnh báo "Mở bằng trình duyệt". Mở bằng Chrome/Safari → không có cảnh báo, đăng nhập Google được.

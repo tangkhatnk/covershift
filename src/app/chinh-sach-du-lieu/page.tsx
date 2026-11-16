@@ -71,7 +71,7 @@ export default function DataPolicyPage() {
             <b>Hồ sơ ca làm công khai:</b> mặc định tắt. Khi bạn bật, ai có link sẽ thấy họ tên, số ca đã xác nhận, tổng giờ,
             loại việc, điểm trung bình, tỷ lệ đúng giờ và nhận xét. Hồ sơ này không có số điện thoại, ngày sinh hay trường lớp.
           </li>
-          <li><b>Nhóm vận hành:</b> xem được dữ liệu để duyệt và xử lý sự cố; mọi thao tác của họ đều được ghi nhật ký.</li>
+          <li><b>Nhóm vận hành:</b> xem được dữ liệu để duyệt và xử lý sự cố; mọi thao tác thay đổi dữ liệu của họ (duyệt, khóa, gỡ cơ sở, ẩn nhận xét, đổi cấu hình…) đều được ghi nhật ký.</li>
         </UL>
       </Section>
 

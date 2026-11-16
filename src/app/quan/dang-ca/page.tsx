@@ -127,7 +127,7 @@ export default async function NewShiftPage({ searchParams }: { searchParams: Pro
         </Check>
         <Check name="allow_minor" defaultChecked={src?.allow_minor}>
           <b>Nhận người dưới 18 tuổi</b>
-          <span className="block text-sm text-slate-600">Chỉ áp dụng cho ca trong 06:00–22:00, dài tối đa 8 giờ.</span>
+          <span className="block text-base text-slate-600">Chỉ áp dụng cho ca trong 06:00–22:00, dài tối đa 8 giờ.</span>
         </Check>
         <Check name="commit" required>
           Tôi cam kết: không thu phí, không đặt cọc, không giữ giấy tờ của người làm.

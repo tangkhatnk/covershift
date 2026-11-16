@@ -5,7 +5,8 @@ import { ActionForm, SubmitButton } from '@/components/client';
 import { Alert, Badge, Card, PageTitle, Stars, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { AREA_LABEL, FACILITY_TYPE_LABEL, JOB_LABEL, PAYMENT_LABEL, type PaymentAnswer } from '@/lib/constants';
-import { fmtDate, fmtMoney, fmtTime, hoursBetween, shiftState, SHIFT_STATE_LABEL, SHIFT_STATE_TONE } from '@/lib/format';
+import { friendlyError } from '@/lib/errors';
+import { fmtDate, fmtMoney, fmtTime, hoursBetween, shiftState, SHIFT_STATE_LABEL, SHIFT_STATE_TONE, vnDateInput } from '@/lib/format';
 import type { Contacts, ShiftDetail } from '@/lib/types';
 
 export const metadata = { title: 'Chi tiết ca' };
@@ -13,6 +14,12 @@ export const metadata = { title: 'Chi tiết ca' };
 const linkCls = 'font-semibold text-brand-700 underline underline-offset-4';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PAY_VARIANT: Record<PaymentAnswer, 'primary' | 'secondary' | 'danger'> = { full: 'primary', partial: 'secondary', unpaid: 'danger' };
+
+/** Tuổi tròn tại ngày `onYmd` (cả hai dạng YYYY-MM-DD). Khớp age_on() ở database. */
+function ageOn(dobYmd: string, onYmd: string) {
+  const years = Number(onYmd.slice(0, 4)) - Number(dobYmd.slice(0, 4));
+  return onYmd.slice(5) < dobYmd.slice(5) ? years - 1 : years;
+}
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -31,7 +38,7 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
   const { data, error } = await supabase.rpc('shift_detail', { p_shift: id });
   if (error) {
     if (/Không tìm thấy ca/.test(error.message)) notFound();
-    return <Alert tone="red">{error.message}</Alert>;
+    return <Alert tone="red">{friendlyError(error)}</Alert>;
   }
   if (!data) notFound();
   const s = data as ShiftDetail;
@@ -47,6 +54,26 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
   const primaryLeft = Math.max(s.headcount - s.primary_count, 0);
   const backupLeft = s.backup_count < 1;
   const lateWindow = start - now <= 2 * 3_600_000;
+
+  // Chỉ để hiện lời giải thích thay cho nút "Nhận ca này"; database (_claims_validate) vẫn là chốt chặn chính.
+  let claimBlocker: string | null = null;
+  if (isWorker && upcoming && !active) {
+    const [wpRes, consentRes] = await Promise.all([
+      supabase.from('worker_profiles').select('approval, date_of_birth').eq('user_id', profile.id).maybeSingle(),
+      supabase.from('parental_consents').select('status').eq('worker_id', profile.id).maybeSingle(),
+    ]);
+    const wp = wpRes.data as { approval: string; date_of_birth: string } | null;
+    // Đọc lỗi (mạng…) thì không đoán: vẫn hiện nút, database sẽ trả lời đúng khi bấm.
+    if (!wpRes.error && !consentRes.error) {
+      if (wp?.approval === 'rejected') {
+        claimBlocker = 'Hồ sơ của bạn không được duyệt nên chưa nhận ca được. Xem lý do trong hồ sơ.';
+      } else if (!wp || wp.approval !== 'approved') {
+        claimBlocker = 'Hồ sơ của bạn chưa được nhóm vận hành duyệt nên chưa nhận ca được.';
+      } else if (ageOn(wp.date_of_birth, vnDateInput(s.starts_at)) < 18 && consentRes.data?.status !== 'approved') {
+        claimBlocker = 'Bạn dưới 18 tuổi: cần phụ huynh đồng ý và nhóm vận hành duyệt trước khi nhận ca.';
+      }
+    }
+  }
 
   let contact: Contacts['facility'] = null;
   if (active) {
@@ -124,7 +151,12 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
 
       {/* Nhận ca */}
       {isWorker && upcoming && !active ? (
-        primaryLeft > 0 || backupLeft ? (
+        claimBlocker ? (
+          <Alert tone="amber">
+            {claimBlocker}{' '}
+            <Link href="/ho-so" className={linkCls}>Xem hồ sơ của tôi</Link>
+          </Alert>
+        ) : primaryLeft > 0 || backupLeft ? (
           <Card>
             <p className="mb-3 text-base text-slate-700">
               {primaryLeft > 0 ? (

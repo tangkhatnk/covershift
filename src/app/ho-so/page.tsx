@@ -4,6 +4,7 @@ import { ActionForm, CopyButton, SubmitButton } from '@/components/client';
 import { Alert, Badge, Card, Check, Field, PageTitle, btn, inputCls, type Tone } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { APPROVAL_LABEL, AREA_LABEL, AVAILABILITY_LABEL, CONSENT_LABEL, SITE_URL, type Area } from '@/lib/constants';
+import { friendlyError } from '@/lib/errors';
 import { fmtDateTime, fmtPlainDate } from '@/lib/format';
 
 export const metadata = { title: 'Hồ sơ' };
@@ -41,7 +42,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
 
   const wp = wpRes.data as WorkerRow | null;
   if (!wp) {
-    return <Alert tone="red">{wpRes.error?.message ?? 'Không tìm thấy hồ sơ người làm. Vui lòng liên hệ nhóm vận hành.'}</Alert>;
+    return <Alert tone="red">{wpRes.error ? friendlyError(wpRes.error) : 'Không tìm thấy hồ sơ người làm. Vui lòng liên hệ nhóm vận hành.'}</Alert>;
   }
   const phone = (phoneRes.data?.phone as string | undefined) ?? '';
   const consent = consentRes.data as ConsentRow | null;
@@ -109,7 +110,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             </div>
           ) : null}
           {consent.status === 'submitted' ? (
-            <p className="mt-2 text-base text-slate-700">Phụ huynh đã gửi. Nhóm vận hành sẽ gọi điện xác nhận rồi duyệt.</p>
+            <p className="mt-2 text-base text-slate-700">Phụ huynh đã gửi. Nhóm vận hành sẽ kiểm tra (có thể gọi cho phụ huynh) rồi duyệt.</p>
           ) : null}
           {consent.status === 'rejected' ? (
             <p className="mt-2 text-base text-slate-700">Phiếu đồng ý bị từ chối. Bạn tạo link mới rồi gửi lại cho phụ huynh nhé.</p>
