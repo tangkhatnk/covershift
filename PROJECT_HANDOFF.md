@@ -20,7 +20,7 @@ Nguồn của tài liệu này chỉ là **một phiên làm việc duy nhất**
 |---|---|
 | Thư mục dự án | `/Users/macpro/Desktop/Project/startup` (chưa `git init`) |
 | Hạn chót | Deploy ổn định **trước 20/11/2026**. Chạy thật **21–22/11** (~5 quán, ~20 người làm, ~10 ca). Demo **26/11**. |
-| Hiện trạng | Database xong và đã test. Mã nguồn web build được. **Chưa deploy, chưa từng chạy với Supabase thật.** |
+| Hiện trạng | **17/11: migration + seed đã áp lên Supabase thật, 85/85 test đạt trên Supabase.** Mã nguồn web build được. **Web chưa deploy, chưa chạy với Supabase thật trên trình duyệt.** |
 | Việc gấp nhất | Tạo Supabase project + deploy Vercel + chạy thử tay theo `TESTING.md` mục B. (Hai trang `/dieu-khoan`, `/chinh-sach-du-lieu` đã được viết bổ sung lúc ~21:15, sau khi bản đầu của tài liệu này ghi là thiếu.) |
 
 Lệnh kiểm tra nhanh trạng thái (đều đã chạy đạt lúc bàn giao):
@@ -107,7 +107,7 @@ SafeShift: web app kết nối ca làm ngắn hạn giữa cơ sở dịch vụ 
 |---|---|
 | `supabase/migrations/0001_init.sql` (15 bảng, 16 enum, trigger, 64 hàm, RLS mọi bảng, phân quyền) | **[ĐÃ KIỂM]** chạy sạch trên Postgres 18.6 nhúng |
 | `supabase/seed.sql` (1 admin, 5 quán, 10 người làm trong đó 3 người dưới 18, 12 ca đủ trạng thái) | **[ĐÃ KIỂM]** |
-| `supabase/tests/edge_cases.sql` | **[ĐÃ KIỂM]** 79/79 đạt (chạy lại lúc 20:55) |
+| `supabase/tests/edge_cases.sql` | **[ĐÃ KIỂM]** 85/85 đạt trên Postgres nhúng và trên Supabase thật (17/11) |
 | `db-test/race.mjs` — 3 người giành 1 chỗ dự phòng trên 3 kết nối | **[ĐÃ KIỂM]** 5/5 lần: đúng 1 người được |
 | Khung Next.js: cấu hình, middleware, client Supabase, `lib/`, `components/`, `actions.ts`, layout, trang chủ, đăng nhập, callback | **[ĐÃ KIỂM]** `tsc` sạch, `next build` thành công (27 route) |
 | Trang người làm: `/dang-ky/*`, `/ca`, `/ca/[id]`, `/ca-cua-toi`, `/ho-so`, `/tai-khoan` | Build được. **[CHƯA KIỂM]** trên trình duyệt |
@@ -213,7 +213,7 @@ Trình duyệt ─► Next.js (Server Component đọc, Server Action ghi; anon 
 supabase/
   migrations/0001_init.sql        NGUỒN SỰ THẬT của mọi quy tắc nghiệp vụ
   seed.sql                        dữ liệu demo, chạy lại được
-  tests/edge_cases.sql            79 test; có ghi dữ liệu → chạy lại seed sau khi test
+  tests/edge_cases.sql            85 test; có ghi dữ liệu → chạy lại seed sau khi test
   functions/shift-reminders/      Edge Function email (tùy chọn)
 db-test/                          run.mjs (migration→seed→test), race.mjs (chạy đua)
 src/
@@ -265,7 +265,7 @@ TESTING.md                        A: test tự động · B: kịch bản tay tr
 - Server chạy UTC: mọi hiển thị giờ phải qua `src/lib/format.ts`.
 - Next 15: `params` / `searchParams` là `Promise`.
 - `_bypass()` (bỏ qua trigger khi seed) chỉ bật khi `app.seed_mode = 'on'` **và** `session_user` là `postgres`/`supabase_admin`. Không nới điều kiện này.
-- Migration hiện là **một file chưa từng áp lên database thật** → trước khi deploy lần đầu có thể sửa thẳng file. **Sau khi đã áp lên Supabase thì mọi thay đổi phải là file migration mới.**
+- **`0001_init.sql` đã áp lên Supabase thật ngày 17/11/2026 → không sửa file này nữa.** Mọi thay đổi schema là file migration mới (`0002_...sql`) kèm test.
 - `next build` và `next dev` dùng chung `.next/` — đừng chạy song song.
 
 ---
