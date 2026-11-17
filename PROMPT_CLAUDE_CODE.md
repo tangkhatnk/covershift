@@ -4,7 +4,7 @@
 
 ---
 
-Bạn tiếp quản dự án **SafeShift** với vai trò senior full-stack engineer. Hạn **deploy ổn định là trước 20/11/2026**, chạy thật 21–22/11, demo 26/11. Ổn định quan trọng hơn tính năng mới.
+Bạn tiếp quản dự án **SafeShift** với vai trò senior full-stack engineer. Hạn **deploy ổn định là trước 20/11/2026**, chạy 21–22/11 (bản mô phỏng), demo 26/11. Ổn định quan trọng hơn tính năng mới.
 
 ## Bước 0 — Nắm bối cảnh (làm trước mọi thứ)
 
@@ -15,7 +15,7 @@ Bạn tiếp quản dự án **SafeShift** với vai trò senior full-stack engi
    - `npx tsc --noEmit` → không lỗi
    - `next build` (lệnh trong `CLAUDE.md`) → thành công
    Kết quả khác tài liệu thì báo tôi trước khi làm tiếp.
-3. Thư mục chưa có git. Chạy `git init`, kiểm tra `.gitignore` có `.env.local`, `node_modules`, `.next`, `db-test/.pgdata`, rồi commit đầu tiên "Trạng thái bàn giao". **Tôi cho phép việc này.** Từ đây commit sau mỗi bước bên dưới. Không push khi tôi chưa đưa remote.
+3. (Đã làm.) Thư mục chưa có git. Chạy `git init`, kiểm tra `.gitignore` có `.env.local`, `node_modules`, `.next`, `db-test/.pgdata`, rồi commit đầu tiên "Trạng thái bàn giao". **Tôi cho phép việc này.** Từ đây commit sau mỗi bước bên dưới. Không push khi tôi chưa đưa remote.
 4. Gửi tôi **một** tin nhắn gom các câu hỏi nghiệp vụ còn mở (mục 7 "Cần chủ dự án trả lời" trong `PROJECT_HANDOFF.md`). **Không chờ tôi trả lời**: làm tiếp theo giả định hiện tại, khi tôi trả lời thì cập nhật.
 
 ## Bước 1 — Rà soát song song (3 subagent cùng lúc)
@@ -43,26 +43,26 @@ Trong lúc chờ, bạn không sửa file nào trong phạm vi đang rà. Nếu 
 
 ## Bước 3 — Deploy cùng tôi
 
-Các bước cần tài khoản (Supabase, Google Cloud, Vercel) **tôi tự làm**; bạn không nhập mật khẩu, không tạo tài khoản thay tôi. Việc của bạn: hướng dẫn **từng bước một**, đợi tôi báo xong mới sang bước tiếp, và tự kiểm những gì kiểm được.
+Các bước cần tài khoản (Supabase, Vercel) **tôi tự làm**; bạn không nhập mật khẩu, không tạo tài khoản thay tôi. Việc của bạn: hướng dẫn **từng bước một**, đợi tôi báo xong mới sang bước tiếp, và tự kiểm những gì kiểm được.
 
 Thứ tự (chi tiết ở `README.md` mục 2–6):
 1. Tôi tạo Supabase project → dán `0001_init.sql` vào SQL Editor → dán `seed.sql` → dán `supabase/tests/edge_cases.sql` và gửi lại bảng kết quả. Mọi dòng `passed = true` mới đi tiếp; dòng sai thì cùng `db-guardian` xử lý (**từ lúc này mọi thay đổi schema là file migration mới**). Xong chạy lại `seed.sql`.
 2. Tạo `.env.local` từ `.env.example` với giá trị tôi đưa (không in lại anon key trong chat).
-3. Cấu hình Google OAuth và Redirect URLs.
-4. `npm run dev`; tôi đăng nhập thử; tôi chạy `select public.make_admin('<email>', '<tên>')`.
-5. Deploy Vercel, cập nhật `NEXT_PUBLIC_SITE_URL`, Supabase Site URL, Google origins.
+3. (Đã bỏ: không còn Google OAuth, magic link hay Redirect URL. Đăng nhập là 3 nút demo, tài khoản do `seed.sql` tạo; xem `README.md` mục 3.)
+4. `npm run dev`; tôi bấm nút demo ở `/dang-nhap` để đăng nhập thử.
+5. Deploy Vercel (đã có tại https://safeshift-beta.vercel.app), cập nhật `NEXT_PUBLIC_SITE_URL` nếu đổi domain.
 
 ## Bước 4 — Kiểm thử trên giao diện
 
-- Nếu phiên có công cụ điều khiển trình duyệt: dùng **`ui-qa`** chạy `TESTING.md` mục B theo thứ tự B1 → B6 → B4 → B2 → B3 → còn lại, trên bản local trước, bản Vercel sau. Có thể chạy song song tối đa 3 `ui-qa`, mỗi cái một nhóm mục kịch bản không đụng cùng dữ liệu (vd. không cùng dùng token `demo-token-con-han`). Bước nào cần đăng nhập Google thì dừng để tôi tự đăng nhập.
+- Nếu phiên có công cụ điều khiển trình duyệt: dùng **`ui-qa`** chạy `TESTING.md` mục B theo thứ tự B1 → B6 → B4 → B2 → B3 → còn lại, trên bản local trước, bản Vercel sau. Có thể chạy song song tối đa 3 `ui-qa`, mỗi cái một nhóm mục kịch bản không đụng cùng dữ liệu (vd. không cùng dùng token `demo-token-con-han`). Bước cần đăng nhập thì tự bấm nút demo ở `/dang-nhap`.
 - Nếu không có công cụ trình duyệt: đưa tôi danh sách kiểm tra ngắn theo đúng thứ tự trên để tôi tự bấm, rồi ghi lại kết quả tôi báo.
 - Lỗi tìm được → quay lại Bước 2. Commit sau mỗi đợt sửa.
 
-## Bước 5 — Chuẩn bị chạy thật và bàn giao
+## Bước 5 — Chuẩn bị demo 26/11 và bàn giao
 
-1. Hướng dẫn xóa dữ liệu demo (`README.md` mục 7) — **chỉ làm khi tôi xác nhận**, vì không hoàn tác được.
+1. (Cập nhật 17/11) App là bản mô phỏng chỉ dùng dữ liệu demo: **không** xóa dữ liệu demo (`README.md` mục 7), vì xóa thì nút đăng nhập demo hỏng. Khôi phục dữ liệu mẫu bằng chạy lại `seed.sql`.
 2. Cập nhật `PROJECT_HANDOFF.md` (mục 3 hiện trạng, mục 7 việc tiếp theo) và `README.md` cho khớp thực tế.
-3. Gửi tôi bản tổng kết cuối: giả định đã tự quyết (cái nào tôi đã xác nhận), những gì đã kiểm trên Supabase thật / trên trình duyệt, và **danh sách ngắn những gì chưa làm hoặc còn rủi ro trước 21/11**.
+3. Gửi tôi bản tổng kết cuối: giả định đã tự quyết (cái nào tôi đã xác nhận), những gì đã kiểm trên Supabase thật / trên trình duyệt, và **danh sách ngắn những gì chưa làm hoặc còn rủi ro trước demo 26/11**.
 
 ## Quy tắc chung
 

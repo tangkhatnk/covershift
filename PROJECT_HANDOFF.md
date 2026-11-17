@@ -18,10 +18,10 @@ Nguồn của tài liệu này chỉ là **một phiên làm việc duy nhất**
 
 | | |
 |---|---|
-| Thư mục dự án | `/Users/macpro/Desktop/Project/startup` (chưa `git init`) |
-| Hạn chót | Deploy ổn định **trước 20/11/2026**. Chạy thật **21–22/11** (~5 quán, ~20 người làm, ~10 ca). Demo **26/11**. |
-| Hiện trạng | **17/11: migration + seed đã áp lên Supabase thật, 85/85 test đạt trên Supabase.** Mã nguồn web build được. **Web chưa deploy, chưa chạy với Supabase thật trên trình duyệt.** |
-| Việc gấp nhất | Tạo Supabase project + deploy Vercel + chạy thử tay theo `TESTING.md` mục B. (Hai trang `/dieu-khoan`, `/chinh-sach-du-lieu` đã được viết bổ sung lúc ~21:15, sau khi bản đầu của tài liệu này ghi là thiếu.) |
+| Thư mục dự án | `/Users/macpro/Desktop/Project/startup` |
+| Hạn chót | Deploy ổn định **trước 20/11/2026**. Chạy **21–22/11**. Demo **26/11**. Theo quyết định 17/11/2026, app là **bản mô phỏng**: đợt 21–22/11 không dùng người thật, chỉ dữ liệu mẫu. |
+| Hiện trạng | **17/11: migration đã áp lên Supabase thật (85/85 test đạt trên Supabase lúc đó; nay có 86 test).** Web đã deploy production tại https://safeshift-beta.vercel.app (Vercel project `safeshift`, team `safeshift`, nối GitHub: merge vào `main` là tự deploy; biến `NEXT_PUBLIC_*` đã đặt). Đăng nhập chỉ bằng 3 nút demo ở `/dang-nhap` (server action `demoLogin`, mật khẩu chung công khai đặt bởi `seed.sql`); đã bỏ Google OAuth và magic link. **Chưa chạy lại `seed.sql` trên Supabase thật nên chưa có mật khẩu demo; chưa chạy tay `TESTING.md` mục B trên trình duyệt.** |
+| Việc gấp nhất | Chạy lại `seed.sql` trên Supabase thật (để có mật khẩu demo) → chạy tay `TESTING.md` mục B → chuẩn bị demo 26/11. |
 
 Lệnh kiểm tra nhanh trạng thái (đều đã chạy đạt lúc bàn giao):
 
@@ -61,7 +61,7 @@ SafeShift: web app kết nối ca làm ngắn hạn giữa cơ sở dịch vụ 
 ### Phạm vi
 - **Trong phạm vi [ĐỀ BÀI]:** toàn bộ chức năng ở mục 6.
 - **Ngoài phạm vi [ĐỀ BÀI]:** thanh toán, thu phí, SMS, thu CCCD/ảnh chân dung/địa chỉ nhà.
-- **Quy mô đợt chạy thật:** ~5 quán, ~20 người làm, ~10 ca. Đừng tối ưu cho quy mô lớn hơn.
+- **Quy mô:** bản mô phỏng với dữ liệu mẫu của `seed.sql` (1 admin, 5 quán, 10 người làm, 12 ca). Đừng tối ưu cho quy mô lớn hơn.
 
 ---
 
@@ -107,28 +107,28 @@ SafeShift: web app kết nối ca làm ngắn hạn giữa cơ sở dịch vụ 
 |---|---|
 | `supabase/migrations/0001_init.sql` (15 bảng, 16 enum, trigger, 64 hàm, RLS mọi bảng, phân quyền) | **[ĐÃ KIỂM]** chạy sạch trên Postgres 18.6 nhúng |
 | `supabase/seed.sql` (1 admin, 5 quán, 10 người làm trong đó 3 người dưới 18, 12 ca đủ trạng thái) | **[ĐÃ KIỂM]** |
-| `supabase/tests/edge_cases.sql` | **[ĐÃ KIỂM]** 85/85 đạt trên Postgres nhúng và trên Supabase thật (17/11) |
+| `supabase/tests/edge_cases.sql` | **[ĐÃ KIỂM]** 86/86 đạt trên Postgres nhúng; trên Supabase thật 85/85 đạt ngày 17/11 (trước khi thêm test 11b) |
 | `db-test/race.mjs` — 3 người giành 1 chỗ dự phòng trên 3 kết nối | **[ĐÃ KIỂM]** 5/5 lần: đúng 1 người được |
-| Khung Next.js: cấu hình, middleware, client Supabase, `lib/`, `components/`, `actions.ts`, layout, trang chủ, đăng nhập, callback | **[ĐÃ KIỂM]** `tsc` sạch, `next build` thành công (27 route) |
+| Khung Next.js: cấu hình, middleware, client Supabase, `lib/`, `components/`, `actions.ts`, layout, trang chủ, đăng nhập demo | **[ĐÃ KIỂM]** `tsc` sạch, `next build` thành công; đã deploy Vercel |
 | Trang người làm: `/dang-ky/*`, `/ca`, `/ca/[id]`, `/ca-cua-toi`, `/ho-so`, `/tai-khoan` | Build được. **[CHƯA KIỂM]** trên trình duyệt |
 | Trang admin: `/admin`, `/admin/co-so`, `/admin/nguoi-lam`, `/admin/bao-cao`, `/admin/kpi` (+CSV), `/admin/nhat-ky` | Build được. **[CHƯA KIỂM]** trên trình duyệt |
-| Trang chủ quán + công khai: `/quan`, `/quan/dang-ca`, `/quan/ca/[id]`, `/xac-nhan/[token]`, `/dong-y/[token]`, `/h/[slug]` | Build được. **[CHƯA KIỂM]** trên trình duyệt. **Agent chính chưa đọc lại mã 6 file này** (subagent bị dừng trước khi báo cáo) |
+| Trang chủ quán + công khai: `/quan`, `/quan/dang-ca`, `/quan/ca/[id]`, `/xac-nhan/[token]`, `/dong-y/[token]`, `/h/[slug]` | Build được; đã rà 6 file này. **[CHƯA KIỂM]** trên trình duyệt |
 | `/dieu-khoan`, `/chinh-sach-du-lieu` | Agent chính viết lúc ~21:15. Build được. **[CHƯA KIỂM]** trên trình duyệt. **Chưa có thông tin liên hệ/tên đơn vị** — đang ghi "liên hệ nhóm vận hành qua kênh đã thông báo khi đăng ký" |
 | `README.md`, `TESTING.md` | Xong |
 | `supabase/functions/shift-reminders/index.ts` (nhắc ca qua email) | Viết xong. **[CHƯA KIỂM]** — chưa deploy, chưa chạy lần nào. Mặc định tắt |
 
 ### Chưa thực hiện
 1. ~~Hai trang `/dieu-khoan`, `/chinh-sach-du-lieu`~~ — **đã viết** (xem bảng trên). Nội dung do agent soạn theo hành vi thật của hệ thống; **chủ dự án chưa đọc duyệt** và đây không phải văn bản do luật sư soạn.
-2. Chưa tạo Supabase project, chưa cấu hình Google OAuth, chưa deploy Vercel.
+2. ~~Tạo Supabase project, deploy Vercel~~ — đã xong (17/11). Không còn cấu hình Google OAuth (đã bỏ). Còn lại: chạy lại `seed.sql` trên Supabase thật để có mật khẩu demo.
 3. Chưa chạy bất kỳ luồng nào trên trình duyệt (kịch bản tay ở `TESTING.md` mục B chưa ai chạy).
-4. Chưa `git init`, chưa có commit nào.
-5. Chưa có giao diện cho action `hideComment` (admin ẩn nhận xét xấu trên hồ sơ công khai) — RPC và action có sẵn, không trang nào gọi.
-6. Chưa rà soát chất lượng mã của 3 nhóm trang do subagent viết (mới chỉ qua `tsc` + `build`).
+4. ~~`git init`~~ — đã xong; repo `tangkhatnk/covershift`, làm việc theo `AGENTS.md` mục 6.
+5. ~~Giao diện cho action `hideComment`~~ — đã có nút ẩn/hiện nhận xét ở `/quan/ca/[id]` cho nhóm vận hành.
+6. ~~Rà soát mã 6 file của subagent thứ ba~~ — đã rà.
 
 ### Lỗi và vấn đề tồn đọng đã biết
 | # | Vấn đề | Mức độ |
 |---|---|---|
-| 1 | Nội dung hai trang pháp lý chưa được chủ dự án duyệt; thiếu thông tin liên hệ | Cần duyệt trước chạy thật |
+| 1 | Nội dung hai trang pháp lý chưa được chủ dự án duyệt; thiếu thông tin liên hệ | Cần duyệt trước demo |
 | 2 | (đã hết) README liệt kê hai trang pháp lý — nay đã khớp | — |
 | 3 | Người làm chưa được duyệt vẫn thấy nút "Nhận ca này" ở `/ca/[id]`; bấm thì database từ chối bằng thông báo tiếng Việt | Thẩm mỹ; an toàn |
 | 4 | `primaryBusy` trả về dạng "lỗi" (khung đỏ) khi ca không có người dự phòng, dù sự cố đã được ghi thành công | Chủ ý: đây là cảnh báo cần hành động |
@@ -143,11 +143,20 @@ SafeShift: web app kết nối ca làm ngắn hạn giữa cơ sở dịch vụ 
 
 ### Quyết định đã thống nhất với chủ dự án [ĐỀ BÀI]
 - Stack: Next.js (App Router) + TypeScript + Tailwind + Supabase (Postgres, Auth, RLS, Edge Functions) + Vercel, **chỉ gói miễn phí**.
-- Đăng nhập: Google OAuth hoặc email magic link. **Không SMS.**
+- Đăng nhập: ban đầu Google OAuth hoặc email magic link, **không SMS**. Đã thay bằng đăng nhập demo, xem quyết định D2 bên dưới.
 - UI tiếng Việt, ưu tiên điện thoại 360–414px.
 - **Ổn định quan trọng hơn nhiều tính năng.**
 - Quy tắc nghiệp vụ chặn ở tầng database.
 - Nhắc ca qua email là phần phụ: được phép bỏ nếu gây rủi ro cho deadline, miễn ghi rõ.
+
+### Quyết định của chủ dự án ngày 17/11/2026 [CHỦ DỰ ÁN]
+| # | Quyết định | Hệ quả |
+|---|---|---|
+| D1 | App chỉ là **bản mô phỏng**; đợt 21–22/11 không dùng người thật, chỉ dữ liệu mẫu | Không cần đưa người dùng thật vào; quy tắc migration (không sửa `0001`) giữ nguyên |
+| D2 | **Bỏ Google OAuth và magic link.** `/dang-nhap` có 3 nút một chạm (người làm `nguoilam1@`, chủ quán `quan1@`, nhóm vận hành `admin@`, đều `@demo.safeshift.test`). Server action `demoLogin` gọi `signInWithPassword` với mật khẩu chung công khai `safeshift-demo` (đặt trong `seed.sql` bằng `extensions.crypt`) | `demoLogin` là ngoại lệ duy nhất của quy tắc "1 action = 1 RPC", chỉ nhận vai trò, không nhận email tùy ý. Không cần Google Cloud, SMTP, Redirect URL. Confirm email vẫn BẬT trên Supabase. Không đưa dữ liệu thật vào project |
+| D3 | Test 10m đổi thành "mọi user demo đều có mật khẩu" | Số test vẫn 86 |
+| D4 | Khôi phục dữ liệu mẫu bằng cách chạy lại `seed.sql` trong SQL Editor (seed tự xóa và tạo lại 16 user demo) | **Không chạy** `xoa_du_lieu_demo.sql`: xóa user demo thì nút đăng nhập hỏng |
+| D5 | Web đã deploy production tại https://safeshift-beta.vercel.app (Vercel project `safeshift`, team `safeshift`, nối GitHub, merge vào `main` là tự deploy; biến `NEXT_PUBLIC_*` đã đặt) | Deploy web không cần hỏi trước (`AGENTS.md` mục 5) |
 
 ### Quyết định do agent tự đưa ra [TỰ QUYẾT] — chủ dự án chưa xác nhận từng điểm
 | # | Quyết định | Lý do |
@@ -171,7 +180,7 @@ SafeShift: web app kết nối ca làm ngắn hạn giữa cơ sở dịch vụ 
 | G17 | Tên và ngày sinh không tự sửa được trong app | Chống gian lận tuổi |
 | G18 | Hồ sơ công khai hiện **họ tên đầy đủ**; mặc định **tắt** chia sẻ | Là "CV" của người làm |
 | G19 | Xóa tài khoản = xóa cứng, cascade toàn bộ; KPI lịch sử giảm theo | Đề bài: "xóa tài khoản và toàn bộ dữ liệu" |
-| G20 | Tài khoản admin không tự xóa/tự khóa được trong app; tạo admin bằng SQL `make_admin()` | An toàn vận hành |
+| G20 | Tài khoản admin không tự xóa/tự khóa được trong app; tạo admin bằng SQL `make_admin()` (bản mô phỏng: `admin@demo.safeshift.test` do seed tạo, xem D2) | An toàn vận hành |
 | G21 | Khu vực: Bãi Trước, Bãi Sau, Thắng Tam, Trung tâm, **Rạch Dừa**, Khác | Đề bài ghi "…" — Rạch Dừa là agent tự thêm |
 | G22 | Khung giờ rảnh: 6 ô (ngày thường/cuối tuần × sáng/chiều/tối) | Đề bài chỉ ghi "khung giờ rảnh" |
 | G23 | Next.js **15.5.29** + Tailwind **3.4.19**, không dùng bản mới hơn | Chọn bản agent nắm chắc; ưu tiên ổn định |
@@ -183,8 +192,6 @@ SafeShift: web app kết nối ca làm ngắn hạn giữa cơ sở dịch vụ 
   - Seed chèn thẳng `auth.users` / `auth.identities` với danh sách cột do agent nhớ; và `extensions.crypt()` / `gen_salt()` tồn tại.
   - `_bypass()` dựa vào `session_user in ('postgres','supabase_admin')` khi chạy seed trong SQL Editor.
 - PostgREST nhận đúng kiểu tham số RPC (enum dạng chuỗi, `text[]`, `time`, `jsonb`).
-- Magic link + Google OAuth quay về đúng `/auth/callback`.
-- SMTP mặc định của Supabase chỉ gửi được vài email/giờ (agent nhớ con số ~2/giờ, **chưa tra cứu lại**).
 - Gói miễn phí Supabase tạm dừng project sau ~1 tuần không truy cập (**chưa tra cứu lại**).
 - Resend gói miễn phí cần tên miền đã xác minh mới gửi cho người nhận tùy ý (**chưa tra cứu lại**).
 
@@ -249,9 +256,9 @@ TESTING.md                        A: test tự động · B: kịch bản tay tr
 ### Tích hợp
 | Tích hợp | Trạng thái |
 |---|---|
-| Supabase Auth (Google OAuth, magic link) | Mã xong, **chưa cấu hình project nào** |
-| Vercel | Chưa deploy |
-| Resend (email nhắc ca; SMTP cho magic link) | Tùy chọn, chưa cấu hình |
+| Supabase Auth (mật khẩu demo qua `demoLogin`; đã bỏ Google OAuth và magic link) | Chạy được sau khi chạy lại `seed.sql` trên Supabase thật. **[CHƯA KIỂM]** trên trình duyệt |
+| Vercel | Đã deploy: https://safeshift-beta.vercel.app |
+| Resend (email nhắc ca) | Tùy chọn, chưa cấu hình |
 | Zalo | **Không tích hợp API** — admin bấm "sao chép tin nhắn" rồi dán tay [ĐỀ BÀI] |
 
 ### Biến môi trường
@@ -299,7 +306,7 @@ Chức năng: đăng ca / nhân bản / đổi thứ tự chính–dự phòng �
 - Cách làm việc chủ dự án muốn: tự quyết những gì hợp lý, ghi lại giả định, chỉ hỏi khi quyết định ảnh hưởng nghiệp vụ mà đề bài chưa nói; không giải thích kiến thức cơ bản.
 
 ### Tiêu chí đánh giá kết quả
-- [ĐỀ BÀI] Deploy và chạy ổn định trước 20/11; qua được đợt chạy thật 21–22/11; demo 26/11.
+- [ĐỀ BÀI] Deploy và chạy ổn định trước 20/11; qua được đợt chạy 21–22/11 (bản mô phỏng); demo 26/11.
 - [ĐỀ BÀI] 7 trường hợp biên phải bị chặn: 14 tuổi đăng ký · dưới 18 nhận ca 23:00 · giờ thứ 41 trong tuần · lương dưới tối thiểu · token đã dùng / hết hạn · hai người cùng nhận chỗ cuối · người chưa ghép gọi API lấy SĐT. → Cả 7 đã có test tự động đạt.
 - [ĐỀ BÀI] 7 hạng mục giao hàng: (1) giả định, kiến trúc, route · (2) SQL migration · (3) mã nguồn · (4) seed · (5) README · (6) kịch bản test · (7) danh sách việc chưa làm/rủi ro. → (1)(7) nằm trong tài liệu này; **chưa có bản tổng kết cuối gửi chủ dự án**.
 - Tiêu chí chấm điểm của buổi demo: **[KHÔNG CÓ DỮ LIỆU]**.
@@ -308,19 +315,20 @@ Chức năng: đăng ca / nhân bản / đổi thứ tự chính–dự phòng �
 
 ## 7. NEXT STEPS
 
-### Phải làm trước mọi thứ khác
-1. ~~Viết hai trang pháp lý~~ — đã xong. Còn lại: nhờ chủ dự án đọc duyệt nội dung và cung cấp thông tin liên hệ. **Không bịa tên pháp nhân, địa chỉ, email, số điện thoại.** Nếu đổi quy tắc nghiệp vụ (bảng G ở mục 4) thì phải sửa câu chữ tương ứng trong hai trang này.
-2. **`git init` + commit đầu tiên** (chỉ khi chủ dự án đồng ý) — hiện chưa có lịch sử, một lệnh xóa nhầm là mất.
+### Đã xong
+- Migration `0001_init.sql` đã áp lên Supabase thật (17/11).
+- Đã rà 6 file trang chủ quán và trang công khai do subagent thứ ba viết.
+- Nút ẩn/hiện nhận xét cho nhóm vận hành ở `/quan/ca/[id]`.
+- Deploy Vercel (https://safeshift-beta.vercel.app).
 
-### Theo thứ tự ưu tiên (còn 3 ngày đến hạn deploy)
-3. Đọc lại 6 file do subagent thứ ba viết mà chưa ai rà: `src/app/quan/page.tsx`, `quan/dang-ca/page.tsx`, `quan/ca/[id]/page.tsx`, `xac-nhan/[token]/{page,confirm-form}.tsx`, `dong-y/[token]/page.tsx`, `h/[slug]/page.tsx`. Kiểm kỹ `confirm-form.tsx`: tên field phải khớp `submitConfirmation` trong `actions.ts` (`claim_id`, `attended_<id>`, `on_time_<id>`, `rating_<id>`, `comment_<id>`).
-4. Tạo Supabase project → chạy migration → chạy seed → **chạy `supabase/tests/edge_cases.sql` trong SQL Editor trên Supabase thật** (đây là lúc các giả định ở mục 4 được kiểm chứng) → chạy lại seed.
-5. Cấu hình Google OAuth + redirect URL (README mục 3) → deploy Vercel (README mục 6) → `select make_admin(...)`.
-6. Chạy tay toàn bộ `TESTING.md` mục B trên điện thoại thật. Ưu tiên B1 (luồng chính), B6 (xác nhận sau ca), B4 (số điện thoại).
-7. Nối SMTP riêng cho magic link, **hoặc** quyết định chỉ hướng dẫn đăng nhập Google.
-8. Thêm nút ẩn/hiện nhận xét cho admin ở `/quan/ca/[id]` (dùng action `hideComment`; `ShiftDetail.results[]` đã có `id`, `comment_hidden`).
-9. Trước 21/11: xóa dữ liệu demo (README mục 7).
-10. Gửi chủ dự án bản tổng kết (giả định + rủi ro).
+### Còn lại, theo thứ tự
+1. **Chạy lại `supabase/seed.sql` trong SQL Editor** của Supabase thật để 16 user demo có mật khẩu; thử bấm 3 nút ở `/dang-nhap` trên bản deploy.
+2. **Chạy tay toàn bộ `TESTING.md` mục B** trên điện thoại thật, đăng nhập bằng nút demo. Ưu tiên B1 (luồng chính), B6 (xác nhận sau ca), B4 (số điện thoại). Chạy lại `seed.sql` sau mỗi lượt test để khôi phục dữ liệu.
+3. Nhờ chủ dự án đọc duyệt hai trang `/dieu-khoan`, `/chinh-sach-du-lieu` và cung cấp thông tin liên hệ. **Không bịa tên pháp nhân, địa chỉ, email, số điện thoại.** Nếu đổi quy tắc nghiệp vụ (bảng G ở mục 4) thì sửa câu chữ tương ứng trong hai trang này.
+4. Demo **26/11**: chạy lại `seed.sql` ngay trước buổi demo để dữ liệu mẫu về trạng thái ban đầu. Gói miễn phí Supabase tự tạm dừng sau khoảng 1 tuần không truy cập: mở web mỗi vài ngày.
+5. Gửi chủ dự án bản tổng kết (giả định + rủi ro).
+
+Không làm nữa: cấu hình SMTP, Google OAuth, Redirect URL; chạy `xoa_du_lieu_demo.sql`.
 
 ### Cần chủ dự án trả lời
 - **G4:** 40 giờ/tuần áp cho mọi người hay chỉ người dưới 18?
@@ -328,8 +336,8 @@ Chức năng: đăng ca / nhân bản / đổi thứ tự chính–dự phòng �
 - **G8:** giấy phép kinh doanh có bắt buộc không?
 - **G10:** hủy sát giờ có nên tự đưa người dự phòng lên không?
 - Thông tin liên hệ / tên đơn vị để ghi vào Điều khoản và Chính sách dữ liệu.
-- Có tên miền riêng không (quyết định email nhắc ca và SMTP)?
-- Demo 26/11 dùng dữ liệu thật của đợt chạy hay nạp lại seed?
+- Có tên miền riêng không (quyết định email nhắc ca, nếu muốn bật)?
+- ~~Demo 26/11 dùng dữ liệu thật hay nạp lại seed?~~ — đã trả lời: dữ liệu mẫu, chạy lại seed (D1, D4).
 
 ---
 
