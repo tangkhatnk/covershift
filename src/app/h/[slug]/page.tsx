@@ -55,7 +55,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
       <article className="rounded-2xl border-2 border-brand-600 bg-white p-5 shadow-sm print:border print:border-slate-400 print:p-0 print:shadow-none">
         <header className="border-b-2 border-slate-200 pb-4 text-center">
           <p className="text-sm font-bold uppercase tracking-widest text-brand-700">{APP_NAME} · Hồ sơ ca làm</p>
-          <h1 className="mt-1 text-3xl font-extrabold leading-tight text-slate-900">{p.name}</h1>
+          <h1 className="mt-1 break-words text-3xl font-extrabold leading-tight text-slate-900">{p.name}</h1>
         </header>
 
         <div className="mt-4 grid grid-cols-2 gap-3 print:grid-cols-4">
@@ -82,7 +82,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
             <ul className="divide-y divide-slate-200">
               {reviews.map((r, i) => (
                 <li key={i} className="space-y-1 py-3 print:break-inside-avoid">
-                  <p className="text-base font-bold text-slate-900">
+                  <p className="break-words text-base font-bold text-slate-900">
                     {fmtPlainDate(r.date)} · {r.facility_name}
                   </p>
                   <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-base text-slate-700">
@@ -92,7 +92,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
                       {r.on_time ? 'Đúng giờ' : 'Trễ'}
                     </span>
                   </p>
-                  {r.comment ? <p className="text-base text-slate-800">“{r.comment}”</p> : null}
+                  {r.comment ? <p className="break-words text-base text-slate-800">“{r.comment}”</p> : null}
                 </li>
               ))}
             </ul>

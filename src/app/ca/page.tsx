@@ -14,7 +14,7 @@ const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 const isYmd = (v: string) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
   const d = new Date(`${v}T00:00:00Z`);
-  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
+  return v >= '2000-01-01' && !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
 };
 
 export default async function FeedPage({ searchParams }: {

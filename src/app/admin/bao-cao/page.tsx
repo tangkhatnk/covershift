@@ -3,6 +3,7 @@ import { resolveReport } from '@/app/actions';
 import { ActionForm, SubmitButton } from '@/components/client';
 import { Alert, Badge, Card, Empty, Field, PageTitle, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
+import { friendlyError } from '@/lib/errors';
 import { REPORT_KIND_LABEL } from '@/lib/constants';
 import { fmtDateTime } from '@/lib/format';
 import type { AdminReport } from '@/lib/types';
@@ -61,7 +62,7 @@ export default async function ReportsPage() {
     return (
       <div className="space-y-4">
         <PageTitle>Hộp báo cáo</PageTitle>
-        <Alert tone="red">{error.message}</Alert>
+        <Alert tone="red">{friendlyError(error)}</Alert>
       </div>
     );
   }

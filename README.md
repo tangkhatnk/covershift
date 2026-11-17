@@ -86,25 +86,31 @@ Tải lại trang web → vào thẳng `/admin`. Hàm `make_admin` không gọi 
 
 ## 3. Đăng nhập: Google OAuth, magic link, redirect URL
 
-**Authentication → URL Configuration**
+**Authentication → URL Configuration** (Site URL mặc định là `http://localhost:3000` — đổi sang domain thật khi đã deploy)
 
 - **Site URL**: `https://<ten-du-an>.vercel.app`
-- **Redirect URLs** (thêm cả hai):
+- **Redirect URLs** (thêm cả hai, đúng đường dẫn — mã luôn quay về `<origin>/auth/callback`):
   - `https://<ten-du-an>.vercel.app/auth/callback`
   - `http://localhost:3000/auth/callback`
+- Chỉ khi muốn đăng nhập trên URL *preview* của Vercel: thêm mẫu `https://*-<slug-tai-khoan>.vercel.app/**` (lấy slug thật từ URL preview).
 
-**Google OAuth**
+**Google OAuth** (Google Cloud Console, giao diện *Google Auth Platform*)
 
-1. https://console.cloud.google.com → tạo project → **APIs & Services → OAuth consent screen**: loại *External*, điền tên app + email, rồi **Publish app** (để ở chế độ *Testing* thì chỉ email trong danh sách test đăng nhập được).
-2. **Credentials → Create credentials → OAuth client ID → Web application**:
-   - *Authorized JavaScript origins*: `https://<ten-du-an>.vercel.app`, `http://localhost:3000`
-   - *Authorized redirect URIs*: `https://<project-ref>.supabase.co/auth/v1/callback` (đây là địa chỉ của **Supabase**, không phải của web)
-3. Chép Client ID + Client secret vào **Supabase → Authentication → Providers → Google** → Enable.
+1. https://console.cloud.google.com → tạo/chọn project → menu **Google Auth Platform** → **Get started**: *App Information* (tên app + email hỗ trợ) → *Audience*: **External** → *Contact Information* → **Finish**.
+2. **Data Access**: chỉ scope cơ bản `.../auth/userinfo.email`, `.../auth/userinfo.profile` và thêm `openid`. **Không** thêm scope nhạy cảm (sẽ phải xác minh app với Google).
+3. **Audience → Publish app** (để ở *Testing* thì chỉ email trong danh sách test đăng nhập được).
+4. **Clients → Create client → Web application**:
+   - *Authorized redirect URIs*: `https://<project-ref>.supabase.co/auth/v1/callback` — chép đúng chuỗi hiện trong Supabase ở bước 5 (đây là địa chỉ của **Supabase**, không phải của web).
+   - *Authorized JavaScript origins*: `http://localhost:3000`, `https://<ten-du-an>.vercel.app` (luồng chuyển hướng của Supabase không cần mục này; nếu Console từ chối thì bỏ qua). Nếu Console đòi khai *Authorized domains* (mục Branding) thì thêm `supabase.co`.
+   - **Create** → chép **Client ID** và **Client secret** (secret chỉ hiện một lần).
+5. **Supabase → Authentication → Sign In / Providers → Google**: bật, dán Client ID + Client secret → **Save**.
+
+App chưa được Google xác minh thì màn hình chọn tài khoản hiện tên miền `<project-ref>.supabase.co` thay cho tên app — bình thường, đăng nhập vẫn chạy (xác minh mất vài ngày đến vài tuần, không cần cho đợt chạy thật).
 
 **Magic link (email)**
 
-- **Authentication → Providers → Email**: bật *Email* và **giữ *Confirm email* BẬT** (mặc định). Nếu tắt, ai cầm anon key (công khai trong web) cũng tạo được tài khoản email + mật khẩu qua API mà không cần xác minh email.
-- ⚠️ SMTP mặc định của Supabase chỉ gửi **2 email/giờ** và **chỉ tới email thành viên team của project** — người ngoài nhận lỗi "Email address not authorized" ([tài liệu](https://supabase.com/docs/guides/auth/auth-smtp)). Tức là magic link **không dùng được** với người làm/chủ quán thật nếu chưa nối SMTP riêng (**Authentication → SMTP Settings**; Resend: host `smtp.resend.com`, port `465`, user `resend`, password = API key; bắt buộc có tên miền đã xác minh). Không có tên miền: mọi người **đăng nhập bằng Google**.
+- **Authentication → Sign In / Providers → Email**: bật *Email* và **giữ *Confirm email* BẬT**. Nếu tắt, ai cầm anon key (công khai trong web) cũng tạo được tài khoản email + mật khẩu qua API mà không cần xác minh email.
+- ⚠️ SMTP mặc định của Supabase chỉ gửi **2 email/giờ** và **chỉ tới email thành viên team của project** — người ngoài nhận lỗi "Email address not authorized" ([tài liệu](https://supabase.com/docs/guides/auth/auth-smtp)). Tức là magic link **không dùng được** với người làm/chủ quán thật nếu chưa nối SMTP riêng (mục *SMTP / Custom SMTP* trong Authentication; sau khi nối, giới hạn mặc định 30 email/giờ, chỉnh ở *Rate Limits*; Resend: host `smtp.resend.com`, port `465`, user `resend`, password = API key; bắt buộc có tên miền đã xác minh). Không có tên miền: mọi người **đăng nhập bằng Google**.
 - Magic link dùng PKCE: phải bấm link **trên cùng trình duyệt** đã yêu cầu link. Muốn bấm ở trình duyệt nào cũng được: sửa template *Magic Link* (Authentication → Email Templates) thành `<a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email">Đăng nhập</a>` — `/auth/callback` đã hỗ trợ `token_hash` (cách này chưa thử thật).
 - Google chặn đăng nhập trong trình duyệt nhúng của Zalo/Facebook. Trang `/dang-nhap` tự hiện cảnh báo "Mở bằng trình duyệt" khi phát hiện; khi gửi link qua Zalo nên nhắc mọi người mở bằng Chrome/Safari.
 - Email template mặc định (`{{ .ConfirmationURL }}`) chạy được ngay với `/auth/callback`.
@@ -118,7 +124,7 @@ Chép `.env.example` thành `.env.local`:
 | Biến | Giá trị |
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon public key |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | key **công khai**: publishable key `sb_publishable_…` (project tạo từ 11/2025 chỉ có loại này) hoặc anon key `eyJ…` của project cũ. Giữ nguyên tên biến. **Không** dùng secret / service_role |
 | `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` (local) hoặc `https://<ten-du-an>.vercel.app` — dùng để tạo link gửi phụ huynh / chủ quán |
 
 Không có biến bí mật nào phía web.
@@ -133,7 +139,7 @@ npm install
 npm run dev
 ```
 
-Mở http://localhost:3000 (cần Node 20+). Web local nối thẳng tới Supabase project trên cloud.
+Mở http://localhost:3000 (Node 24 — bản đã chạy thử, ghim trong `package.json`). Web local nối thẳng tới Supabase project trên cloud.
 
 Kiểm tra tầng database mà không cần Supabase/Docker (Postgres nhúng, tải về lần đầu ~1 phút):
 
@@ -145,10 +151,13 @@ Kỳ vọng: `85/85 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM` và
 
 ## 6. Deploy Vercel
 
-1. Đẩy mã nguồn lên GitHub → https://vercel.com → **Add New → Project** → chọn repo (framework tự nhận Next.js).
-2. **Environment Variables**: thêm 3 biến ở mục 4 (với `NEXT_PUBLIC_SITE_URL` là domain Vercel thật).
-3. **Deploy**. Sau đó quay lại mục 3 để điền đúng domain vào Supabase (Site URL, Redirect URLs) và Google (origins).
-4. Đổi domain → phải sửa cả 3 chỗ: biến `NEXT_PUBLIC_SITE_URL` (rồi redeploy), Supabase URL Configuration, Google OAuth origins.
+1. https://vercel.com/new → kết nối GitHub → chọn repo (framework tự nhận Next.js). Node lấy theo `package.json` (**24.x**; Vercel mặc định 26.x, chưa thử với Next 15.5).
+2. **Environment Variables**: thêm 3 biến ở mục 4, loại *Config* (đều là giá trị công khai), môi trường Production. Lần đầu chưa biết domain: đặt `NEXT_PUBLIC_SITE_URL` tạm là `https://<tên-project>.vercel.app`.
+3. **Deploy** → xem domain thật ở **Settings → Domains**. Khác giá trị tạm thì sửa `NEXT_PUBLIC_SITE_URL` rồi **Redeploy**.
+4. Quay lại mục 3: điền domain vào Supabase (Site URL, Redirect URLs) và Google (origins).
+5. Biến `NEXT_PUBLIC_*` được nhúng lúc build: đổi **bất kỳ** biến nào (domain, key Supabase) đều phải **Redeploy** mới có hiệu lực. Đổi domain → sửa cả 3 chỗ: biến, Supabase URL Configuration, Google origins.
+6. Mở domain production ở cửa sổ ẩn danh: không được đòi đăng nhập Vercel (nếu có: **Settings → Deployment Protection**).
+7. Điều khoản gói Hobby: *"You shall only use the Services under a Hobby plan for your personal or non-commercial use"* — chủ dự án tự đánh giá; không chắc thì hỏi Vercel Support.
 
 ## 7. Trước ngày chạy thật (21–22/11)
 

@@ -1,9 +1,9 @@
 'use client';
 
-import { useActionState, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useActionState, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useFormStatus } from 'react-dom';
 import type { ActionState } from '@/lib/types';
-import { btn, type BtnVariant } from './ui';
+import { Alert, btn, type BtnVariant, type Tone } from './ui';
 
 type Action = (prev: ActionState, formData: FormData) => Promise<ActionState>;
 
@@ -49,7 +49,8 @@ export function ActionForm({ action, children, className = 'space-y-4', resetOnO
   const ref = useRef<HTMLFormElement>(null);
   const msgRef = useRef<HTMLParagraphElement>(null);
   const submitted = useRef<FormData | null>(null);
-  useEffect(() => {
+  // useLayoutEffect: điền lại ngay sau khi React reset form (cùng commit), trước khi vẽ — không nháy ô trống.
+  useLayoutEffect(() => {
     if (!state) return;
     if (state.error && ref.current && submitted.current) restoreFields(ref.current, submitted.current);
     if (state.ok && resetOnOk) ref.current?.reset();
@@ -82,7 +83,28 @@ export function ActionForm({ action, children, className = 'space-y-4', resetOnO
   );
 }
 
-/** Nút gửi form: tự khóa khi đang gửi (chống bấm hai lần). `confirm` = câu hỏi xác nhận trước khi gửi. */
+/**
+ * Thông báo một lần sau khi chuyển trang (vd. /admin?bao-ban=…): cuộn tới để chắc người dùng thấy, rồi xóa tham số
+ * `param` khỏi URL (không tải lại trang) để bấm F5 / Back không hiện lại thông báo cũ.
+ */
+export function Flash({ param, tone = 'green', children }: { param: string; tone?: Tone; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    ref.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    const url = new URL(window.location.href);
+    if (url.searchParams.has(param)) {
+      url.searchParams.delete(param);
+      window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+    }
+  }, [param]);
+  return <div ref={ref}><Alert tone={tone}>{children}</Alert></div>;
+}
+
+/**
+ * Nút gửi form: tự khóa khi đang gửi (chống bấm hai lần). `confirm` = câu hỏi xác nhận trước khi gửi.
+ * Không dùng `confirm` ở trang mở từ Zalo/Facebook (/xac-nhan, /dong-y): trình duyệt nhúng có thể bỏ qua hộp thoại
+ * và trả "không" ngay, nút sẽ như bị liệt.
+ */
 export function SubmitButton({ children, variant = 'primary', confirm, full = true, name, value }: {
   children: ReactNode; variant?: BtnVariant; confirm?: string; full?: boolean; name?: string; value?: string;
 }) {

@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { primaryBusy } from '@/app/actions';
-import { ActionForm, CopyButton, SubmitButton } from '@/components/client';
+import { ActionForm, CopyButton, Flash, SubmitButton } from '@/components/client';
 import { Alert, Badge, Card, Empty, Field, PageTitle, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { JOB_LABEL, SITE_URL } from '@/lib/constants';
+import { friendlyError } from '@/lib/errors';
 import { fmtDateTime, fmtRange, shiftState, SHIFT_STATE_LABEL, SHIFT_STATE_TONE } from '@/lib/format';
 import type { DispatchBoard, DispatchShift, PendingConfirmation } from '@/lib/types';
 
@@ -146,7 +147,7 @@ export default async function DispatchPage({ searchParams }: { searchParams: Pro
     return (
       <div className="space-y-4">
         <PageTitle>Bảng điều phối</PageTitle>
-        <Alert tone="red">{error.message}</Alert>
+        <Alert tone="red">{friendlyError(error)}</Alert>
       </div>
     );
   }
@@ -162,15 +163,15 @@ export default async function DispatchPage({ searchParams }: { searchParams: Pro
         Bảng điều phối
       </PageTitle>
 
-      {/* Kết quả "Người chính báo bận" (action primaryBusy chuyển hướng về đây). */}
+      {/* Kết quả "Người chính báo bận" (action primaryBusy chuyển hướng về đây); Flash tự xóa ?bao-ban khỏi URL. */}
       {busyResult === 'da-thay' ? (
-        <Alert tone="green">
+        <Flash param="bao-ban" tone="green">
           Đã chuyển người dự phòng lên làm người chính và ghi sự cố. Hãy gọi báo cho người dự phòng và chủ quán.
-        </Alert>
+        </Flash>
       ) : busyResult === 'khong-du-phong' ? (
-        <Alert tone="red">
+        <Flash param="bao-ban" tone="red">
           <b>Đã ghi sự cố nhưng ca này KHÔNG có người dự phòng.</b> Cần tìm người thay ngay.
-        </Alert>
+        </Flash>
       ) : null}
 
       <section className="space-y-3">

@@ -63,7 +63,7 @@ export default async function ParentalConsentPage({ params }: { params: Promise<
         <ul className="mt-2 list-disc space-y-2 pl-5 text-base text-slate-800">
           <li>{DISCLAIMER}</li>
           <li>Con chỉ nhận được ca <b>trong khung 06:00–22:00</b>, tối đa <b>8 giờ một ca</b> và <b>40 giờ một tuần</b>.</li>
-          <li>Chỉ có 7 loại việc nhẹ: {jobs}. Không có việc ở: {PROHIBITED_TEXT}.</li>
+          <li>Chỉ có 7 loại việc nhẹ: {jobs}. Không có việc liên quan đến: {PROHIBITED_TEXT}.</li>
           <li>Nơi thuê đã được nhóm vận hành đến tận nơi xác minh.</li>
           <li><b>{NO_FEE}</b> Không đặt cọc, không giữ giấy tờ.</li>
           <li>Số điện thoại của anh/chị chỉ nhóm vận hành thấy, để liên hệ khi cần.</li>

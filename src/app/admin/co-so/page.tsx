@@ -2,6 +2,7 @@ import { setAccountStatus, setFacilityStatus, verifyFacility } from '@/app/actio
 import { ActionForm, SubmitButton } from '@/components/client';
 import { Alert, Badge, Card, Check, Empty, Field, PageTitle, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
+import { friendlyError } from '@/lib/errors';
 import { AREA_LABEL, FACILITY_STATUS_LABEL, FACILITY_TYPE_LABEL } from '@/lib/constants';
 import { fmtPlainDate, vnDateInput } from '@/lib/format';
 import type { AdminFacility } from '@/lib/types';
@@ -116,7 +117,7 @@ export default async function FacilitiesPage() {
     return (
       <div className="space-y-4">
         <PageTitle>Duyệt cơ sở</PageTitle>
-        <Alert tone="red">{error.message}</Alert>
+        <Alert tone="red">{friendlyError(error)}</Alert>
       </div>
     );
   }

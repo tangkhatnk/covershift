@@ -143,7 +143,10 @@ export function ConfirmForm({ token, workers }: { token: string; workers: Worker
             : 'Anh/chị chọn xong các mục ở trên (đã làm / không đến, đúng giờ, số sao) rồi bấm gửi.'}
         </p>
       ) : null}
-      <SubmitButton confirm="Gửi xác nhận? Sau khi gửi sẽ không sửa lại được.">Gửi xác nhận</SubmitButton>
+      {/* Không dùng window.confirm: chủ quán thường mở link này trong Zalo, trình duyệt nhúng có thể bỏ qua hộp thoại
+          và trả "không" ngay — nút sẽ như bị liệt. Thay bằng câu nhắc cố định ngay trên nút. */}
+      <p className="text-base font-medium text-slate-700">Kiểm tra lại các lựa chọn. Sau khi gửi sẽ không sửa lại được.</p>
+      <SubmitButton>Gửi xác nhận</SubmitButton>
     </ActionForm>
   );
 }

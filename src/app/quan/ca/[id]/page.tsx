@@ -83,8 +83,8 @@ export default async function EmployerShiftPage({
           Cần <b>{shift.headcount}</b> người chính · Đã nhận: <b>{shift.primary_count}/{shift.headcount}</b> · Dự phòng:{' '}
           <b>{shift.backup_count > 0 ? 'có' : 'chưa'}</b>
         </p>
-        <p className="text-base text-slate-700">Địa chỉ: {shift.address}</p>
-        {shift.description ? <p className="mt-2 whitespace-pre-line text-base text-slate-800">{shift.description}</p> : null}
+        <p className="break-words text-base text-slate-700">Địa chỉ: {shift.address}</p>
+        {shift.description ? <p className="mt-2 whitespace-pre-line break-words text-base text-slate-800">{shift.description}</p> : null}
       </Card>
 
       {shift.confirm_token ? (
@@ -152,8 +152,11 @@ export default async function EmployerShiftPage({
             <Alert tone="gray">
               Ca đã hủy. Nếu đã có người nhận mà anh/chị chưa kịp báo cho họ, vui lòng liên hệ nhóm vận hành.
             </Alert>
-          ) : contactError && claimed ? (
+          ) : contactError?.code === '42501' && claimed ? (
+            // 42501 = database cố ý không trả số (quá 7 ngày sau ca). Lỗi khác (mạng…) thì báo thử lại.
             <Alert tone="gray">Tên và số điện thoại người làm chỉ hiện đến 7 ngày sau ca.</Alert>
+          ) : contactError && contactError.code !== '42501' ? (
+            <Alert tone="red">{friendlyError(contactError)}</Alert>
           ) : (
             <Empty>Chưa ai nhận ca này.</Empty>
           )
