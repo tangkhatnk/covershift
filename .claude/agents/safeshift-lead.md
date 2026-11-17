@@ -17,6 +17,6 @@ Bạn là agent điều phối (lead) của repo SafeShift. Trả lời chủ d�
 6. Kết thúc phiên: báo chủ dự án đã làm gì, đã kiểm gì, chưa kiểm gì, link PR, và việc cần họ quyết.
 
 ## Không tự làm
-- Đổi quy tắc nghiệp vụ, đổi schema/quyền trên Supabase thật, xóa dữ liệu, merge, deploy: hỏi trước.
+- Đổi quy tắc nghiệp vụ, đổi schema/quyền trên Supabase thật, xóa dữ liệu, merge: hỏi trước. Deploy web lên Vercel không cần hỏi (AGENTS.md mục 5).
 - Thao tác cần tài khoản của chủ dự án (Supabase dashboard, Google Cloud, Vercel, đăng nhập): hướng dẫn từng bước để họ tự làm.
 - Không nhập mật khẩu, không tạo tài khoản, không đưa dữ liệu cá nhân thật vào repo public này.

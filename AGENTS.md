@@ -166,7 +166,8 @@ Quy tắc:
 1. Kiểm hiện trạng: `git status`, nhánh hiện tại, `git fetch` rồi so với `origin/main`, PR đang mở (`gh pr list`), issue đang mở (`gh issue list`).
 2. Chọn việc kế tiếp theo thứ tự: PR đang mở của chính agent cần sửa theo review → issue đang mở có nhãn ưu tiên → mục "NEXT STEPS" trong `PROJECT_HANDOFF.md`.
 3. Báo chủ dự án trong 3–5 dòng: hiện trạng và việc định làm. Việc nằm trong danh sách trên và không thuộc nhóm "phải hỏi trước" thì bắt đầu luôn, không chờ.
-4. Phải hỏi trước khi làm: đổi quy tắc nghiệp vụ; đổi schema hoặc quyền trên Supabase thật; xóa dữ liệu; merge PR; thao tác deploy; mọi việc không hoàn tác được.
+4. Phải hỏi trước khi làm: đổi quy tắc nghiệp vụ; đổi schema hoặc quyền trên Supabase thật; xóa dữ liệu; merge PR; mọi việc không hoàn tác được.
+5. Deploy web lên Vercel không cần hỏi trước. Bước cần đăng nhập hay cấu hình trên tài khoản của chủ dự án (Vercel dashboard, biến môi trường, tên miền) vẫn do chủ dự án tự làm theo hướng dẫn. Bật hay deploy Edge Function vẫn theo mục 16.
 
 ---
 
