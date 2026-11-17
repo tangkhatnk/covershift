@@ -366,5 +366,26 @@ select pg_temp.t_do('11a. Người làm tự xóa tài khoản: mất sạch d�
        and not exists (select 1 from worker_profiles where user_id = 'b0000000-0000-4000-a000-000000000015')
        and not exists (select 1 from parental_consents where worker_id = 'b0000000-0000-4000-a000-000000000015')$$);
 
+-- 11b. Chủ quán tự xóa tài khoản khi ca của họ có đủ loại báo cáo + worker_events.
+-- Báo cáo mẫu 'Demo-11b: ...' do seed.sql tạo (đã commit từ trước). Không dựng trong test vì Postgres chỉ kiểm lại khóa ngoại
+-- kiểu này với dòng do chính giao dịch tạo ra => sẽ báo lỗi giả. Thêm báo cáo late_cancel/payment/user_report tạo bằng RPC ở
+-- các test trước (cùng giao dịch) cũng không dùng được cho mục đích này.
+select pg_temp.t_do('11b. Chủ quán xóa tài khoản khi ca có báo cáo (late_cancel, primary_busy, user_report) + worker_events: thành công, dữ liệu chủ quán sạch, báo cáo còn lại không trỏ tới ca đã xóa', 'e0000000-0000-4000-a000-000000000003',
+  $$select delete_my_account()$$,
+  $$select not exists (select 1 from auth.users where id = 'e0000000-0000-4000-a000-000000000003')
+       and not exists (select 1 from profiles where id = 'e0000000-0000-4000-a000-000000000003')
+       and not exists (select 1 from private_contacts where user_id = 'e0000000-0000-4000-a000-000000000003')
+       and not exists (select 1 from facilities where owner_id = 'e0000000-0000-4000-a000-000000000003')
+       and not exists (select 1 from shifts where facility_id = 'f0000000-0000-4000-a000-000000000003')
+       and not exists (select 1 from shift_claims where shift_id in ('50000000-0000-4000-a000-000000000008', '50000000-0000-4000-a000-000000000012'))
+       and (select count(*) from reports where body like 'Demo-11b:%') = 4
+       and not exists (select 1 from reports where body like 'Demo-11b:%' and shift_id is not null)
+       and not exists (select 1 from reports where reporter_id = 'e0000000-0000-4000-a000-000000000003' or subject_id = 'e0000000-0000-4000-a000-000000000003')
+       and (select count(*) from reports where body like 'Demo-11b:%' and reporter_id is null and subject_id is null) = 2
+       and exists (select 1 from worker_events where worker_id = 'a0000000-0000-4000-a000-000000000005' and kind = 'no_show' and shift_id is null)
+       and exists (select 1 from worker_profiles where user_id = 'a0000000-0000-4000-a000-000000000005')$$);
+-- Dọn báo cáo mồ côi do chính test này tạo (không để lại rác sau test; chỉ báo cáo mẫu 'Demo-11b:' không còn trỏ tới ai).
+delete from reports where body like 'Demo-11b:%' and reporter_id is null and subject_id is null and shift_id is null;
+
 select pg_temp.as_user(null, null);
 select name, passed, detail from t_results order by n;

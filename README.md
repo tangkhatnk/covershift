@@ -50,9 +50,10 @@ Trình duyệt ──► Next.js trên Vercel (Server Component + Server Action,
 ```
 supabase/migrations/0001_init.sql   toàn bộ schema, trigger, RPC, RLS, quyền
 supabase/seed.sql                   dữ liệu demo (chạy lại được nhiều lần)
-supabase/tests/edge_cases.sql       85 test biên ở tầng database
+supabase/tests/edge_cases.sql       86 test biên ở tầng database
 supabase/tests/check_before_migration.sql  kiểm project Supabase mới TRƯỚC khi dán migration (chỉ đọc)
 supabase/tests/privileges_check.sql kiểm quyền bảng/hàm của anon/authenticated SAU migration (chỉ đọc)
+supabase/xoa_du_lieu_demo.sql       xóa dữ liệu demo/test trước ngày chạy thật (giữ nguyên dữ liệu thật)
 supabase/functions/shift-reminders  Edge Function nhắc ca qua email (tùy chọn, mặc định tắt)
 db-test/                            chạy migration + seed + test + chạy đua trên Postgres nhúng (không cần Docker)
 src/app/actions.ts                  mọi server action (mỗi action = 1 lời gọi RPC)
@@ -147,7 +148,7 @@ Kiểm tra tầng database mà không cần Supabase/Docker (Postgres nhúng, t�
 npm run test:db
 ```
 
-Kỳ vọng: `85/85 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM` và 5 dòng `✔ chạy đua`.
+Kỳ vọng: `86/86 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM`, dòng `tái chạy … ĐẠT`, 5 dòng `✔ chạy đua` và dòng `dọn dữ liệu demo … ĐẠT`.
 
 ## 6. Deploy Vercel
 
@@ -161,15 +162,11 @@ Kỳ vọng: `85/85 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM` và
 
 ## 7. Trước ngày chạy thật (21–22/11)
 
-```sql
--- 1) Xóa toàn bộ dữ liệu demo (cascade sạch mọi bảng)
-delete from auth.users where email like '%@demo.safeshift.test';
-delete from public.reports where reporter_id is null and subject_id is null and shift_id is null;
-delete from public.admin_audit_log;
-
--- 2) Kiểm tra cấu hình
-select * from public.app_config;   -- min_hourly_wage = 25500, weekly_hours_cap = 40
-```
+1. **Xóa dữ liệu demo** (không hoàn tác được — chỉ làm khi chủ dự án xác nhận): SQL Editor → dán toàn bộ `supabase/xoa_du_lieu_demo.sql` → **Run**.
+   - Chỉ xóa dữ liệu demo/test (email `@demo.safeshift.test`, id cố định của seed/test); giữ nguyên tài khoản và dữ liệu thật, kể cả nhật ký thao tác của admin thật. Chạy lại nhiều lần không sao.
+   - Bảng kết quả: nhóm *CÒN LẠI DEMO* phải toàn `0`; nhóm *SỐ DÒNG* cho thấy dữ liệu thật còn lại (`app_config` = 2).
+   - ⚠️ Đừng xóa user demo bằng `delete from auth.users where …` hay chọn nhiều user trong Dashboard rồi xóa một lượt: một báo cáo trỏ tới nhiều user demo cùng lúc làm lệnh lỗi khóa ngoại `23503` (file trên xóa theo đúng thứ tự để tránh).
+2. Kiểm tra cấu hình: `select * from public.app_config;` → `min_hourly_wage = 25500`, `weekly_hours_cap = 40`.
 
 - Mức lương tối thiểu và giới hạn giờ/tuần đổi được ở `/admin/kpi` (có ghi audit log).
 - Gói Supabase miễn phí **tự tạm dừng project sau khoảng 1 tuần không có truy cập**: mở web/SQL editor mỗi vài ngày từ nay đến 26/11.
