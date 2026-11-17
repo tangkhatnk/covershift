@@ -209,7 +209,7 @@ ai/*
 - Xóa nhánh task sau khi merge.
 - Không merge khi review hoặc kiểm tra liên quan chưa xong.
 
-Hiện trạng cần biết: lịch sử trước khi có `AGENTS.md` (14 commit, từ `Initial commit` đến `Bỏ qua cấu hình MCP cục bộ`) đều commit thẳng `main`, chưa có pull request nào, và `main` chưa bật branch protection. Đó là quá khứ của giai đoạn một người làm, không phải tiền lệ. Từ khi có file này, quy trình trên là bắt buộc dù GitHub chưa chặn kỹ thuật.
+Hiện trạng cần biết: lịch sử trước khi có `AGENTS.md` (14 commit, từ `chore: khởi tạo repo` đến `chore: bỏ qua cấu hình MCP cục bộ`) đều commit thẳng `main`, chưa có pull request nào, và `main` chưa bật branch protection. Đó là quá khứ của giai đoạn một người làm, không phải tiền lệ. Từ khi có file này, quy trình trên là bắt buộc dù GitHub chưa chặn kỹ thuật.
 
 Hai nhánh `add-claude-github-actions-*` trên remote do GitHub tạo khi cài workflow Claude, không phải mẫu đặt tên cho nhánh task.
 
@@ -254,7 +254,7 @@ chore: ...
 ci: ...
 ```
 
-Hiện trạng: lịch sử đến nay dùng tiêu đề tiếng Việt không có tiền tố, ví dụ `Bỏ qua cấu hình MCP cục bộ`, `Sửa lỗi sau khi rà soát giao diện`. Giữ nguyên lịch sử đó, không viết lại.
+Hiện trạng: ngày 17/11/2026, theo yêu cầu của chủ dự án, tiêu đề 14 commit cũ trên `main` đã được viết lại sang dạng có tiền tố (ví dụ `chore: bỏ qua cấu hình MCP cục bộ`, `fix: sửa lỗi giao diện sau khi rà soát`); nội dung, tác giả và ngày giữ nguyên, bản trước khi viết lại lưu ở nhánh `backup/main-truoc-khi-viet-lai`. Lần viết lại đó là ngoại lệ được duyệt riêng, không phải tiền lệ: từ nay không viết lại lịch sử `main` (mục 28).
 
 Quy định từ nay: tiền tố tiếng Anh, mô tả tiếng Việt, một dòng tiêu đề nêu thay đổi thật.
 
