@@ -11,8 +11,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const sp = await searchParams;
   return (
     <div className="space-y-4">
-      <PageTitle sub="Dùng tài khoản Google, hoặc nhận link đăng nhập qua email. Không cần mật khẩu.">Đăng nhập</PageTitle>
-      {sp.loi ? <Alert tone="red">Đăng nhập chưa thành công (link hết hạn hoặc đã dùng). Vui lòng thử lại.</Alert> : null}
+      <PageTitle sub="Đây là bản mô phỏng, chỉ có dữ liệu mẫu. Chọn một vai trò để vào xem.">Đăng nhập</PageTitle>
+      {sp.loi ? <Alert tone="red">Link đăng nhập cũ không còn dùng được. Bản mô phỏng chỉ đăng nhập bằng ba nút bên dưới.</Alert> : null}
       <LoginForm />
     </div>
   );

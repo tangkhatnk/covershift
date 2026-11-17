@@ -3,6 +3,7 @@
 // Toàn bộ server action của ứng dụng. Mỗi action chỉ gom dữ liệu form rồi gọi một RPC;
 // mọi quy tắc nghiệp vụ được kiểm tra trong database (xem supabase/migrations/0001_init.sql).
 // Chữ ký chung: (prev, formData) => ActionState — dùng với <ActionForm action={...}>.
+// Ngoại lệ duy nhất không gọi RPC: demoLogin (gọi Supabase Auth để đăng nhập tài khoản demo).
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -33,6 +34,31 @@ async function call(
 }
 
 // ---------------------------------------------------------------- đăng ký / tài khoản
+
+// Mật khẩu công khai có chủ đích, chỉ dành cho tài khoản demo của bản mô phỏng (supabase/seed.sql).
+const DEMO_PASSWORD = 'safeshift-demo';
+const DEMO_EMAIL = new Map<string, string>([
+  ['worker', 'nguoilam1@demo.safeshift.test'],
+  ['employer', 'quan1@demo.safeshift.test'],
+  ['admin', 'admin@demo.safeshift.test'],
+]);
+
+/** Form: who (worker | employer | admin). Email cố định ở phía server, không nhận từ form. */
+export async function demoLogin(_: ActionState, fd: FormData): Promise<ActionState> {
+  const email = DEMO_EMAIL.get(str(fd, 'who'));
+  if (!email) return { error: 'Vai trò không hợp lệ. Bạn hãy chọn một trong ba nút trên trang.' };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password: DEMO_PASSWORD });
+  if (error) {
+    console.error('demoLogin lỗi:', error.status ?? '', error.code ?? '', error.message);
+    if (error.status === 429) return { error: 'Có quá nhiều lượt đăng nhập. Bạn vui lòng đợi vài phút rồi thử lại.' };
+    if (error.code === 'invalid_credentials') {
+      return { error: 'Tài khoản demo chưa sẵn sàng. Bạn vui lòng báo nhóm vận hành khôi phục dữ liệu mẫu.' };
+    }
+    return { error: 'Chưa đăng nhập được. Bạn vui lòng thử lại sau ít phút.' };
+  }
+  redirect('/');
+}
 
 /** Form: full_name, dob (YYYY-MM-DD), school, class_name, phone, area, availability (nhiều checkbox), consent */
 export async function registerWorker(_: ActionState, fd: FormData): Promise<ActionState> {

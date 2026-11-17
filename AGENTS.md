@@ -45,7 +45,9 @@ Vai trò: `worker` (người làm), `employer` (chủ quán), `admin` (nhóm v�
 
 Stack: Next.js 15 (App Router) + TypeScript + Tailwind 3 + Supabase (Postgres, Auth, RLS, Edge Functions) + Vercel, chỉ gói miễn phí.
 
-Mốc thời gian đợt đầu: deploy ổn định trước 20/11/2026, chạy thật 21–22/11, demo 26/11. **Ổn định quan trọng hơn tính năng mới.**
+Mốc thời gian đợt đầu: deploy ổn định trước 20/11/2026, chạy 21–22/11, demo 26/11. **Ổn định quan trọng hơn tính năng mới.**
+
+Theo quyết định ngày 17/11/2026, app là bản mô phỏng: đợt 21–22/11 không dùng người thật, chỉ dữ liệu mẫu. Web đã deploy production tại https://safeshift-beta.vercel.app (Vercel project `safeshift`, nối GitHub: merge vào `main` là tự deploy).
 
 ---
 
@@ -65,7 +67,7 @@ Dùng ranh giới sở hữu sẵn có trước khi tạo ranh giới mới. Đ�
   - `privileges_check.sql`: kiểm quyền bảng/hàm của `anon`/`authenticated`, chỉ đọc, chạy tự động và chạy tay trong SQL Editor sau migration;
   - `check_before_migration.sql`: kiểm project Supabase mới trước khi dán migration, chỉ đọc.
 - `supabase/xoa_du_lieu_demo.sql`
-  - xóa dữ liệu demo trước ngày chạy thật, đúng thứ tự khóa ngoại.
+  - dọn dữ liệu demo đúng thứ tự khóa ngoại; không chạy khi app còn là bản mô phỏng (mục 12).
 - `supabase/functions/`
   - hiện có `shift-reminders/index.ts`.
 - `db-test/`
@@ -77,7 +79,7 @@ Dùng ranh giới sở hữu sẵn có trước khi tạo ranh giới mới. Đ�
   - các route và trang (`admin/`, `quan/`, `ca/`, `dang-ky/`, `dang-nhap/`, `auth/`...);
   - `globals.css`, `layout.tsx`.
 - `src/app/actions.ts`
-  - mọi server action; một action tương ứng một RPC.
+  - mọi server action; một action tương ứng một RPC, ngoại lệ duy nhất là `demoLogin` (mục 15).
 - `src/lib/`
   - `constants.ts`, `types.ts`, `format.ts`, `errors.ts`, `auth.ts`;
   - `supabase/` (client, server, middleware).
@@ -159,7 +161,7 @@ Quy tắc:
 - Subagent không tạo nhánh, không commit, không push, không mở PR. Việc git do agent điều phối làm.
 - Báo cáo của subagent là dữ liệu để kiểm, không phải sự thật: agent điều phối đọc lại diff và chạy lại kiểm tra trước khi tin.
 - Subagent bị dừng giữa chừng (vd. 429): kiểm tra đĩa (`git status`, `git diff`) xem nó đã ghi gì, đợi giới hạn reset rồi gọi lại chính subagent đó thay vì tạo mới.
-- Không dùng subagent cho thao tác cần tài khoản của chủ dự án (Supabase dashboard, Google Cloud, Vercel, đăng nhập Google). Những bước đó chủ dự án tự làm; agent hướng dẫn từng bước.
+- Không dùng subagent cho thao tác cần tài khoản của chủ dự án (Supabase dashboard, Vercel). Những bước đó chủ dự án tự làm; agent hướng dẫn từng bước.
 
 ### Khi mở phiên mà chủ dự án chưa giao việc
 
@@ -375,7 +377,7 @@ Mô hình: Server Component đọc, Server Action ghi, mọi ghi đi qua RPC. RL
 - Muốn ghi dữ liệu mới, làm đủ ba việc:
   1. Viết RPC trong migration mới.
   2. Cấp quyền gọi trong cùng migration.
-  3. Thêm server action vào `src/app/actions.ts` (một action gọi một RPC, qua hàm `call()`). Không gọi `.from(...).insert/update/delete` từ `src/`.
+  3. Thêm server action vào `src/app/actions.ts` (một action gọi một RPC, qua hàm `call()`; ngoại lệ duy nhất là `demoLogin`, mục 15). Không gọi `.from(...).insert/update/delete` từ `src/`.
 - Mẫu RPC:
 
 ```sql
@@ -426,14 +428,12 @@ grant execute on function public.ten_ham(...) to authenticated;
 - Chủ dự án dán migration vào Supabase SQL Editor, rồi chạy `supabase/tests/privileges_check.sql` trên project thật. Agent không tự chạy DDL hay ghi dữ liệu lên project Supabase thật, kể cả khi máy có kết nối MCP tới đó.
 - Không dùng đường tắt bỏ qua file migration: `supabase db push`, `supabase db reset`, sửa bảng bằng Table Editor, hay sinh schema bằng diff/pull rồi áp thẳng. Mọi thay đổi phải truy vết được trong `supabase/migrations/`.
 - `supabase/tests/check_before_migration.sql` chỉ dùng cho project mới, trước khi dán `0001`. Không dùng nó để kiểm thay đổi sau này.
-- Từ khi có dữ liệu thật (đợt chạy 21–22/11), giữ nguyên dữ liệu thật:
+- Theo quyết định ngày 17/11/2026, app là bản mô phỏng: đợt 21–22/11 không dùng người thật, chỉ dữ liệu mẫu. Dù vậy quy tắc migration không đổi: không sửa `0001`, thay đổi schema là file mới, và nếu sau này có dữ liệu thật thì giữ nguyên dữ liệu đó:
   - không xóa hay đổi nghĩa dữ liệu hiện có nếu task không yêu cầu;
   - cột `not null` mới phải có `default` hoặc bước backfill rõ ràng;
   - không `drop` bảng hoặc cột đang chứa dữ liệu.
-- `supabase/seed.sql` chỉ cho dữ liệu demo (email `@demo.safeshift.test`, id cố định, không mật khẩu). Chạy lại được nhiều lần. Không nạp seed vào project đang có người dùng thật khi chủ dự án chưa yêu cầu.
-- Dọn dữ liệu demo bằng `supabase/xoa_du_lieu_demo.sql`:
-  - dán nguyên file vào SQL Editor, chạy lại nhiều lần không sao, không hoàn tác được;
-  - chỉ chạy khi chủ dự án xác nhận.
+- `supabase/seed.sql` là dữ liệu demo duy nhất của app: 16 user (email `@demo.safeshift.test`, id cố định) có mật khẩu chung công khai `safeshift-demo`, đặt bằng `extensions.crypt`. Seed tự xóa và tạo lại 16 user đó, chạy lại được nhiều lần; chạy lại trong SQL Editor là cách khôi phục dữ liệu mẫu. Không nạp seed vào project đang có người dùng thật.
+- `supabase/xoa_du_lieu_demo.sql` dọn dữ liệu demo, dán nguyên file vào SQL Editor, không hoàn tác được. Vì app chỉ dùng dữ liệu demo, **không chạy** file này trên project đang chạy bản mô phỏng: xóa user demo thì ba nút đăng nhập hỏng. Chỉ chạy khi chủ dự án xác nhận rõ, và sau đó phải chạy lại seed.
 - Không xóa user demo bằng `delete from auth.users where email like ...` hay chọn nhiều user trong Dashboard rồi xóa một lượt. Một báo cáo trỏ tới nhiều đối tượng cùng bị xóa gây lỗi khóa ngoại `23503`. File dọn demo xóa theo đúng thứ tự để tránh việc này.
 - Khi thêm bảng hoặc cột tham chiếu `auth.users`, `shifts` hay `facilities`: chọn `on delete cascade` hoặc `set null` có chủ ý, rồi cập nhật `xoa_du_lieu_demo.sql`, test 11a/11b (xóa tài khoản) và phần dọn demo trong `db-test/run.mjs`.
 
@@ -472,7 +472,7 @@ Hồ sơ công khai (`get_public_profile`, trang `/h/[slug]`):
 
 Xóa tài khoản và log:
 
-- `delete_my_account()` hủy suất và ca tương lai rồi xóa `auth.users`, các bảng xóa theo (cascade). Tài khoản admin không tự xóa được. Test 11a, 11b.
+- `delete_my_account()` hủy suất và ca tương lai rồi xóa `auth.users`, các bảng xóa theo (cascade). Tài khoản admin không tự xóa được. Test 11a, 11b. Người làm hoặc chủ quán demo tự xóa tài khoản thì nút đăng nhập tương ứng hỏng; chạy lại `seed.sql` để tạo lại.
 - Không ghi SĐT, email, token link hay ngày sinh vào log, thông báo lỗi, URL, hoặc tham số truy vấn. `friendlyError()` chỉ log mã và thông điệp lỗi của RPC.
 
 ---
@@ -486,7 +486,7 @@ Repo `tangkhatnk/covershift` là **PUBLIC**. Mọi thứ đã commit, kể cả 
 - Không có service-role key, secret key (`sb_secret_...`) hay key tương đương trong Next.js, Vercel, `.env.example` hay bất kỳ mã `src/` nào. Web hiện không có biến môi trường bí mật nào.
 - Không commit:
   - `.env`, `.env.local` và mọi `.env.*` (chỉ `.env.example` được commit, chứa giá trị giữ chỗ);
-  - API key, token, client secret của Google OAuth, mật khẩu SMTP, `CRON_SECRET`, `RESEND_API_KEY`;
+  - API key, token, mật khẩu SMTP, `CRON_SECRET`, `RESEND_API_KEY`;
   - `.mcp.json`, `.claude/settings.local.json` (đã nằm trong `.gitignore`; không gỡ khỏi `.gitignore`).
 - Không dán key hay token vào issue, PR, commit message, ảnh chụp màn hình hay log. Lỡ commit thì báo chủ dự án để xoay (rotate) key, đừng chỉ xóa trong commit sau.
 - Không đưa email, SĐT, họ tên thật của người dùng, quán hay phụ huynh vào test, fixture, seed, ảnh chụp, issue, PR, log hay tài liệu. Dùng dữ liệu giả:
@@ -502,14 +502,16 @@ Repo `tangkhatnk/covershift` là **PUBLIC**. Mọi thứ đã commit, kể cả 
 
 ## 15. Xác thực và vai trò
 
-- Chỉ hai cách đăng nhập: Google OAuth (`signInWithOAuth`) và magic link qua email (`signInWithOtp`), cả hai trong `src/app/dang-nhap/login-form.tsx`.
-- Không thêm SMS, OTP điện thoại, mật khẩu, hay nhà cung cấp đăng nhập khác. Tài khoản demo không có mật khẩu. Test 10m.
+- App là bản mô phỏng (quyết định 17/11/2026). Chỉ có một cách đăng nhập: `/dang-nhap` có ba nút một chạm (người làm `nguoilam1@`, chủ quán `quan1@`, nhóm vận hành `admin@`, đều `@demo.safeshift.test`). Mỗi nút gọi server action `demoLogin` trong `src/app/actions.ts`, action này gọi `signInWithPassword` với mật khẩu chung công khai `safeshift-demo` (đặt trong `supabase/seed.sql`).
+- `demoLogin` chỉ nhận vai trò (`worker`, `employer`, `admin`) rồi tự map sang email demo; không nhận email hay mật khẩu từ client. Đây là ngoại lệ duy nhất của quy tắc "một action gọi một RPC" (mục 11 và 18), vì nó gọi Supabase Auth, không gọi RPC.
+- Đã bỏ Google OAuth và magic link. Không thêm lại, và không thêm đăng ký bằng mật khẩu cho người ngoài, SMS, OTP điện thoại hay nhà cung cấp đăng nhập khác. Không thêm email demo mới vào `demoLogin` mà không sửa seed và test.
+- Mật khẩu demo công khai có chủ đích (repo public), nên tuyệt đối không đưa dữ liệu thật vào project này: ai cũng đăng nhập được ba tài khoản demo, kể cả tài khoản `admin@`. Test 10m kiểm 16 user demo của seed đều có mật khẩu và user `@demo` khác (tài khoản test) không có.
 - Trong Supabase giữ **Confirm email BẬT**. Nếu tắt, ai có anon key (công khai) cũng tạo được tài khoản email và mật khẩu qua API.
-- `/auth/callback` chỉ chuyển về `<origin>/` hoặc `/dang-nhap?loi=1`, hỗ trợ `?code=` (PKCE) và `?token_hash=&type=`. Không thêm tham số `next` hay redirect tùy ý (tránh open redirect).
-- Không nới Redirect URLs, Site URL hay danh sách origin của Google/Supabase, và không đổi CORS, header bảo mật, hay phạm vi quyền công khai như việc phụ trong một task khác. Đây là thay đổi bảo mật, cần task riêng và chủ dự án duyệt.
+- `/auth/callback` còn lại chỉ để tương thích (không nút nào dẫn tới), chỉ chuyển về `<origin>/` hoặc `/dang-nhap?loi=1`. Không thêm tham số `next` hay redirect tùy ý (tránh open redirect).
+- Không đổi CORS, header bảo mật, hay phạm vi quyền công khai như việc phụ trong một task khác. Đây là thay đổi bảo mật, cần task riêng và chủ dự án duyệt.
 - Có đúng ba vai trò: `worker`, `employer`, `admin`.
   - `register_worker()` và `register_employer()` chỉ tạo `worker`/`employer`. Client không ghi được `profiles.role`. Test 10a.
-  - Admin chỉ tạo bằng `make_admin(email, tên)`, chạy trong SQL Editor bởi chủ dự án, với email đã đăng nhập ít nhất một lần. Không thêm RPC, trang, seed hay script nào cấp quyền admin cho client. Test 10d.
+  - Admin chỉ tạo bằng `make_admin(email, tên)`, chạy trong SQL Editor bởi chủ dự án, với email đã đăng nhập ít nhất một lần; riêng tài khoản `admin@demo.safeshift.test` do `seed.sql` tạo cho bản mô phỏng. Không thêm RPC, trang hay script nào cấp quyền admin cho client. Test 10d.
   - Tài khoản admin không tự xóa hay tự khóa được trong app.
 - Phân quyền thật nằm ở RLS và RPC. `requireRole()` trong `src/lib/auth.ts` và `middleware.ts` chỉ để điều hướng và làm mới cookie phiên. Không coi chúng là lớp bảo vệ, và không bỏ kiểm tra ở database vì "trang đã chặn rồi".
 - Tài khoản bị khóa (`status = 'locked'`) bị `_require_user()` từ chối ở mọi RPC. Giữ nguyên hành vi này.
@@ -528,7 +530,7 @@ Repo `tangkhatnk/covershift` là **PUBLIC**. Mọi thứ đã commit, kể cả 
   - Hàm gửi email người làm và thông tin quán tới Resend. Không thêm SĐT hay dữ liệu khác vào nội dung email.
   - Lỗi trong hàm này không được làm hỏng luồng chính: link xác nhận vẫn sinh khi chủ quán hoặc admin mở trang.
 - Zalo không có API trong dự án này. Admin bấm "Sao chép tin nhắn" ở `/admin` rồi tự dán vào Zalo. Không thêm Zalo OA/ZNS, SMS, webhook tin nhắn hay gửi tự động. Tin nhắn sao chép có thể chứa SĐT hoặc link token, nên chỉ hiện ở trang admin.
-- SMTP cho magic link do chủ dự án cấu hình trên Supabase. Không commit thông tin SMTP; không đổi cách đăng nhập chỉ vì giới hạn email (cách thay thế là đăng nhập Google).
+- Không còn magic link nên không cần SMTP. Không cấu hình Google Cloud, SMTP hay Redirect URL cho đăng nhập. Không commit thông tin SMTP nếu sau này bật nhắc ca qua Resend.
 
 ---
 
@@ -550,7 +552,7 @@ Next.js 15 App Router, React 19, Tailwind 3.4. Mã giao diện ở `src/app/` (t
 Đọc bằng Server Component, ghi bằng Server Action:
 
 - Trang là Server Component (`async`). Trang đọc dữ liệu bằng `createClient()` từ `@/lib/supabase/server` (`supabase.rpc(...)` hoặc `.from().select()`), hoặc lấy `supabase` từ `requireRole()` / `getContext()`.
-- Mọi thao tác ghi đi qua server action trong `src/app/actions.ts`. Một action gom dữ liệu form rồi gọi đúng một RPC; chữ ký chung `(prev: ActionState, formData: FormData) => Promise<ActionState>`, dùng với `<ActionForm action={...}>`.
+- Mọi thao tác ghi đi qua server action trong `src/app/actions.ts`. Một action gom dữ liệu form rồi gọi đúng một RPC (ngoại lệ duy nhất: `demoLogin`, mục 15); chữ ký chung `(prev: ActionState, formData: FormData) => Promise<ActionState>`, dùng với `<ActionForm action={...}>`.
 - Trong action, dùng helper `call()` có sẵn; lỗi trả qua `friendlyError()` (`src/lib/errors.ts`, import là `friendly`). Không gọi `.insert()` / `.update()` / `.delete()` / `.upsert()` từ web (hiện không có chỗ nào làm vậy).
 - Không thêm Route Handler hay `fetch` từ client để ghi dữ liệu. Route Handler hiện chỉ dùng cho `/auth/callback`, `/auth/dang-xuat` và `/admin/kpi/export`.
 
@@ -562,7 +564,7 @@ Quyền và điều hướng:
 Quy ước Next 15 của repo:
 
 - `params` và `searchParams` là `Promise`: khai kiểu `Promise<...>` và `await` (xem `src/app/xac-nhan/[token]/page.tsx`, `src/app/ca/page.tsx`).
-- `'use client'` chỉ khi cần trạng thái, hiệu ứng hoặc API trình duyệt. Hiện chỉ có ba file: `src/components/client.tsx`, `src/app/xac-nhan/[token]/confirm-form.tsx`, `src/app/dang-nhap/login-form.tsx`. Client Component nhỏ, đặt ở lá cây; trang bao ngoài vẫn là Server Component. Client dùng `createClient()` từ `@/lib/supabase/client` chỉ cho đăng nhập (Supabase Auth), không để đọc hay ghi dữ liệu nghiệp vụ.
+- `'use client'` chỉ khi cần trạng thái, hiệu ứng hoặc API trình duyệt. Hiện chỉ có hai file: `src/components/client.tsx` và `src/app/xac-nhan/[token]/confirm-form.tsx`. Trang `/dang-nhap` là Server Component, ba nút demo là form gọi server action `demoLogin`. Client Component nhỏ, đặt ở lá cây; trang bao ngoài vẫn là Server Component. Không dùng `createClient()` từ `@/lib/supabase/client` để đọc hay ghi dữ liệu nghiệp vụ.
 - Trang chứa token hoặc dữ liệu riêng (`/xac-nhan`, `/dong-y`, `/h`, `/admin`) đặt `robots: { index: false, follow: false }`. Trang mới cùng loại làm tương tự.
 - Server chạy UTC. Mọi giờ và ngày hiển thị qua `src/lib/format.ts` (`fmtDate`, `fmtTime`, `fmtRange`, `fmtDateTime`, `fmtPlainDate`, `vnDateInput`, `fmtMoney`, `hoursBetween`, `shiftState`). Không gọi `toLocaleString`, `Date#getHours` hay tự ghép giờ trong component. Giá trị điền vào `<input type="time">` cũng lấy từ đó (có chủ đích dùng `hourCycle: 'h23'`).
 - Không chạy `next dev` và `next build` cùng lúc (chung thư mục `.next`).
@@ -626,10 +628,10 @@ Dependency hiện tại rất nhỏ: `next`, `react`, `react-dom`, `@supabase/ss
 - HTML ngữ nghĩa trước, ARIA bổ sung sau. Dùng `button` cho hành động, `a` / `Link` cho điều hướng, `label` gắn với ô nhập (`Field`, `Check`), `fieldset` + `legend` cho nhóm lựa chọn. Không dùng `div` hay `span` có `onClick`; hiện không có chỗ nào như vậy.
 - Giữ viền focus. `globals.css` có `:focus-visible { outline: 3px solid #047857; outline-offset: 2px }`. Không xóa nó. Lưu ý `inputCls` có `focus:outline-none` và chỉ đổi màu viền sang `brand-600`; selector của lớp tiện ích có độ ưu tiên cao hơn `:focus-visible` toàn cục, nên ô nhập nhiều khả năng không hiện outline 3px. Đừng nhân rộng mẫu này sang thành phần khác; muốn đổi thì làm trong một việc riêng và xem trên trình duyệt. `Choice` ở `confirm-form.tsx` dùng `focus-within:ring-4`, là cách làm đúng cho radio ẩn bằng `sr-only`.
 - Không có thao tác chỉ-hover. `hover:` chỉ là phụ (màu nền); mọi việc phải làm được bằng chạm và bàn phím.
-- Trạng thái đủ bộ: bình thường, hover, active, focus, disabled. `btn()` đã có `disabled:cursor-not-allowed disabled:opacity-50`. Nút gửi form dùng `SubmitButton`: nó đọc `useFormStatus()`, tự khóa và đổi nhãn khi đang gửi để chống bấm hai lần. Không tự viết nút gửi khác trong form dùng `ActionForm`. Nút bấm ngoài form (ví dụ `login-form.tsx`) phải tự khóa khi `busy`.
+- Trạng thái đủ bộ: bình thường, hover, active, focus, disabled. `btn()` đã có `disabled:cursor-not-allowed disabled:opacity-50`. Nút gửi form dùng `SubmitButton`: nó đọc `useFormStatus()`, tự khóa và đổi nhãn khi đang gửi để chống bấm hai lần. Không tự viết nút gửi khác trong form dùng `ActionForm`. Nút bấm ngoài form (hiện chưa có) phải tự khóa khi `busy`.
 - Thông báo: lỗi dùng `role="alert"`, thành công dùng `role="status"` (`ActionForm` làm sẵn). `Alert` luôn gắn `role="status"` cho mọi tông, kể cả tông đỏ; lỗi chặn người dùng nên được đọc ngay, hãy cân nhắc khi dùng `Alert tone="red"`.
 - Câu hỏi xác nhận trước việc không hoàn tác: `SubmitButton confirm="..."` dùng `window.confirm`. Dùng được ở trang cần đăng nhập (`/ca/[id]`, `/tai-khoan`, `/admin/*`, `/ho-so`). Không dùng `confirm` ở trang chủ quán hoặc phụ huynh mở thẳng từ Zalo hoặc Facebook (`/xac-nhan`, `/dong-y`): trình duyệt nhúng có thể bỏ qua hộp thoại và trả về "không" ngay, nút sẽ như bị liệt. Ở đó dùng câu nhắc cố định ngay trên nút, như `confirm-form.tsx` đang làm ("Kiểm tra lại các lựa chọn. Sau khi gửi sẽ không sửa lại được."). Lý do này được ghi bằng comment ở `client.tsx` và `confirm-form.tsx`; giữ các comment đó.
-- Cũng vì trình duyệt nhúng: trang token không phụ thuộc vào `alert`, `prompt`, cửa sổ mới hay đăng nhập Google. `login-form.tsx` đã nhận diện trình duyệt nhúng và hướng dẫn mở bằng Chrome/Safari; giữ hành vi này.
+- Cũng vì trình duyệt nhúng: trang token không phụ thuộc vào `alert`, `prompt`, cửa sổ mới hay bước đăng nhập. Đăng nhập demo là form thường nên chạy được trong trình duyệt nhúng; không thêm lại luồng đăng nhập cần cửa sổ ngoài.
 - Nhóm lựa chọn dùng input radio/checkbox thật khi có thể. Bộ chấm sao trong `confirm-form.tsx` dùng `role="radiogroup"` với các `button role="radio"` và chưa có điều khiển bằng phím mũi tên. Nếu viết lại kiểu này, hoặc dùng input radio thật, hoặc bổ sung đủ hành vi bàn phím của radiogroup.
 - Chuyển động: hiện chỉ có `transition` màu. Nếu thêm animation, bọc bằng `motion-reduce:` hoặc `@media (prefers-reduced-motion: reduce)`, và chỉ dùng cho phản hồi trạng thái. Không dùng animation che việc thiếu trạng thái đang tải hay lỗi. Cuộn mượt (`scrollIntoView({ behavior: 'smooth' })` ở `ActionForm`, `Flash`) hiện chưa tôn trọng `prefers-reduced-motion`; thêm cuộn kiểu này thì kiểm điều kiện đó.
 - Tương phản: chữ trên nền sáng dùng `slate-600` trở lên đậm; không hạ xuống `slate-400` cho nội dung (chỉ `placeholder` dùng `slate-400`). Không chỉ dùng màu để phân biệt trạng thái: luôn kèm chữ như `Badge` đang làm.
@@ -646,7 +648,7 @@ Dependency hiện tại rất nhỏ: `next`, `react`, `react-dom`, `@supabase/ss
 - Dùng chuỗi tiếng Việt dài và có dấu: tên người dài, tên quán dài, địa chỉ dài, mô tả ca nhiều dòng, thông báo lỗi dài từ database. Kiểm xuống dòng, không tràn khung, không cắt mất thông tin.
 - Trang `/h/[slug]` có bản in (`@media print` trong `globals.css`; lớp `print:`). Khi sửa trang này hoặc `globals.css`, mở xem trước bản in (Cmd/Ctrl+P): header, footer, nút bị ẩn; nội dung không bị cắt giữa một nhận xét; nền trắng. Thay đổi `main` hay `max-w-xl` có thể ảnh hưởng bản in.
 - Trang chủ quán và phụ huynh mở từ Zalo: nếu có thể, thử trong trình duyệt nhúng thật, hoặc ít nhất xem ở bề rộng điện thoại và ghi rõ chưa thử trong Zalo.
-- Chạy `npm run dev` cần `.env.local` trỏ tới Supabase thật. Trang cần đăng nhập Google thì dừng lại để chủ dự án tự đăng nhập; không nhập mật khẩu hộ.
+- Chạy `npm run dev` cần `.env.local` trỏ tới Supabase thật. Trang cần đăng nhập thì agent tự bấm nút demo ở `/dang-nhap` (người làm, chủ quán hoặc nhóm vận hành); không dùng tài khoản thật của chủ dự án.
 - Không tuyên bố "đã kiểm trực quan" nếu chưa mở trang thật. Nếu không kiểm được (không có trình duyệt, không có Supabase), ghi rõ trong PR: chưa xem ở bề rộng nào, trạng thái nào. Dữ liệu dùng để chụp ảnh phải là dữ liệu mẫu, không dùng tên hay số điện thoại thật.
 
 ---
