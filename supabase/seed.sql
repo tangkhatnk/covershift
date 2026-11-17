@@ -8,6 +8,22 @@
 begin;
 set local app.seed_mode = 'on';   -- bỏ qua trigger kiểm tra thời gian để tạo được ca trong quá khứ
 
+-- Dọn báo cáo / nhật ký của dữ liệu demo TRƯỚC khi xóa user demo.
+-- Lý do: một dòng reports có thể trỏ tới nhiều đối tượng demo cùng lúc (người báo, người bị báo, ca). Khi xóa user,
+-- Postgres chạy nhiều hành động SET NULL lên cùng một dòng trong một câu lệnh; hành động sau bị bỏ qua và để lại
+-- shift_id trỏ vào ca đã bị xóa => lỗi 23503 reports_shift_id_fkey. Xóa hẳn các dòng đó trước thì không còn đụng nhau.
+-- Chỉ động tới dữ liệu gắn với user @demo.safeshift.test (báo cáo hệ thống tự tạo không có người báo thì theo ca demo).
+delete from public.reports r
+ where r.reporter_id in (select id from auth.users where email like '%@demo.safeshift.test')
+    or r.subject_id  in (select id from auth.users where email like '%@demo.safeshift.test')
+    or (r.reporter_id is null and r.shift_id in (
+          select s.id from public.shifts s
+            join public.facilities f on f.id = s.facility_id
+            join auth.users u on u.id = f.owner_id
+           where u.email like '%@demo.safeshift.test'));
+delete from public.admin_audit_log
+ where admin_id in (select id from auth.users where email like '%@demo.safeshift.test');
+
 delete from auth.users where email like '%@demo.safeshift.test';
 
 -- ---------- auth.users ----------
@@ -112,7 +128,7 @@ from public.facilities where verified;
 
 -- ---------- 12 ca ----------
 -- vn(d, t): mốc giờ Việt Nam, d ngày tính từ hôm nay.
-create function pg_temp.vn(d int, t time) returns timestamptz language sql as $$
+create or replace function pg_temp.vn(d int, t time) returns timestamptz language sql as $$
   select (((now() at time zone 'Asia/Ho_Chi_Minh')::date + d) + t) at time zone 'Asia/Ho_Chi_Minh'
 $$;
 

@@ -4,6 +4,15 @@
 -- Kết quả: bảng (name, passed, detail). Test có ghi dữ liệu => chạy lại seed.sql sau khi test.
 -- Giả lập người dùng bằng request.jwt.claims (auth.uid()); test RLS thì đổi hẳn sang role authenticated/anon.
 -- =====================================================================
+-- Chặn chạy lần hai khi chưa seed lại: test lần trước để lại ca/tài khoản test (ca ...0100, user b0000000-...), chạy tiếp sẽ lỗi khó hiểu.
+do $$
+begin
+  if exists (select 1 from public.shifts where id = '50000000-0000-4000-a000-000000000100')
+     or exists (select 1 from auth.users where id in ('b0000000-0000-4000-a000-000000000014', 'b0000000-0000-4000-a000-000000000015')) then
+    raise exception 'Dữ liệu test lần trước còn lại. Chạy lại supabase/seed.sql (bản mới) rồi chạy lại file này.';
+  end if;
+end $$;
+
 create temp table if not exists t_results (n serial, name text, passed boolean, detail text);
 truncate t_results;
 
