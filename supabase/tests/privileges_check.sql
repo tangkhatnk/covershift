@@ -51,6 +51,10 @@ select n, loai, doi_tuong, quyen_dang_co, ket_luan from (
              then case when has_function_privilege('anon', p.oid, 'EXECUTE') or has_function_privilege('authenticated', p.oid, 'EXECUTE') then 'SAI: lộ hàm nội bộ' else 'đúng (không cấp client)' end
            when p.proname in ('cfg_int','vn_date','age_on')
              then case when has_function_privilege('anon', p.oid, 'EXECUTE') or has_function_privilege('authenticated', p.oid, 'EXECUTE') then 'SAI: lộ hàm nội bộ' else 'đúng (chỉ nội bộ)' end
+           -- Hàm trigger/event trigger không thuộc dự án (vd. rls_auto_enable() của event trigger ensure_rls mà Supabase
+           -- tạo sẵn trong project mới để tự bật RLS): API không gọi trực tiếp được. Hàm trigger của dự án đều bắt đầu bằng "_".
+           when format_type(p.prorettype, null) in ('trigger', 'event_trigger')
+             then 'đúng (hàm trigger/event trigger, API không gọi được)'
            else case when has_function_privilege('anon', p.oid, 'EXECUTE') then 'SAI: anon gọi được hàm cần đăng nhập'
                      when has_function_privilege('authenticated', p.oid, 'EXECUTE') then 'đúng (chỉ authenticated)' else 'KIỂM LẠI: authenticated không gọi được' end
          end

@@ -66,9 +66,9 @@ src/lib, src/components             hằng số, định dạng giờ VN, kiểu
 1. https://supabase.com → **New project** (region Singapore). Lưu mật khẩu database.
 2. **SQL Editor** → dán `supabase/tests/check_before_migration.sql` → **Run** → mọi dòng khớp cột `ky_vong` (chỉ đọc, không ghi gì).
 3. **SQL Editor** → dán toàn bộ `supabase/migrations/0001_init.sql` → **Run**.
-4. Dán `supabase/tests/privileges_check.sql` → **Run** → không có dòng nào cột `ket_luan` bắt đầu bằng `SAI` hoặc `KIỂM` (các dòng đó được xếp lên đầu).
+4. Dán `supabase/tests/privileges_check.sql` → **Run** → không có dòng nào cột `ket_luan` bắt đầu bằng `SAI` hoặc `KIỂM` (các dòng đó được xếp lên đầu). Project mới có sẵn hàm `rls_auto_enable()` (event trigger `ensure_rls` của Supabase, tự bật RLS cho bảng mới) — bình thường, câu kiểm coi là đúng.
 5. (Chỉ cho demo/thử nghiệm) dán `supabase/seed.sql` → **Run**. Chạy seed bằng **SQL Editor**, không dùng CLI: `_bypass()` chỉ bật khi phiên là `postgres`/`supabase_admin`.
-6. **Project Settings → API**: chép `Project URL` và `anon public key`.
+6. Nút **Connect** (hoặc **Project Settings → API Keys**): chép `Project URL` và key công khai — *publishable key* (`sb_publishable_…`) hoặc *anon key* kiểu cũ. **Không** dùng key `secret` / `service_role`.
 
 Gặp lỗi `PGRST202` (không tìm thấy hàm) ngay sau khi dán migration: chạy `notify pgrst, 'reload schema';`.
 
