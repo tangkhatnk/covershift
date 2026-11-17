@@ -1,12 +1,17 @@
 -- =====================================================================
 -- SafeShift — seed demo. Chạy lại bao nhiêu lần cũng được (tự xóa dữ liệu demo cũ).
 -- 1 admin, 5 chủ quán ("Quán Demo 1…5"), 10 người làm (3 người dưới 18), 12 ca đủ trạng thái.
--- Mọi tài khoản demo có email @demo.safeshift.test và KHÔNG có mật khẩu (encrypted_password = '',
--- như user tạo qua Google OAuth) nên không đăng nhập bằng mật khẩu được; giao diện chỉ có Google / magic link.
--- TRƯỚC KHI CHẠY THẬT: delete from auth.users where email like '%@demo.safeshift.test';
+-- Mọi tài khoản demo có email @demo.safeshift.test và dùng chung mật khẩu công khai `safeshift-demo`
+-- (lưu bằng crypt + gen_salt('bf')), cho nút đăng nhập demo ở /dang-nhap. App chỉ là bản mô phỏng, không có dữ liệu thật.
+-- Chạy lại seed để khôi phục dữ liệu mẫu. Không xóa user demo bằng tay (lỗi khóa ngoại 23503);
+-- nếu cần dọn, dùng supabase/xoa_du_lieu_demo.sql.
 -- =====================================================================
 begin;
 set local app.seed_mode = 'on';   -- bỏ qua trigger kiểm tra thời gian để tạo được ca trong quá khứ
+
+-- Đưa cấu hình về mặc định của migration (bản mô phỏng: ai cũng vào được tài khoản admin demo và đổi được).
+insert into public.app_config (key, value) values ('min_hourly_wage', '25500'), ('weekly_hours_cap', '40')
+on conflict (key) do update set value = excluded.value;
 
 -- Dọn báo cáo / nhật ký của dữ liệu demo TRƯỚC khi xóa user demo.
 -- Lý do: một dòng reports có thể trỏ tới nhiều đối tượng demo cùng lúc (người báo, người bị báo, ca). Khi xóa user,
@@ -49,7 +54,7 @@ with u(id, email) as (values
                           raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
                           confirmation_token, recovery_token, email_change, email_change_token_new)
   select '00000000-0000-0000-0000-000000000000', id, 'authenticated', 'authenticated', email,
-         '', now(),
+         extensions.crypt('safeshift-demo', extensions.gen_salt('bf')), now(),
          '{"provider":"email","providers":["email"]}', '{}', now(), now(), '', '', '', ''
   from u
   returning id, email
