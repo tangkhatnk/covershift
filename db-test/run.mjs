@@ -64,6 +64,14 @@ revoke execute on function public.rls_auto_enable() from public, anon, authentic
 create event trigger ensure_rls on ddl_command_end execute function public.rls_auto_enable();
 `;
 
+// Đếm số dòng mọi bảng public: dùng để chắc chắn seed lần cuối đưa DB về đúng trạng thái demo sạch.
+async function snapshot(client) {
+  const t = await client.query("select tablename from pg_tables where schemaname = 'public' order by 1");
+  const out = {};
+  for (const { tablename } of t.rows) out[tablename] = Number((await client.query(`select count(*) from public."${tablename}"`)).rows[0].count);
+  return out;
+}
+
 async function runFile(client, rel) {
   const sql = readFileSync(join(root, rel), 'utf8');
   try {
@@ -99,6 +107,7 @@ try {
   await runFile(client, 'supabase/migrations/0001_init.sql');
   console.log('✔ migration');
   await runFile(client, 'supabase/seed.sql');
+  const cleanSnapshot = JSON.stringify(await snapshot(client));
   console.log('✔ seed');
   const res = await runFile(client, 'supabase/tests/edge_cases.sql');
   const last = Array.isArray(res) ? res[res.length - 1] : res;
@@ -117,6 +126,24 @@ try {
   for (const r of bad) console.log(`✘ ${r.loai} ${r.doi_tuong}: ${r.ket_luan}  (${r.quyen_dang_co})`);
   console.log(`\nprivileges_check: ${priv.rows.length} dòng, ${bad.length} dòng SAI/KIỂM`);
   if (bad.length) code = 1;
+
+  // Vòng tái chạy: quy trình README/TESTING hứa "test có ghi dữ liệu → chạy lại seed.sql".
+  // seed lại → edge_cases lại (vẫn đủ test đạt) → seed lần cuối, rồi so số dòng từng bảng với lần seed đầu.
+  try {
+    await runFile(client, 'supabase/seed.sql');
+    const res2 = await runFile(client, 'supabase/tests/edge_cases.sql');
+    const last2 = Array.isArray(res2) ? res2[res2.length - 1] : res2;
+    const failed2 = last2.rows.filter((r) => !r.passed);
+    for (const r of failed2) console.log(`✘ (tái chạy) ${r.name}${r.detail ? '  — ' + r.detail : ''}`);
+    await runFile(client, 'supabase/seed.sql');
+    const same = JSON.stringify(await snapshot(client)) === cleanSnapshot;
+    const okRe = failed2.length === 0 && last2.rows.length === last.rows.length && same;
+    console.log(`\ntái chạy (seed → edge_cases → seed): ${last2.rows.length - failed2.length}/${last2.rows.length} test đạt, DB sau seed cuối ${same ? 'giống' : 'KHÁC'} lần seed đầu — ${okRe ? 'ĐẠT' : 'KHÔNG ĐẠT'}`);
+    if (!okRe) code = 1;
+  } catch (e) {
+    console.log(`\ntái chạy (seed → edge_cases → seed): KHÔNG ĐẠT — ${e.message}`);
+    code = 1;
+  }
 
   if (process.argv.includes('--race')) {
     const { raceTest } = await import('./race.mjs');
