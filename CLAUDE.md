@@ -19,7 +19,7 @@ Deploy ổn định trước **20/11/2026** · chạy thật **21–22/11** · d
 ## Cách làm việc
 - Chủ dự án muốn: tự quyết những gì hợp lý, ghi lại giả định, chỉ hỏi khi quyết định ảnh hưởng nghiệp vụ mà đề bài chưa nói.
 - Trả lời bằng tiếng Việt.
-- Mỗi thay đổi ở `supabase/` phải chạy lại `npm run test:db` (kỳ vọng `85/85`, `privileges_check: … 0 dòng SAI/KIỂM` + 5 dòng `✔ chạy đua`, hoặc nhiều test hơn nếu thêm test).
+- Mỗi thay đổi ở `supabase/` phải chạy lại `npm run test:db` (kỳ vọng `86/86`, `privileges_check: … 0 dòng SAI/KIỂM`, `tái chạy … ĐẠT`, 5 dòng `✔ chạy đua`, `dọn dữ liệu demo … ĐẠT`; hoặc nhiều test hơn nếu thêm test).
 - Mỗi thay đổi ở `src/` phải chạy `npx tsc --noEmit`; trước khi báo xong chạy thêm `next build` (lệnh ở mục Lệnh).
 - `tsc` và `build` sạch **không** có nghĩa là chạy đúng. Chưa mở trên trình duyệt thì nói rõ là chưa kiểm.
 - Migration `0001_init.sql` **đã áp lên Supabase thật ngày 17/11/2026** (85/85 test đạt trên Supabase) → **KHÔNG sửa file này nữa**. Mọi thay đổi schema là file migration mới (`0002_...sql`) kèm test, chủ dự án dán bằng SQL Editor, rồi chạy `supabase/tests/privileges_check.sql`.
@@ -38,7 +38,7 @@ Deploy ổn định trước **20/11/2026** · chạy thật **21–22/11** · d
 
 ## Lệnh
 ```bash
-npm run test:db                 # migration + seed + 85 test + kiểm quyền + chạy đua, trên Postgres nhúng
+npm run test:db                 # migration + seed + 86 test + kiểm quyền + tái chạy + chạy đua + dọn demo, trên Postgres nhúng
 npx tsc --noEmit
 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=dummy npx next build
 npm run dev                     # cần .env.local trỏ tới Supabase thật
@@ -48,6 +48,7 @@ npm run dev                     # cần .env.local trỏ tới Supabase thật
 - `supabase/migrations/0001_init.sql` — nguồn sự thật của mọi quy tắc
 - `supabase/seed.sql` · `supabase/tests/edge_cases.sql` · `db-test/`
 - `supabase/tests/check_before_migration.sql` (trước migration) · `supabase/tests/privileges_check.sql` (sau migration) — chỉ đọc, dán vào SQL Editor
+- `supabase/xoa_du_lieu_demo.sql` — xóa dữ liệu demo trước ngày chạy thật (đúng thứ tự, giữ dữ liệu thật). Không xóa user demo hàng loạt bằng tay: lỗi khóa ngoại 23503
 - `src/app/actions.ts` — mọi server action (1 action = 1 RPC)
 - `src/lib/{constants,types,format,auth}.ts` · `src/components/{ui,client}.tsx`
 - `README.md` (cài đặt, deploy) · `TESTING.md` (A: tự động, B: kịch bản tay)

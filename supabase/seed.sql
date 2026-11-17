@@ -198,4 +198,13 @@ insert into public.payment_feedback (shift_id, worker_id, answer) values
 insert into public.reports (kind, shift_id, subject_id, body) values
   ('no_show', '50000000-0000-4000-a000-000000000012', 'a0000000-0000-4000-a000-000000000005', 'Chủ quán xác nhận: người làm KHÔNG ĐẾN ca.');
 
+-- Báo cáo đã xử lý, gắn với quán demo 3 (chủ quán e…03) để test 11b kiểm tra luồng "chủ quán tự xóa tài khoản":
+-- dòng trỏ tới chính chủ quán (người báo / người bị báo) và tới ca của họ. Phải nằm trong seed (đã commit) vì
+-- Postgres chỉ kiểm lại khóa ngoại kiểu này với dòng do chính giao dịch tạo ra, nên test không tự dựng được trong cùng giao dịch.
+insert into public.reports (kind, status, shift_id, reporter_id, subject_id, body) values
+  ('late_cancel',  'resolved', '50000000-0000-4000-a000-000000000008', null,                                   'e0000000-0000-4000-a000-000000000003', 'Demo-11b: ca bị hủy sát giờ, người bị báo là chủ quán.'),
+  ('user_report',  'resolved', '50000000-0000-4000-a000-000000000008', 'e0000000-0000-4000-a000-000000000003', null,                                   'Demo-11b: chủ quán gửi báo cáo về ca của mình.'),
+  ('user_report',  'resolved', '50000000-0000-4000-a000-000000000012', 'e0000000-0000-4000-a000-000000000003', 'a0000000-0000-4000-a000-000000000005', 'Demo-11b: chủ quán báo người làm vắng mặt.'),
+  ('primary_busy', 'resolved', '50000000-0000-4000-a000-000000000012', '00000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000005', 'Demo-11b: admin ghi sự cố người chính báo bận.');
+
 commit;

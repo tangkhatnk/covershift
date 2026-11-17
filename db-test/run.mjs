@@ -4,6 +4,7 @@
 import EmbeddedPostgres from 'embedded-postgres';
 import pg from 'pg';
 import { readFileSync, rmSync, existsSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -150,6 +151,73 @@ try {
     const ok = await raceTest({ host: 'localhost', port: PORT, user: 'postgres', password: 'postgres', database: 'postgres' });
     if (!ok) code = 1;
   }
+  // Dọn dữ liệu demo: giả lập người dùng THẬT (gmail) cùng dữ liệu liên quan tới ca demo, rồi chạy xoa_du_lieu_demo.sql 2 lần.
+  try {
+    const uid = () => randomUUID();
+    const [rw, re, rf, rs] = [uid(), uid(), uid(), uid()];
+    await client.query(`
+      begin;
+      set local app.seed_mode = 'on';
+      insert into auth.users (id, email, aud, role, encrypted_password, email_confirmed_at, confirmation_token, recovery_token, email_change, email_change_token_new)
+        values ('${rw}', 'nguoi.lam.that@gmail.com', 'authenticated', 'authenticated', '', now(), '', '', '', ''),
+               ('${re}', 'chu.quan.that@gmail.com', 'authenticated', 'authenticated', '', now(), '', '', '', '');
+      insert into public.profiles (id, role, full_name, consent_at) values
+        ('${rw}', 'worker', 'Người Làm Thật', now()), ('${re}', 'employer', 'Chủ Quán Thật', now());
+      insert into public.private_contacts (user_id, phone) values ('${rw}', '0912345001'), ('${re}', '0912345002');
+      insert into public.worker_profiles (user_id, date_of_birth, school, area, approval, approved_at)
+        values ('${rw}', (current_date - interval '20 years')::date, 'ĐH Thật', 'trung_tam', 'approved', now());
+      insert into public.facilities (id, owner_id, name, type, address, area, not_prohibited_ack, verified, status)
+        values ('${rf}', '${re}', 'Quán Thật Của Chủ Dự Án', 'cafe', '1 Đường Thật, Vũng Tàu', 'trung_tam', true, true, 'active');
+      insert into public.shifts (id, facility_id, job_type, starts_at, ends_at, hourly_wage, commitment_ack)
+        values ('${rs}', '${rf}', 'phuc_vu', now() + interval '3 days', now() + interval '3 days 4 hours', 30000, true);
+      commit;`);
+    const asRealWorker = async (sql, params) => {
+      await client.query('begin');
+      try {
+        await client.query(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ sub: rw, role: 'authenticated' })]);
+        await client.query(sql, params);
+        await client.query('commit');
+      } catch (e) { await client.query('rollback'); throw e; }
+    };
+    await asRealWorker(`select claim_shift('50000000-0000-4000-a000-000000000001')`);  // suất trên ca DEMO
+    await asRealWorker(`select create_report('50000000-0000-4000-a000-000000000001', 'Báo cáo thật về ca demo')`);
+    await asRealWorker(`select claim_shift($1)`, [rs]);                                 // suất trên ca THẬT
+    await asRealWorker(`select create_report($1, 'Báo cáo thật về ca thật')`, [rs]);
+
+    const problems = [];
+    for (const lan of [1, 2]) {
+      try { await runFile(client, 'supabase/xoa_du_lieu_demo.sql'); } catch (e) { problems.push(`lần dọn ${lan} lỗi: ${e.message}`); }
+    }
+    const n = async (sql, params) => Number((await client.query(sql, params)).rows[0].c);
+    const expect = (label, got, want) => { if (got !== want) problems.push(`${label}: ${got} (kỳ vọng ${want})`); };
+    expect('user demo còn lại', await n(`select count(*) c from auth.users where email like '%@demo.safeshift.test'`), 0);
+    expect('hồ sơ demo còn lại', await n(`select count(*) c from public.profiles where id::text ~ '^(00000000|a0000000|e0000000|b0000000)-0000-4000-a000-'`), 0);
+    expect('cơ sở demo còn lại', await n(`select count(*) c from public.facilities where id::text like 'f0000000-0000-4000-a000-%'`), 0);
+    expect('ca demo/test còn lại', await n(`select count(*) c from public.shifts where id::text like '50000000-0000-4000-a000-%'`), 0);
+    expect('suất trên ca demo còn lại', await n(`select count(*) c from public.shift_claims where shift_id::text like '50000000-0000-4000-a000-%'`), 0);
+    expect('báo cáo mồ côi', await n(`select count(*) c from public.reports where reporter_id is null and subject_id is null and shift_id is null`), 0);
+    expect('user thật còn', await n(`select count(*) c from auth.users where id in ($1, $2)`, [rw, re]), 2);
+    expect('profile thật còn', await n(`select count(*) c from public.profiles where id in ($1, $2)`, [rw, re]), 2);
+    expect('hồ sơ người làm thật còn', await n(`select count(*) c from public.worker_profiles where user_id = $1 and approval = 'approved'`, [rw]), 1);
+    expect('cơ sở thật còn', await n(`select count(*) c from public.facilities where id = $1`, [rf]), 1);
+    expect('ca thật còn', await n(`select count(*) c from public.shifts where id = $1`, [rs]), 1);
+    expect('suất thật còn', await n(`select count(*) c from public.shift_claims where shift_id = $1 and worker_id = $2 and status = 'active'`, [rs, rw]), 1);
+    expect('báo cáo thật về ca demo còn (shift_id null)', await n(`select count(*) c from public.reports where reporter_id = $1 and shift_id is null and body = 'Báo cáo thật về ca demo'`, [rw]), 1);
+    expect('báo cáo thật về ca thật còn', await n(`select count(*) c from public.reports where reporter_id = $1 and shift_id = $2`, [rw, rs]), 1);
+    expect('app_config', await n(`select count(*) c from public.app_config`), 2);
+    // seed chạy lại được trên DB đã dọn, và không đụng dữ liệu thật.
+    try { await runFile(client, 'supabase/seed.sql'); } catch (e) { problems.push(`seed sau dọn lỗi: ${e.message}`); }
+    expect('user demo sau seed lại', await n(`select count(*) c from auth.users where email like '%@demo.safeshift.test'`), 16);
+    expect('user thật còn sau seed lại', await n(`select count(*) c from auth.users where id in ($1, $2)`, [rw, re]), 2);
+    expect('ca thật còn sau seed lại', await n(`select count(*) c from public.shifts where id = $1`, [rs]), 1);
+    for (const x of problems) console.log(`✘ (dọn demo) ${x}`);
+    console.log(`\ndọn dữ liệu demo (xoa_du_lieu_demo.sql ×2, có người dùng thật giả lập, rồi seed lại): ${problems.length ? 'KHÔNG ĐẠT (' + problems.length + ' lỗi)' : 'ĐẠT — 0 dữ liệu demo, dữ liệu thật còn nguyên, seed chạy lại được'}`);
+    if (problems.length) code = 1;
+  } catch (e) {
+    console.log(`\ndọn dữ liệu demo: KHÔNG ĐẠT — ${e.message}`);
+    code = 1;
+  }
+
   await client.end();
   if (keep) {
     console.log(`\nServer đang chạy: postgres://postgres:postgres@localhost:${PORT}/postgres  (Ctrl+C để tắt)`);

@@ -213,7 +213,7 @@ Trình duyệt ─► Next.js (Server Component đọc, Server Action ghi; anon 
 supabase/
   migrations/0001_init.sql        NGUỒN SỰ THẬT của mọi quy tắc nghiệp vụ
   seed.sql                        dữ liệu demo, chạy lại được
-  tests/edge_cases.sql            85 test; có ghi dữ liệu → chạy lại seed sau khi test
+  tests/edge_cases.sql            86 test; có ghi dữ liệu → chạy lại seed sau khi test
   functions/shift-reminders/      Edge Function email (tùy chọn)
 db-test/                          run.mjs (migration→seed→test), race.mjs (chạy đua)
 src/
