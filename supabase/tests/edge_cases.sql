@@ -351,8 +351,17 @@ select pg_temp.t_true('10k. KPI trả đủ 12 chỉ số', '00000000-0000-4000-
   $$select (select count(*) from jsonb_object_keys(admin_kpis())) = 12$$);
 select pg_temp.t_true('10l. Bảng điều phối 24 giờ tới chạy được', '00000000-0000-4000-a000-000000000001',
   $$select jsonb_typeof(admin_dispatch_board() -> 'upcoming') = 'array'$$);
-select pg_temp.t_true('10m. Không user demo nào có mật khẩu (không đăng nhập bằng mật khẩu được)', null,
-  $$select count(*) >= 16 and count(*) filter (where coalesce(encrypted_password, '') <> '') = 0
+select pg_temp.t_true('10m. 16 user demo của seed đều có mật khẩu demo; user @demo khác (tài khoản test) không có', null,
+  $$select count(*) filter (where email ~ '^(admin|quan[1-5]|nguoilam([1-9]|10))@demo\.safeshift\.test$') = 16
+       and count(*) filter (where email ~ '^(admin|quan[0-9]+|nguoilam[0-9]+)@demo\.safeshift\.test$'
+                              and (email_confirmed_at is null or confirmation_token is null or recovery_token is null
+                                   or email_change is null or email_change_token_new is null
+                                   or not exists (select 1 from auth.identities i
+                                                  where i.user_id = auth.users.id and i.provider = 'email'))) = 0
+       and count(*) filter (where email ~ '^(admin|quan[0-9]+|nguoilam[0-9]+)@demo\.safeshift\.test$'
+                              and coalesce(encrypted_password, '') = '') = 0
+       and count(*) filter (where email !~ '^(admin|quan[0-9]+|nguoilam[0-9]+)@demo\.safeshift\.test$'
+                              and coalesce(encrypted_password, '') <> '') = 0
     from auth.users where email like '%@demo.safeshift.test'$$);
 
 -- ---------------------------------------------------------------

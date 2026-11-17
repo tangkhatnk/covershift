@@ -30,7 +30,7 @@ Trình duyệt ──► Next.js trên Vercel (Server Component + Server Action,
 | Đường dẫn | Ai dùng | Việc |
 |---|---|---|
 | `/` | mọi người | Giới thiệu; đã đăng nhập thì tự chuyển theo vai trò |
-| `/dang-nhap`, `/auth/callback`, `/auth/dang-xuat` | mọi người | Google OAuth / magic link |
+| `/dang-nhap`, `/auth/dang-xuat` | mọi người | Đăng nhập bằng 3 nút demo (người làm, chủ quán, nhóm vận hành); đăng xuất. `/auth/callback` còn giữ để tương thích, không nút nào dẫn tới |
 | `/dang-ky`, `/dang-ky/nguoi-lam`, `/dang-ky/chu-quan` | người mới | Chọn vai trò, đồng ý xử lý dữ liệu, đăng ký |
 | `/dieu-khoan`, `/chinh-sach-du-lieu` | mọi người | Điều khoản, chính sách dữ liệu |
 | `/ca`, `/ca/[id]` | người làm | Feed ca (gấp lên đầu, lọc ngày/khu vực/loại việc); nhận ca, hủy, xem SĐT quán, trả lời "đã trả đủ chưa", báo cáo |
@@ -53,7 +53,7 @@ supabase/seed.sql                   dữ liệu demo (chạy lại được nhi�
 supabase/tests/edge_cases.sql       86 test biên ở tầng database
 supabase/tests/check_before_migration.sql  kiểm project Supabase mới TRƯỚC khi dán migration (chỉ đọc)
 supabase/tests/privileges_check.sql kiểm quyền bảng/hàm của anon/authenticated SAU migration (chỉ đọc)
-supabase/xoa_du_lieu_demo.sql       xóa dữ liệu demo/test trước ngày chạy thật (giữ nguyên dữ liệu thật)
+supabase/xoa_du_lieu_demo.sql       xóa dữ liệu demo/test (KHÔNG chạy khi app còn là bản mô phỏng, xem mục 7)
 supabase/functions/shift-reminders  Edge Function nhắc ca qua email (tùy chọn, mặc định tắt)
 db-test/                            chạy migration + seed + test + chạy đua trên Postgres nhúng (không cần Docker)
 src/app/actions.ts                  mọi server action (mỗi action = 1 lời gọi RPC)
@@ -68,53 +68,26 @@ src/lib, src/components             hằng số, định dạng giờ VN, kiểu
 2. **SQL Editor** → dán `supabase/tests/check_before_migration.sql` → **Run** → mọi dòng khớp cột `ky_vong` (chỉ đọc, không ghi gì).
 3. **SQL Editor** → dán toàn bộ `supabase/migrations/0001_init.sql` → **Run**.
 4. Dán `supabase/tests/privileges_check.sql` → **Run** → không có dòng nào cột `ket_luan` bắt đầu bằng `SAI` hoặc `KIỂM` (các dòng đó được xếp lên đầu). Project mới có sẵn hàm `rls_auto_enable()` (event trigger `ensure_rls` của Supabase, tự bật RLS cho bảng mới) — bình thường, câu kiểm coi là đúng.
-5. (Chỉ cho demo/thử nghiệm) dán `supabase/seed.sql` → **Run**. Chạy seed bằng **SQL Editor**, không dùng CLI: `_bypass()` chỉ bật khi phiên là `postgres`/`supabase_admin`.
+5. Dán `supabase/seed.sql` → **Run**. Seed tạo 16 tài khoản demo có mật khẩu (mục 3) và dữ liệu mẫu; app là bản mô phỏng nên bước này bắt buộc. Chạy seed bằng **SQL Editor**, không dùng CLI: `_bypass()` chỉ bật khi phiên là `postgres`/`supabase_admin`.
 6. Nút **Connect** (hoặc **Project Settings → API Keys**): chép `Project URL` và key công khai — *publishable key* (`sb_publishable_…`) hoặc *anon key* kiểu cũ. **Không** dùng key `secret` / `service_role`.
 
 Gặp lỗi `PGRST202` (không tìm thấy hàm) ngay sau khi dán migration: chạy `notify pgrst, 'reload schema';`.
 
-### Tạo tài khoản admin
+### Tài khoản admin
 
-Admin đăng nhập vào web **một lần** (Google hoặc magic link; dừng ở màn hình "Đăng ký", không cần điền), rồi chạy trong SQL Editor:
-
-```sql
-select public.make_admin('email-cua-admin@gmail.com', 'Tên hiển thị');
-```
-
-Tải lại trang web → vào thẳng `/admin`. Hàm `make_admin` không gọi được từ client.
+Không cần tạo tay: `seed.sql` đã tạo `admin@demo.safeshift.test`, nút "nhóm vận hành" ở `/dang-nhap` đăng nhập vào tài khoản này và vào thẳng `/admin`. Hàm `make_admin(email, tên)` vẫn còn nhưng chỉ chạy được trong SQL Editor, không gọi được từ client.
 
 ---
 
-## 3. Đăng nhập: Google OAuth, magic link, redirect URL
+## 3. Đăng nhập demo
 
-**Authentication → URL Configuration** (Site URL mặc định là `http://localhost:3000` — đổi sang domain thật khi đã deploy)
+App là bản mô phỏng (quyết định 17/11/2026): không có người thật, chỉ dữ liệu mẫu. Đã bỏ Google OAuth và magic link nên không cần cấu hình Google Cloud, SMTP hay Redirect URL.
 
-- **Site URL**: `https://<ten-du-an>.vercel.app`
-- **Redirect URLs** (thêm cả hai, đúng đường dẫn — mã luôn quay về `<origin>/auth/callback`):
-  - `https://<ten-du-an>.vercel.app/auth/callback`
-  - `http://localhost:3000/auth/callback`
-- Chỉ khi muốn đăng nhập trên URL *preview* của Vercel: thêm mẫu `https://*-<slug-tai-khoan>.vercel.app/**` (lấy slug thật từ URL preview).
-
-**Google OAuth** (Google Cloud Console, giao diện *Google Auth Platform*)
-
-1. https://console.cloud.google.com → tạo/chọn project → menu **Google Auth Platform** → **Get started**: *App Information* (tên app + email hỗ trợ) → *Audience*: **External** → *Contact Information* → **Finish**.
-2. **Data Access**: chỉ scope cơ bản `.../auth/userinfo.email`, `.../auth/userinfo.profile` và thêm `openid`. **Không** thêm scope nhạy cảm (sẽ phải xác minh app với Google).
-3. **Audience → Publish app** (để ở *Testing* thì chỉ email trong danh sách test đăng nhập được).
-4. **Clients → Create client → Web application**:
-   - *Authorized redirect URIs*: `https://<project-ref>.supabase.co/auth/v1/callback` — chép đúng chuỗi hiện trong Supabase ở bước 5 (đây là địa chỉ của **Supabase**, không phải của web).
-   - *Authorized JavaScript origins*: `http://localhost:3000`, `https://<ten-du-an>.vercel.app` (luồng chuyển hướng của Supabase không cần mục này; nếu Console từ chối thì bỏ qua). Nếu Console đòi khai *Authorized domains* (mục Branding) thì thêm `supabase.co`.
-   - **Create** → chép **Client ID** và **Client secret** (secret chỉ hiện một lần).
-5. **Supabase → Authentication → Sign In / Providers → Google**: bật, dán Client ID + Client secret → **Save**.
-
-App chưa được Google xác minh thì màn hình chọn tài khoản hiện tên miền `<project-ref>.supabase.co` thay cho tên app — bình thường, đăng nhập vẫn chạy (xác minh mất vài ngày đến vài tuần, không cần cho đợt chạy thật).
-
-**Magic link (email)**
-
-- **Authentication → Sign In / Providers → Email**: bật *Email* và **giữ *Confirm email* BẬT**. Nếu tắt, ai cầm anon key (công khai trong web) cũng tạo được tài khoản email + mật khẩu qua API mà không cần xác minh email.
-- ⚠️ SMTP mặc định của Supabase chỉ gửi **2 email/giờ** và **chỉ tới email thành viên team của project** — người ngoài nhận lỗi "Email address not authorized" ([tài liệu](https://supabase.com/docs/guides/auth/auth-smtp)). Tức là magic link **không dùng được** với người làm/chủ quán thật nếu chưa nối SMTP riêng (mục *SMTP / Custom SMTP* trong Authentication; sau khi nối, giới hạn mặc định 30 email/giờ, chỉnh ở *Rate Limits*; Resend: host `smtp.resend.com`, port `465`, user `resend`, password = API key; bắt buộc có tên miền đã xác minh). Không có tên miền: mọi người **đăng nhập bằng Google**.
-- Magic link dùng PKCE: phải bấm link **trên cùng trình duyệt** đã yêu cầu link. Muốn bấm ở trình duyệt nào cũng được: sửa template *Magic Link* (Authentication → Email Templates) thành `<a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email">Đăng nhập</a>` — `/auth/callback` đã hỗ trợ `token_hash` (cách này chưa thử thật).
-- Google chặn đăng nhập trong trình duyệt nhúng của Zalo/Facebook. Trang `/dang-nhap` tự hiện cảnh báo "Mở bằng trình duyệt" khi phát hiện; khi gửi link qua Zalo nên nhắc mọi người mở bằng Chrome/Safari.
-- Email template mặc định (`{{ .ConfirmationURL }}`) chạy được ngay với `/auth/callback`.
+- `/dang-nhap` có 3 nút một chạm: người làm (`nguoilam1@`), chủ quán (`quan1@`), nhóm vận hành (`admin@`), đều đuôi `@demo.safeshift.test`. Mỗi nút gọi server action `demoLogin`, action này đăng nhập bằng mật khẩu chung công khai `safeshift-demo`.
+- Mật khẩu do `supabase/seed.sql` đặt cho cả 16 user demo. Project Supabase thật cần **chạy lại `seed.sql`** trong SQL Editor ít nhất một lần sau khi có thay đổi này, nếu không nút đăng nhập báo lỗi.
+- Khôi phục dữ liệu mẫu (ca bị hủy, tài khoản demo bị xóa, dữ liệu lộn xộn sau khi thử): chạy lại `seed.sql`. Seed tự xóa và tạo lại 16 user demo, đưa lương tối thiểu và giới hạn giờ/tuần về mặc định, chạy lại nhiều lần không sao.
+- **Authentication → Sign In / Providers → Email**: giữ **Confirm email BẬT**. Nếu tắt, ai cầm anon key (công khai trong web) cũng tạo được tài khoản email + mật khẩu qua API.
+- Mật khẩu demo công khai có chủ đích, nên **không đưa dữ liệu thật** vào project này.
 
 ---
 
@@ -152,25 +125,25 @@ Kỳ vọng: `86/86 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM`, d�
 
 ## 6. Deploy Vercel
 
+Đã deploy production tại https://safeshift-beta.vercel.app (Vercel project `safeshift`, team `safeshift`, nối GitHub: merge vào `main` là tự deploy; biến `NEXT_PUBLIC_*` đã đặt). Các bước dưới là cách dựng lại từ đầu.
+
 1. https://vercel.com/new → kết nối GitHub → chọn repo (framework tự nhận Next.js). Node lấy theo `package.json` (**24.x**; Vercel mặc định 26.x, chưa thử với Next 15.5).
 2. **Environment Variables**: thêm 3 biến ở mục 4, loại *Config* (đều là giá trị công khai), môi trường Production. Lần đầu chưa biết domain: đặt `NEXT_PUBLIC_SITE_URL` tạm là `https://<tên-project>.vercel.app`.
 3. **Deploy** → xem domain thật ở **Settings → Domains**. Khác giá trị tạm thì sửa `NEXT_PUBLIC_SITE_URL` rồi **Redeploy**.
-4. Quay lại mục 3: điền domain vào Supabase (Site URL, Redirect URLs) và Google (origins).
-5. Biến `NEXT_PUBLIC_*` được nhúng lúc build: đổi **bất kỳ** biến nào (domain, key Supabase) đều phải **Redeploy** mới có hiệu lực. Đổi domain → sửa cả 3 chỗ: biến, Supabase URL Configuration, Google origins.
+4. Không cần điền domain vào Supabase hay Google: đăng nhập demo không dùng redirect.
+5. Biến `NEXT_PUBLIC_*` được nhúng lúc build: đổi **bất kỳ** biến nào (domain, key Supabase) đều phải **Redeploy** mới có hiệu lực. Đổi domain → sửa biến `NEXT_PUBLIC_SITE_URL` rồi Redeploy.
 6. Mở domain production ở cửa sổ ẩn danh: không được đòi đăng nhập Vercel (nếu có: **Settings → Deployment Protection**).
 7. Điều khoản gói Hobby: *"You shall only use the Services under a Hobby plan for your personal or non-commercial use"* — chủ dự án tự đánh giá; không chắc thì hỏi Vercel Support.
 
-## 7. Trước ngày chạy thật (21–22/11)
+## 7. Trước đợt chạy 21–22/11 và demo 26/11
 
-1. **Xóa dữ liệu demo** (không hoàn tác được — chỉ làm khi chủ dự án xác nhận): SQL Editor → dán toàn bộ `supabase/xoa_du_lieu_demo.sql` → **Run**.
-   - Chỉ xóa dữ liệu demo/test (email `@demo.safeshift.test`, id cố định của seed/test); giữ nguyên tài khoản và dữ liệu thật, kể cả nhật ký thao tác của admin thật. Chạy lại nhiều lần không sao.
-   - Bảng kết quả: nhóm *CÒN LẠI DEMO* phải toàn `0`; nhóm *SỐ DÒNG* cho thấy dữ liệu thật còn lại (`app_config` = 2).
-   - ⚠️ Đừng xóa user demo bằng `delete from auth.users where …` hay chọn nhiều user trong Dashboard rồi xóa một lượt: một báo cáo trỏ tới nhiều user demo cùng lúc làm lệnh lỗi khóa ngoại `23503` (file trên xóa theo đúng thứ tự để tránh).
+1. **KHÔNG chạy `supabase/xoa_du_lieu_demo.sql`.** App chỉ dùng dữ liệu demo; xóa user demo thì ba nút đăng nhập hỏng. File này chỉ dành cho trường hợp sau này chuyển sang dữ liệu thật và phải do chủ dự án xác nhận (không hoàn tác được). Muốn đưa dữ liệu về trạng thái ban đầu thì chạy lại `seed.sql`.
+   - ⚠️ Đừng xóa user demo bằng `delete from auth.users where …` hay chọn nhiều user trong Dashboard rồi xóa một lượt: một báo cáo trỏ tới nhiều user demo cùng lúc làm lệnh lỗi khóa ngoại `23503`.
 2. Kiểm tra cấu hình: `select * from public.app_config;` → `min_hourly_wage = 25500`, `weekly_hours_cap = 40`.
 
 - Mức lương tối thiểu và giới hạn giờ/tuần đổi được ở `/admin/kpi` (có ghi audit log).
 - Gói Supabase miễn phí **tự tạm dừng project sau khoảng 1 tuần không có truy cập**: mở web/SQL editor mỗi vài ngày từ nay đến 26/11.
-- Sao lưu trước demo: **Database → Backups** không có ở gói miễn phí → xuất CSV KPI ở `/admin/kpi` sau đợt chạy thật và giữ lại.
+- Sao lưu trước demo: **Database → Backups** không có ở gói miễn phí → xuất CSV KPI ở `/admin/kpi` sau đợt chạy 21–22/11 và giữ lại.
 
 ## 8. Nhắc ca qua email (tùy chọn — mặc định TẮT)
 

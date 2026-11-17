@@ -85,8 +85,8 @@ export default function DataPolicyPage() {
 
       <Section n={6} title="Lưu ở đâu">
         <p>
-          Dữ liệu được lưu trên dịch vụ cơ sở dữ liệu Supabase và trang web chạy trên Vercel. Đăng nhập qua Google hoặc link
-          gửi qua email; {APP_NAME} không lưu mật khẩu của bạn.
+          Dữ liệu được lưu trên dịch vụ cơ sở dữ liệu Supabase và trang web chạy trên Vercel. Đây là bản mô phỏng: mọi dữ liệu
+          là dữ liệu mẫu, ba tài khoản demo dùng chung mật khẩu công khai, vì vậy bạn không nhập thông tin thật.
         </p>
       </Section>
 

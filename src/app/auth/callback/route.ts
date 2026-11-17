@@ -2,7 +2,7 @@ import type { EmailOtpType } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-// Điểm quay về sau Google OAuth và magic link.
+// Giữ lại cho tương thích (điểm quay về của Google OAuth và magic link cũ); hiện không còn nút nào dẫn tới.
 // Hỗ trợ cả hai kiểu: ?code=... (PKCE, mặc định) và ?token_hash=...&type=... (nếu sửa email template).
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
