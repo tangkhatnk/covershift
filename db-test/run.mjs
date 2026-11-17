@@ -57,6 +57,11 @@ grant usage on schema public to anon, authenticated, service_role;
 alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
 alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
 alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+-- Project Supabase mới (đã thấy 17/11/2026) có sẵn event trigger ensure_rls -> public.rls_auto_enable() để tự bật RLS
+-- cho bảng mới; chỉ postgres được EXECUTE. Ở đây là bản rỗng, chỉ để privileges_check.sql gặp đúng hàm như trên Supabase.
+create function public.rls_auto_enable() returns event_trigger language plpgsql as $fn$ begin end $fn$;
+revoke execute on function public.rls_auto_enable() from public, anon, authenticated, service_role;
+create event trigger ensure_rls on ddl_command_end execute function public.rls_auto_enable();
 `;
 
 async function runFile(client, rel) {
