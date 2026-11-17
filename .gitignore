@@ -35,3 +35,7 @@ coverage/
 
 # Cấu hình cá nhân của công cụ trên máy (cấu hình dùng chung trong .claude/agents vẫn commit)
 .claude/settings.local.json
+# Skill cài cục bộ bằng `npx skills add` (tài liệu cho công cụ, không phải mã của app)
+.agents/
+.claude/skills/
+skills-lock.json
