@@ -1,5 +1,9 @@
 # SafeShift — quy tắc cho Claude Code
 
+@AGENTS.md
+
+`AGENTS.md` (nạp ở dòng trên) là quy tắc chung của repo cho mọi coding agent: quy trình git/PR, quy trình 3 subagent, bất biến nghiệp vụ, bảo mật, giao diện. File này chỉ giữ ghi chú riêng cho Claude Code; nếu hai file mâu thuẫn, `AGENTS.md` thắng.
+
 Web app kết nối ca làm ngắn hạn giữa cơ sở dịch vụ nhỏ ở Vũng Tàu và học sinh (từ 15 tuổi) / sinh viên.
 Bối cảnh đầy đủ, lịch sử và các quyết định: đọc `PROJECT_HANDOFF.md` trước khi làm bất cứ việc gì.
 
@@ -30,11 +34,7 @@ Deploy ổn định trước **20/11/2026** · chạy thật **21–22/11** · d
 - Không chạy `next dev` và `next build` cùng lúc (chung thư mục `.next`).
 
 ## Subagent
-- Có sẵn trong `.claude/agents/`: `db-guardian`, `contract-reviewer`, `ui-qa` — cả 3 chạy **Sonnet 5.5 (`claude-sonnet-5-5`), effort `high`**, khai trong frontmatter. Khi gọi không truyền `model`/`effort` để giữ cấu hình này.
-- Chạy **tối đa 3 subagent cùng lúc** (chủ dự án cho phép). Tài khoản có giới hạn dùng theo cửa sổ 5 giờ; ngày 16/11 ba agent song song từng chết cả ba vì lỗi 429. Nếu subagent chết vì giới hạn: kiểm tra đĩa xem nó đã ghi gì, đợi giới hạn reset rồi gọi lại chính subagent đó (SendMessage) thay vì tạo mới.
-- Subagent được giao viết mã phải ghi từng file ra đĩa ngay khi viết xong, và chỉ sửa các file được giao.
-- Subagent bị dừng không báo cáo gì → kiểm tra đĩa (`git status`, `find`) thay vì tin là đã xong.
-- Hai subagent không bao giờ cùng sửa một file.
+Xem `AGENTS.md`, mục "Quy trình agent mặc định (3 subagent)". Phiên chính chạy agent `safeshift-lead` (bật trong `.claude/settings.json`); 4 subagent `implementer`, `db-guardian`, `contract-reviewer`, `ui-qa` chạy Sonnet 5.5, effort `high`.
 
 ## Lệnh
 ```bash
