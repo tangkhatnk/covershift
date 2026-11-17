@@ -3,6 +3,7 @@ import { reviewWorker, setAccountStatus } from '@/app/actions';
 import { ActionForm, SubmitButton } from '@/components/client';
 import { Alert, Badge, Card, Empty, Field, PageTitle, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
+import { friendlyError } from '@/lib/errors';
 import { APPROVAL_LABEL, AREA_LABEL, AVAILABILITY_LABEL, CONSENT_LABEL } from '@/lib/constants';
 import { fmtDateTime, fmtPlainDate } from '@/lib/format';
 import type { AdminWorker } from '@/lib/types';
@@ -27,7 +28,7 @@ function ReviewForm({ w }: { w: AdminWorker }) {
       <div className="grid grid-cols-2 gap-3">
         <SubmitButton name="decision" value="approve">Duyệt</SubmitButton>
         <SubmitButton name="decision" value="reject" variant="danger"
-          confirm={`Từ chối ${w.full_name}? Các ca sắp tới của người này sẽ bị hủy.`}>
+          confirm={`Từ chối ${w.full_name}? Các ca sắp tới của người này sẽ bị hủy. Đã ghi lý do vào ô Ghi chú chưa? (người làm sẽ thấy lý do trong hồ sơ)`}>
           Từ chối
         </SubmitButton>
       </div>
@@ -58,7 +59,7 @@ function WorkerCard({ w }: { w: AdminWorker }) {
         <p className="text-base text-slate-700">Khu vực: {AREA_LABEL[w.area]}</p>
         <p className="text-base text-slate-700">Rảnh: {slots.length ? slots.join('; ') : '(chưa chọn)'}</p>
         <p className="text-base text-slate-700">Điện thoại: <Tel phone={w.phone} /></p>
-        {w.review_note ? <p className="text-base text-slate-700">Ghi chú duyệt: {w.review_note}</p> : null}
+        {w.review_note ? <p className="break-words text-base text-slate-700">Ghi chú duyệt: {w.review_note}</p> : null}
       </div>
 
       <dl className="grid grid-cols-3 gap-2 text-center">
@@ -129,7 +130,7 @@ export default async function WorkersPage({ searchParams }: { searchParams: Prom
     return (
       <div className="space-y-4">
         <PageTitle>Duyệt người làm</PageTitle>
-        <Alert tone="red">{error.message}</Alert>
+        <Alert tone="red">{friendlyError(error)}</Alert>
       </div>
     );
   }

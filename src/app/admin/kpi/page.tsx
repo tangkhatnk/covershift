@@ -2,6 +2,7 @@ import { setConfig } from '@/app/actions';
 import { ActionForm, SubmitButton } from '@/components/client';
 import { Alert, Card, Field, PageTitle, btn, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
+import { friendlyError } from '@/lib/errors';
 import { fmtDateTime } from '@/lib/format';
 import type { Kpis } from '@/lib/types';
 import { KPI_LABELS } from './labels';
@@ -35,7 +36,7 @@ export default async function KpiPage() {
       <PageTitle sub={`Tính đến ${fmtDateTime(new Date().toISOString())}`}>KPI</PageTitle>
 
       {kpiRes.error || !kpis ? (
-        <Alert tone="red">{kpiRes.error?.message ?? 'Không tải được KPI.'}</Alert>
+        <Alert tone="red">{kpiRes.error ? friendlyError(kpiRes.error) : 'Không tải được KPI.'}</Alert>
       ) : (
         <>
           <Card className="!p-0">
@@ -59,7 +60,7 @@ export default async function KpiPage() {
 
       <Card className="space-y-5">
         <h2 className="text-xl font-bold text-slate-900">Cấu hình</h2>
-        {cfgRes.error ? <Alert tone="red">{cfgRes.error.message}</Alert> : null}
+        {cfgRes.error ? <Alert tone="red">{friendlyError(cfgRes.error)}</Alert> : null}
         {CONFIG.map((c) => {
           const cur = cfg.get(c.key);
           return (

@@ -66,7 +66,7 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
     // Đọc lỗi (mạng…) thì không đoán: vẫn hiện nút, database sẽ trả lời đúng khi bấm.
     if (!wpRes.error && !consentRes.error) {
       if (wp?.approval === 'rejected') {
-        claimBlocker = 'Hồ sơ của bạn không được duyệt nên chưa nhận ca được. Xem lý do trong hồ sơ.';
+        claimBlocker = 'Hồ sơ của bạn bị từ chối nên chưa nhận ca được.';
       } else if (!wp || wp.approval !== 'approved') {
         claimBlocker = 'Hồ sơ của bạn chưa được nhóm vận hành duyệt nên chưa nhận ca được.';
       } else if (ageOn(wp.date_of_birth, vnDateInput(s.starts_at)) < 18 && consentRes.data?.status !== 'approved') {

@@ -128,7 +128,7 @@ Dữ liệu seed dùng trong kịch bản: "Quán Demo 1–4" đã xác minh, "Q
 
 Dùng ca seed "vừa hết giờ" (Quán Demo 3, dọn phòng) — link: `/xac-nhan/demo-token-con-han`.
 
-1. Mở link ở trình duyệt ẩn danh → ✔ thấy tên quán, giờ, tên người làm; không cần đăng nhập.
+1. Mở link **trong Zalo trên điện thoại** (gửi link cho chính mình qua Zalo rồi bấm; chủ quán thật sẽ mở như vậy), hoặc ở trình duyệt ẩn danh → ✔ thấy tên quán, giờ, tên người làm; không cần đăng nhập. Nút "Gửi xác nhận" không hỏi lại bằng hộp thoại (trình duyệt nhúng của Zalo có thể chặn hộp thoại).
 2. Chọn "Đã làm" → "Đúng giờ" → **chưa chấm sao** → Gửi → ✔ lỗi *"Vui lòng chọn Đúng giờ / Trễ và số sao."* hiện trong tầm nhìn, các lựa chọn đã chọn vẫn giữ. Chấm 5 sao → nhận xét → Gửi → ✔ *"Ca này đã được xác nhận. Cảm ơn anh/chị!"*.
 3. Mở lại link → ✔ vẫn là *"Ca này đã được xác nhận…"*, không còn form (link chỉ dùng một lần).
 4. Mở `/xac-nhan/demo-token-het-han` → ✔ "Link đã hết hạn".

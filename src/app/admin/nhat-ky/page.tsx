@@ -1,5 +1,6 @@
 import { Alert, Empty, PageTitle } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
+import { friendlyError } from '@/lib/errors';
 import { AUDIT_ACTION_LABEL } from '@/lib/constants';
 import { fmtDateTime } from '@/lib/format';
 import type { AuditRow } from '@/lib/types';
@@ -29,7 +30,7 @@ export default async function AuditPage() {
     return (
       <div className="space-y-4">
         <PageTitle>Nhật ký thao tác</PageTitle>
-        <Alert tone="red">{error.message}</Alert>
+        <Alert tone="red">{friendlyError(error)}</Alert>
       </div>
     );
   }
