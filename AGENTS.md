@@ -59,7 +59,7 @@ Dùng ranh giới sở hữu sẵn có trước khi tạo ranh giới mới. Đ�
 
 - `supabase/migrations/`
   - schema, trigger, constraint, RLS, RPC;
-  - hiện có `0001_init.sql` (đã áp lên Supabase thật ngày 17/11/2026: không sửa nữa) và `0002_toa_do_co_so.sql` (cột `lat`/`lng` của cơ sở); thay đổi mới là file migration mới (`0003_...sql`).
+  - hiện có `0001_init.sql` (đã áp lên Supabase thật ngày 17/11/2026) và `0002_toa_do_co_so.sql` (cột `lat`/`lng` của cơ sở, đã áp ngày 18/11/2026): cả hai không sửa nữa; thay đổi mới là file migration mới (`0003_...sql`).
 - `supabase/seed.sql`
   - dữ liệu mẫu; phải chạy lại được nhiều lần.
 - `supabase/tests/`
@@ -251,7 +251,7 @@ Không force-push. Mở PR `revert` bằng `git revert` (không dùng `git reset
 Không merge và không tự làm các việc sau. Ghi lại (PR draft hoặc issue, nêu rõ cần chủ dự án quyết gì) rồi chuyển sang việc kế tiếp, không dừng cả phiên:
 
 - đổi quy tắc nghiệp vụ (mục 10);
-- đổi schema hoặc quyền trên Supabase thật (agent không áp lên Supabase; chủ dự án dán SQL), xóa dữ liệu, sửa `0001_init.sql` (mục 12);
+- đổi schema hoặc quyền trên Supabase thật (agent không áp lên Supabase; chủ dự án dán SQL), xóa dữ liệu, sửa `0001_init.sql` hoặc `0002_toa_do_co_so.sql` (mục 12);
 - mọi chỗ khác trong file này ghi là cần chủ dự án duyệt: mở rộng phạm vi công khai của dữ liệu cá nhân, CORS và header bảo mật, dịch vụ bên thứ ba mới, phụ thuộc mới (mục 13–17);
 - mọi việc không hoàn tác được.
 
@@ -459,8 +459,8 @@ grant execute on function public.ten_ham(...) to authenticated;
 
 ## 12. Migration và dữ liệu thật
 
-- `supabase/migrations/0001_init.sql` đã áp lên Supabase thật ngày 17/11/2026. **Không sửa file này.**
-- Thay đổi schema (bảng, cột, hàm, trigger, policy, grant) là một file mới `supabase/migrations/000N_ten_ngan.sql` (số tiếp theo, tên ngắn không dấu). Mỗi file có thể chạy sau `0001` mà không cần xóa gì.
+- `supabase/migrations/0001_init.sql` đã áp lên Supabase thật ngày 17/11/2026, và `supabase/migrations/0002_toa_do_co_so.sql` ngày 18/11/2026 (chủ dự án dán bằng SQL Editor; theo chủ dự án `privileges_check` ra 0 dòng `SAI`/`KIỂM`; đã chạy lại seed). **Không sửa hai file này.**
+- Thay đổi schema (bảng, cột, hàm, trigger, policy, grant) là một file mới `supabase/migrations/000N_ten_ngan.sql` (số tiếp theo, tên ngắn không dấu). Mỗi file có thể chạy sau các migration đã có mà không cần xóa gì.
 - Một thay đổi schema gồm đủ các phần:
   - file migration;
   - test trong `supabase/tests/edge_cases.sql`;
@@ -470,7 +470,7 @@ grant execute on function public.ten_ham(...) to authenticated;
 - Chủ dự án dán migration vào Supabase SQL Editor, rồi chạy `supabase/tests/privileges_check.sql` trên project thật. Agent không tự chạy DDL hay ghi dữ liệu lên project Supabase thật, kể cả khi máy có kết nối MCP tới đó.
 - Không dùng đường tắt bỏ qua file migration: `supabase db push`, `supabase db reset`, sửa bảng bằng Table Editor, hay sinh schema bằng diff/pull rồi áp thẳng. Mọi thay đổi phải truy vết được trong `supabase/migrations/`.
 - `supabase/tests/check_before_migration.sql` chỉ dùng cho project mới, trước khi dán `0001`. Không dùng nó để kiểm thay đổi sau này.
-- Theo quyết định ngày 17/11/2026, app là bản mô phỏng: đợt 21–22/11 không dùng người thật, chỉ dữ liệu mẫu. Dù vậy quy tắc migration không đổi: không sửa `0001`, thay đổi schema là file mới, và nếu sau này có dữ liệu thật thì giữ nguyên dữ liệu đó:
+- Theo quyết định ngày 17/11/2026, app là bản mô phỏng: đợt 21–22/11 không dùng người thật, chỉ dữ liệu mẫu. Dù vậy quy tắc migration không đổi: không sửa `0001` và `0002`, thay đổi schema là file mới, và nếu sau này có dữ liệu thật thì giữ nguyên dữ liệu đó:
   - không xóa hay đổi nghĩa dữ liệu hiện có nếu task không yêu cầu;
   - cột `not null` mới phải có `default` hoặc bước backfill rõ ràng;
   - không `drop` bảng hoặc cột đang chứa dữ liệu.
@@ -802,7 +802,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_K
 
 ### Thay đổi schema đã áp lên Supabase thật
 
-- viết migration mới (`0002_...sql`), không sửa file đã áp;
+- viết migration mới (`0003_...sql`), không sửa file đã áp;
 - kèm test trong `supabase/tests/edge_cases.sql`;
 - chạy `npm run test:db`;
 - chủ dự án dán migration bằng SQL Editor, rồi chạy `supabase/tests/privileges_check.sql`: không dòng nào cột `ket_luan` bắt đầu bằng `SAI` hoặc `KIỂM`. Postgres nhúng chạy bằng superuser nên không bắt được lỗi quyền riêng của Supabase; bước này không thay thế được.
@@ -909,7 +909,7 @@ Trước khi đánh dấu PR sẵn sàng, đọc toàn bộ diff cuối (`git di
 - mã chết, `console.log` gỡ lỗi, TODO tạm;
 - khóa bí mật hoặc dữ liệu cá nhân thật (kể cả service-role key);
 - quyền hoặc RLS bị nới; test bị yếu đi;
-- migration cũ bị sửa (`0001_init.sql` không được đổi);
+- migration cũ bị sửa (`0001_init.sql` và `0002_toa_do_co_so.sql` không được đổi);
 - tài liệu (`CLAUDE.md`, `README.md`, `TESTING.md`, con số test) lệch với hành vi mới;
 - phụ thuộc đổi mà task không cần.
 
@@ -936,7 +936,7 @@ Không báo xong khi kiểm tra liên quan chưa chạy. Không khẳng định 
 - merge PR khi chưa đủ các cổng ở mục 6;
 - agent chính tự viết mã, sửa file hay chạy test thay cho `execution-manager` và `worker` (mục 5);
 - force-push `main`;
-- sửa `supabase/migrations/0001_init.sql` đã áp lên Supabase thật;
+- sửa `supabase/migrations/0001_init.sql` hoặc `0002_toa_do_co_so.sql` đã áp lên Supabase thật;
 - tắt, bỏ qua hoặc nới test để cho qua;
 - bịa kết quả test hoặc khẳng định đã xem giao diện khi chưa xem;
 - commit bí mật, `.env*` (trừ `.env.example`), dữ liệu người thật;
