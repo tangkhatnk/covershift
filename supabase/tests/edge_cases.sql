@@ -396,5 +396,55 @@ select pg_temp.t_do('11b. Chủ quán xóa tài khoản khi ca có báo cáo (la
 -- Dọn báo cáo mồ côi do chính test này tạo (không để lại rác sau test; chỉ báo cáo mẫu 'Demo-11b:' không còn trỏ tới ai).
 delete from reports where body like 'Demo-11b:%' and reporter_id is null and subject_id is null and shift_id is null;
 
+-- ---------------------------------------------------------------
+-- 12. Tọa độ cơ sở (migration 0002)
+-- ---------------------------------------------------------------
+select pg_temp.t_err('12a. Vĩ độ ngoài khung Vũng Tàu (10.2999) bị chặn', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_facility_location('f0000000-0000-4000-a000-000000000001', 10.2999, 107.05)$$, '%khu vực Vũng Tàu%');
+select pg_temp.t_err('12b. Kinh độ ngoài khung (107.61) bị chặn', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_facility_location('f0000000-0000-4000-a000-000000000001', 10.5, 107.61)$$, '%khu vực Vũng Tàu%');
+select pg_temp.t_do('12c. Góc dưới-trái của khung (10.30, 107.00) được nhận', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_facility_location('f0000000-0000-4000-a000-000000000001', 10.30, 107.00)$$,
+  $$select lat = 10.30 and lng = 107.00 from facilities where id = 'f0000000-0000-4000-a000-000000000001'$$);
+select pg_temp.t_do('12d. Góc trên-phải của khung (10.80, 107.60) được nhận', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_facility_location('f0000000-0000-4000-a000-000000000001', 10.80, 107.60)$$,
+  $$select lat = 10.80 and lng = 107.60 from facilities where id = 'f0000000-0000-4000-a000-000000000001'$$);
+select pg_temp.t_err('12e. Chỉ nhập vĩ độ, thiếu kinh độ: bị chặn', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_facility_location('f0000000-0000-4000-a000-000000000001', 10.5, null)$$, '%đủ vĩ độ và kinh độ%');
+select pg_temp.t_err('12f. Chủ quán khác không sửa được vị trí cơ sở này', 'e0000000-0000-4000-a000-000000000002',
+  $$select set_facility_location('f0000000-0000-4000-a000-000000000001', 10.5, 107.1)$$, '%không có quyền sửa vị trí%');
+select pg_temp.t_err('12g. Người làm không sửa được vị trí cơ sở', 'a0000000-0000-4000-a000-000000000001',
+  $$select set_facility_location('f0000000-0000-4000-a000-000000000001', 10.5, 107.1)$$, '%không có quyền sửa vị trí%');
+select pg_temp.t_do('12h. Chủ quán xóa ghim của mình (cả hai null)', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_facility_location('f0000000-0000-4000-a000-000000000001', null, null)$$,
+  $$select lat is null and lng is null from facilities where id = 'f0000000-0000-4000-a000-000000000001'$$);
+select pg_temp.t_do('12i. Chủ quán đặt lại vị trí của mình, không có dòng audit (không phải admin)', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_facility_location('f0000000-0000-4000-a000-000000000001', 10.3498, 107.0768)$$,
+  $$select lat = 10.3498 and lng = 107.0768 from facilities where id = 'f0000000-0000-4000-a000-000000000001'
+       and not exists (select 1 from admin_audit_log where action = 'set_facility_location' and target_id = 'f0000000-0000-4000-a000-000000000001')$$);
+select pg_temp.t_do('12j. Admin đặt vị trí cơ sở bất kỳ, có dòng audit set_facility_location', '00000000-0000-4000-a000-000000000001',
+  $$select set_facility_location('f0000000-0000-4000-a000-000000000002', 10.34, 107.09)$$,
+  $$select (select lat = 10.34 and lng = 107.09 from facilities where id = 'f0000000-0000-4000-a000-000000000002')
+       and exists (select 1 from admin_audit_log where action = 'set_facility_location' and target_id = 'f0000000-0000-4000-a000-000000000002')$$);
+select pg_temp.t_do('12k. (chuẩn bị) Admin gỡ Quán Demo 5', '00000000-0000-4000-a000-000000000001',
+  $$select admin_set_facility_status('f0000000-0000-4000-a000-000000000005', 'removed', 'test 12')$$,
+  $$select status = 'removed' from facilities where id = 'f0000000-0000-4000-a000-000000000005'$$);
+select pg_temp.t_err('12l. Cơ sở đã gỡ: chủ quán không sửa được vị trí', 'e0000000-0000-4000-a000-000000000005',
+  $$select set_facility_location('f0000000-0000-4000-a000-000000000005', 10.4, 107.1)$$, '%đã bị gỡ%');
+select pg_temp.t_err('12m. anon không gọi được set_facility_location', null,
+  $$select set_facility_location('f0000000-0000-4000-a000-000000000001', 10.5, 107.1)$$, '%permission denied%', 'anon');
+select pg_temp.t_err('12n. Người đăng nhập ghi thẳng bảng facilities (bỏ qua RPC) bị chặn', 'e0000000-0000-4000-a000-000000000001',
+  $$update facilities set lat = 10.5, lng = 107.1 where id = 'f0000000-0000-4000-a000-000000000001'$$, '%permission denied%', 'authenticated');
+select pg_temp.t_err('12o. Constraint ở bảng chặn tọa độ ngoài khung kể cả khi ghi bằng quyền cao (không qua RPC)', null,
+  $$update facilities set lat = 50, lng = 107.1 where id = 'f0000000-0000-4000-a000-000000000001'$$, '%facilities_location_check%');
+select pg_temp.t_err('12p. Constraint ở bảng chặn lệch cặp (có lat, lng null)', null,
+  $$update facilities set lat = 10.5, lng = null where id = 'f0000000-0000-4000-a000-000000000001'$$, '%facilities_location_check%');
+select pg_temp.t_true('12q. feed_shifts có lat/lng ở mọi ca, vẫn không có số điện thoại', 'a0000000-0000-4000-a000-000000000005',
+  $$select count(*) > 0 and bool_and(e ? 'lat' and e ? 'lng') and feed_shifts()::text not like '%0900000%'
+    from jsonb_array_elements(feed_shifts()) e$$);
+select pg_temp.t_true('12r. admin_list_facilities trả lat/lng của Quán Demo 1', '00000000-0000-4000-a000-000000000001',
+  $$select (e ->> 'lat')::float8 = 10.3498 and (e ->> 'lng')::float8 = 107.0768
+    from jsonb_array_elements(admin_list_facilities()) e where e ->> 'id' = 'f0000000-0000-4000-a000-000000000001'$$);
+
 select pg_temp.as_user(null, null);
 select name, passed, detail from t_results order by n;

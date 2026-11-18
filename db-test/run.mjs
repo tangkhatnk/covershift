@@ -106,6 +106,7 @@ try {
   }
 
   await runFile(client, 'supabase/migrations/0001_init.sql');
+  await runFile(client, 'supabase/migrations/0002_toa_do_co_so.sql');
   console.log('✔ migration');
   await runFile(client, 'supabase/seed.sql');
   const cleanSnapshot = JSON.stringify(await snapshot(client));
