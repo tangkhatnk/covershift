@@ -13,9 +13,10 @@ export const metadata = { title: 'Duyệt cơ sở' };
 
 const yesNo = (ok: boolean) => (ok ? 'Có' : 'Không');
 
-function StatusBadges({ f }: { f: AdminFacility }) {
+function StatusBadges({ f, pin }: { f: AdminFacility; pin: number | null }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
+      <Badge tone="blue">{pin ? `Ghim ${pin}` : 'Chưa ghim'}</Badge>
       <Badge tone={f.status === 'active' && f.verified ? 'green' : f.status === 'pending' ? 'amber' : 'gray'}>
         {f.status === 'active' && f.verified ? 'Đã xác minh' : FACILITY_STATUS_LABEL[f.status]}
       </Badge>
@@ -148,12 +149,14 @@ export default async function FacilitiesPage() {
   }
   const list = (data ?? []) as AdminFacility[];
   const waiting = list.filter((f) => f.status === 'pending').length;
-  const points: MapPoint[] = list.flatMap((f) => f.lat == null || f.lng == null ? [] : [{
-    id: f.id, lat: f.lat, lng: f.lng,
-    text: f.name.length > 14 ? `${f.name.slice(0, 13)}…` : f.name,
-    label: `${f.name}, ${f.status === 'active' && f.verified ? 'đã xác minh' : FACILITY_STATUS_LABEL[f.status].toLowerCase()}`,
-    tone: f.status === 'removed' ? 'removed' as const : f.status === 'active' && f.verified ? 'open' as const : 'pending' as const,
-  }]);
+  // Số thứ tự trong danh sách = số trên ghim = số trong chú giải = số trên thẻ.
+  const pinned = list.flatMap((f, i) => f.lat == null || f.lng == null ? [] : [{ f, n: i + 1 }]);
+  const verified = (f: AdminFacility) => f.status === 'active' && f.verified;
+  const points: MapPoint[] = pinned.map(({ f, n }) => ({
+    id: f.id, lat: f.lat as number, lng: f.lng as number, text: String(n),
+    label: `${n}. ${f.name}, ${verified(f) ? 'đã xác minh' : FACILITY_STATUS_LABEL[f.status].toLowerCase()}`,
+    tone: f.status === 'removed' ? 'removed' as const : verified(f) ? 'open' as const : 'pending' as const,
+  }));
   const noPin = list.length - points.length;
   const today = vnDateInput();
   const verifier = profile.full_name;
@@ -165,19 +168,31 @@ export default async function FacilitiesPage() {
       ) : (
         <>
           {points.length > 0 ? (
-            <ShiftMap
-              points={points}
-              className="h-72 lg:h-96"
-              caption={noPin > 0 ? `${noPin} cơ sở chưa có ghim vị trí.` : undefined}
-            />
+            <div className="space-y-2">
+              <ShiftMap
+                points={points}
+                fitIds={pinned.filter(({ f }) => verified(f)).map(({ f }) => f.id)}
+                className="h-96 lg:h-[28rem]"
+                caption={noPin > 0 ? `${noPin} cơ sở chưa có ghim vị trí.` : undefined}
+              />
+              <p className="break-words text-base text-ink">
+                {pinned.map(({ f, n }, i) => (
+                  <span key={f.id}>
+                    {i > 0 ? ' · ' : ''}
+                    <b>{n}</b> {f.name}
+                    {verified(f) ? '' : ` (${FACILITY_STATUS_LABEL[f.status].toLowerCase()})`}
+                  </span>
+                ))}
+              </p>
+            </div>
           ) : (
             <Alert tone="amber">Chưa cơ sở nào có ghim vị trí.</Alert>
           )}
 
           {/* Một thẻ cho mỗi cơ sở ở mọi bề rộng; từ 1024px phần thông tin chia ba cột, thao tác trải hết bề ngang. */}
           <div className="space-y-4">
-            {list.map((f) => (
-              <Card key={f.id} tab={<StatusBadges f={f} />}>
+            {list.map((f, i) => (
+              <Card key={f.id} tab={<StatusBadges f={f} pin={f.lat == null || f.lng == null ? null : i + 1} />}>
                 <div className="space-y-4">
                   <div className="grid gap-4 lg:grid-cols-3 lg:gap-8">
                     <div><Identity f={f} /></div>
