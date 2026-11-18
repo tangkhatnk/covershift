@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Check, Star } from 'lucide-react';
 import { ActionForm, SubmitButton } from '@/components/client';
 import { inputCls } from '@/components/ui';
 import { submitConfirmation } from '@/app/actions';
@@ -10,15 +11,19 @@ type Answer = { attended: '' | 'yes' | 'no'; onTime: '' | 'yes' | 'no'; rating: 
 
 const EMPTY: Answer = { attended: '', onTime: '', rating: 0, comment: '' };
 
+// Vòng focus vẽ trên nhãn khi ô radio ẩn (sr-only) bên trong đang được focus bằng bàn phím.
+const focusCls =
+  'has-[:focus-visible]:outline has-[:focus-visible]:outline-4 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-shutter-deep';
+
 const choiceCls = (on: boolean, tone: 'green' | 'red' | 'amber') =>
-  `flex min-h-[3.5rem] cursor-pointer items-center justify-center rounded-xl border-2 px-3 text-center text-lg font-bold transition focus-within:ring-4 focus-within:ring-brand-600/30 ${
+  `flex min-h-[3.5rem] cursor-pointer items-center justify-center gap-2 rounded-ui border-2 px-4 text-center text-lg font-bold transition-colors ${focusCls} ${
     on
       ? tone === 'green'
-        ? 'border-emerald-600 bg-emerald-600 text-white'
+        ? 'border-shutter bg-shutter text-white'
         : tone === 'red'
-          ? 'border-red-600 bg-red-600 text-white'
-          : 'border-amber-500 bg-amber-500 text-white'
-      : 'border-slate-300 bg-white text-slate-900'
+          ? 'border-roof bg-roof text-white'
+          : 'border-wall bg-wall text-ink'
+      : 'border-rule-strong bg-white text-ink hover:bg-chalk'
   }`;
 
 /** Nút radio to. Là input thật nên server action đọc được; state giữ lựa chọn nếu form bị reset sau khi gửi lỗi. */
@@ -29,7 +34,25 @@ function Choice({ name, value, current, tone, onPick, children }: {
   return (
     <label className={choiceCls(on, tone)}>
       <input type="radio" name={name} value={value} checked={on} onChange={() => onPick(value)} className="sr-only" />
-      {on ? '✓ ' : ''}{children}
+      {on ? <Check className="h-6 w-6 shrink-0" aria-hidden="true" /> : null}
+      {children}
+    </label>
+  );
+}
+
+/** Một ô sao: radio thật (mũi tên trái/phải đổi sao), sao vẽ bằng icon, nhãn đọc là "{n} sao". */
+function StarChoice({ name, n, rating, onPick }: { name: string; n: number; rating: number; onPick: (n: number) => void }) {
+  const lit = n <= rating;
+  return (
+    <label
+      className={`flex min-h-[3.5rem] cursor-pointer flex-col items-center justify-center rounded-ui border-2 transition-colors ${focusCls} ${
+        lit ? 'border-wall bg-wall-tint' : 'border-rule-strong bg-white hover:bg-chalk'
+      }`}
+    >
+      <input type="radio" name={name} value={n} checked={rating === n} onChange={() => onPick(n)} className="sr-only" />
+      <span className="sr-only">{n} sao</span>
+      <Star aria-hidden="true" className={`h-7 w-7 ${lit ? 'fill-wall stroke-shutter-deep' : 'fill-none stroke-rule-strong'}`} />
+      <span aria-hidden="true" className="text-sm font-semibold text-ink">{n}</span>
     </label>
   );
 }
@@ -46,22 +69,22 @@ export function ConfirmForm({ token, workers }: { token: string; workers: Worker
   }).length;
 
   return (
-    <ActionForm action={submitConfirmation} className="space-y-5">
+    <ActionForm action={submitConfirmation} className="space-y-6">
       <input type="hidden" name="token" value={token} />
 
       {workers.map((w, i) => {
         const id = w.claim_id;
         const a = get(id);
         return (
-          <fieldset key={id} className="space-y-4 rounded-2xl border-2 border-slate-200 bg-white p-4 shadow-sm">
-            <legend className="px-1 text-xl font-bold text-slate-900">
+          <fieldset key={id} className="min-w-0 space-y-6 rounded-ui border border-rule bg-white p-4">
+            <legend className="px-2 text-xl font-bold text-ink">
               {workers.length > 1 ? `${i + 1}. ` : ''}{w.name}
             </legend>
             <input type="hidden" name="claim_id" value={id} />
 
-            <div>
-              <p className="mb-2 text-base font-semibold text-slate-900">Bạn này có đến làm không?</p>
-              <div className="grid grid-cols-2 gap-3">
+            <fieldset className="min-w-0">
+              <legend className="mb-2 text-base font-semibold text-ink">Bạn này có đến làm không?</legend>
+              <div className="grid grid-cols-2 gap-4">
                 <Choice name={`attended_${id}`} value="yes" current={a.attended} tone="green" onPick={(v) => set(id, { attended: v })}>
                   Đã làm
                 </Choice>
@@ -69,13 +92,13 @@ export function ConfirmForm({ token, workers }: { token: string; workers: Worker
                   Không đến
                 </Choice>
               </div>
-            </div>
+            </fieldset>
 
             {a.attended === 'yes' ? (
               <>
-                <div>
-                  <p className="mb-2 text-base font-semibold text-slate-900">Đến có đúng giờ không?</p>
-                  <div className="grid grid-cols-2 gap-3">
+                <fieldset className="min-w-0">
+                  <legend className="mb-2 text-base font-semibold text-ink">Đến có đúng giờ không?</legend>
+                  <div className="grid grid-cols-2 gap-4">
                     <Choice name={`on_time_${id}`} value="yes" current={a.onTime} tone="green" onPick={(v) => set(id, { onTime: v })}>
                       Đúng giờ
                     </Choice>
@@ -83,34 +106,21 @@ export function ConfirmForm({ token, workers }: { token: string; workers: Worker
                       Trễ
                     </Choice>
                   </div>
-                </div>
+                </fieldset>
 
-                <div>
-                  <p className="mb-2 text-base font-semibold text-slate-900">
-                    Chấm điểm {a.rating ? <span className="font-normal text-slate-600">— {a.rating}/5 sao</span> : null}
-                  </p>
-                  <input type="hidden" name={`rating_${id}`} value={a.rating || ''} />
-                  <div className="grid grid-cols-5 gap-2" role="radiogroup" aria-label={`Số sao cho ${w.name}`}>
+                <fieldset className="min-w-0">
+                  <legend className="mb-2 text-base font-semibold text-ink">
+                    Chấm điểm {a.rating ? <span className="font-normal text-ink-soft">— {a.rating}/5 sao</span> : null}
+                  </legend>
+                  <div className="grid grid-cols-5 gap-2">
                     {[1, 2, 3, 4, 5].map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        role="radio"
-                        aria-checked={a.rating === n}
-                        aria-label={`${n} sao`}
-                        onClick={() => set(id, { rating: n })}
-                        className={`flex min-h-[3.5rem] flex-col items-center justify-center rounded-xl border-2 text-2xl leading-none transition ${
-                          n <= a.rating ? 'border-amber-400 bg-amber-50 text-amber-500' : 'border-slate-300 bg-white text-slate-300'
-                        }`}
-                      >
-                        ★<span className="mt-1 text-sm font-semibold text-slate-700">{n}</span>
-                      </button>
+                      <StarChoice key={n} name={`rating_${id}`} n={n} rating={a.rating} onPick={(v) => set(id, { rating: v })} />
                     ))}
                   </div>
-                </div>
+                </fieldset>
 
                 <label className="block">
-                  <span className="mb-1 block text-base font-semibold text-slate-900">Nhận xét (không bắt buộc)</span>
+                  <span className="mb-2 block text-base font-semibold text-ink">Nhận xét (không bắt buộc)</span>
                   <textarea
                     name={`comment_${id}`}
                     rows={2}
@@ -120,7 +130,7 @@ export function ConfirmForm({ token, workers }: { token: string; workers: Worker
                     placeholder="Ví dụ: chăm chỉ, lễ phép"
                     className={inputCls}
                   />
-                  <span className="mt-1 block text-base text-slate-600">
+                  <span className="mt-2 block text-base text-ink-soft">
                     Tối đa 500 ký tự. Nhận xét sẽ hiện trên hồ sơ ca làm công khai của người làm.
                   </span>
                 </label>
@@ -128,7 +138,7 @@ export function ConfirmForm({ token, workers }: { token: string; workers: Worker
             ) : null}
 
             {a.attended === 'no' ? (
-              <p className="rounded-xl bg-red-50 px-3 py-2 text-base text-red-900">
+              <p className="rounded-ui bg-roof-tint px-4 py-2 text-base text-roof">
                 Nhóm vận hành sẽ được báo là bạn này không đến ca.
               </p>
             ) : null}
@@ -137,7 +147,7 @@ export function ConfirmForm({ token, workers }: { token: string; workers: Worker
       })}
 
       {missing > 0 ? (
-        <p className="rounded-xl border-2 border-amber-300 bg-amber-50 px-4 py-3 text-base font-medium text-amber-900">
+        <p className="rounded-ui border border-wall bg-wall-tint px-4 py-2 text-base font-medium text-ink">
           {workers.length > 1
             ? `Còn ${missing} người chưa chọn xong (đã làm / không đến, đúng giờ, số sao).`
             : 'Anh/chị chọn xong các mục ở trên (đã làm / không đến, đúng giờ, số sao) rồi bấm gửi.'}
@@ -145,8 +155,11 @@ export function ConfirmForm({ token, workers }: { token: string; workers: Worker
       ) : null}
       {/* Không dùng window.confirm: chủ quán thường mở link này trong Zalo, trình duyệt nhúng có thể bỏ qua hộp thoại
           và trả "không" ngay — nút sẽ như bị liệt. Thay bằng câu nhắc cố định ngay trên nút. */}
-      <p className="text-base font-medium text-slate-700">Kiểm tra lại các lựa chọn. Sau khi gửi sẽ không sửa lại được.</p>
-      <SubmitButton>Gửi xác nhận</SubmitButton>
+      <p className="text-base font-medium text-ink">Kiểm tra lại các lựa chọn. Sau khi gửi sẽ không sửa lại được.</p>
+      {/* Nút gửi to hơn nút thường: việc duy nhất của trang. SubmitButton không nhận className nên chỉnh qua phần tử bao. */}
+      <div className="[&_button]:!min-h-[4rem] [&_button]:!text-xl">
+        <SubmitButton>Gửi xác nhận</SubmitButton>
+      </div>
     </ActionForm>
   );
 }

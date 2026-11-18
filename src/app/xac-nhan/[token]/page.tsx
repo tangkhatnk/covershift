@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Alert, Card, PageTitle } from '@/components/ui';
 import { JOB_LABEL } from '@/lib/constants';
-import { fmtDateTime, fmtRange } from '@/lib/format';
+import { fmtDate, fmtDateTime, fmtTime } from '@/lib/format';
 import { createClient } from '@/lib/supabase/server';
 import type { Confirmation } from '@/lib/types';
 import { ConfirmForm } from './confirm-form';
@@ -32,7 +32,7 @@ export default async function ConfirmPage({ params }: { params: Promise<{ token:
           // Cũng là màn hình chủ quán thấy ngay sau khi gửi thành công (trang được tải lại).
           <Alert tone="green">
             <span className="block text-lg font-semibold">Ca này đã được xác nhận. Cảm ơn anh/chị!</span>
-            <span className="mt-1 block">Mỗi link chỉ dùng được một lần.</span>
+            <span className="mt-2 block">Mỗi link chỉ dùng được một lần.</span>
           </Alert>
         ) : c.state === 'expired' ? (
           <Alert tone="amber">
@@ -46,12 +46,17 @@ export default async function ConfirmPage({ params }: { params: Promise<{ token:
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageTitle sub="Anh/chị chọn cho từng người rồi bấm Gửi xác nhận. Không cần đăng nhập.">Xác nhận sau ca</PageTitle>
-      <Card>
-        <p className="text-xl font-bold text-slate-900">{c.facility_name}</p>
-        <p className="text-lg text-slate-800">{JOB_LABEL[c.job_type]} · {fmtRange(c.starts_at, c.ends_at)}</p>
-        <p className="mt-1 text-base text-slate-600">Hạn xác nhận: {fmtDateTime(c.expires_at)}</p>
+      <Card tab={<span className="text-base font-bold text-ink">{JOB_LABEL[c.job_type]}</span>}>
+        <div className="space-y-2">
+          <p className="text-xl font-bold text-ink">{c.facility_name}</p>
+          <p className="text-base text-ink-soft">{fmtDate(c.starts_at)}</p>
+          <p className="tabular font-num text-4xl font-bold leading-tight text-ink">
+            {fmtTime(c.starts_at)}–{fmtTime(c.ends_at)}
+          </p>
+          <p className="text-base text-ink-soft">Hạn xác nhận: {fmtDateTime(c.expires_at)}</p>
+        </div>
       </Card>
       {c.workers.length ? (
         <ConfirmForm token={token} workers={c.workers} />

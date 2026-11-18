@@ -1,17 +1,32 @@
 import Link from 'next/link';
+import { ChevronDown } from 'lucide-react';
 import { primaryBusy } from '@/app/actions';
 import { ActionForm, CopyButton, Flash, SubmitButton } from '@/components/client';
-import { Alert, Badge, Card, Empty, Field, PageTitle, Tel, inputCls } from '@/components/ui';
+import { Alert, Badge, Card, Empty, Field, PageTitle, StateBadge, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { JOB_LABEL, SITE_URL } from '@/lib/constants';
 import { friendlyError } from '@/lib/errors';
-import { fmtDateTime, fmtRange, shiftState, SHIFT_STATE_LABEL, SHIFT_STATE_TONE } from '@/lib/format';
+import { fmtDate, fmtDateTime, fmtRange, fmtTime, shiftState } from '@/lib/format';
 import type { DispatchBoard, DispatchShift, PendingConfirmation } from '@/lib/types';
 
 export const metadata = { title: 'Điều phối' };
 
-const linkCls = 'font-semibold text-brand-700 underline underline-offset-4';
-const summaryCls = 'cursor-pointer py-2 text-base font-semibold text-slate-700';
+const linkCls = 'inline-flex min-h-[3rem] items-center font-semibold text-shutter underline underline-offset-4';
+const summaryCls =
+  'flex min-h-[3rem] cursor-pointer items-center justify-between gap-2 rounded-ui px-2 text-base font-semibold text-shutter hover:bg-shutter-tint';
+
+/** Phần mở rộng (<details>): chạy bằng bàn phím, mũi tên xoay khi mở. */
+function Disclosure({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <details className="group">
+      <summary className={summaryCls}>
+        {label}
+        <ChevronDown className="h-5 w-5 shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
+      </summary>
+      {children}
+    </details>
+  );
+}
 
 function reminderText(s: DispatchShift) {
   const maps =
@@ -41,100 +56,113 @@ function UpcomingCard({ s, now }: { s: DispatchShift; now: number }) {
   const missing = s.headcount - primaries.length;
   const notEnded = new Date(s.ends_at).getTime() > now;
   return (
-    <Card className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone={SHIFT_STATE_TONE[state]}>{SHIFT_STATE_LABEL[state]}</Badge>
-        <Badge tone="blue">{JOB_LABEL[s.job_type]}</Badge>
-        {s.urgent ? <Badge tone="red">GẤP</Badge> : null}
-        {missing > 0 ? <Badge tone="red">THIẾU {missing} người chính</Badge> : null}
-      </div>
-      <div>
-        <p className="text-xl font-bold text-slate-900">{fmtRange(s.starts_at, s.ends_at)}</p>
-        <p className="text-lg font-semibold text-slate-900">{s.facility_name}</p>
-        <p className="text-base text-slate-700">{s.address}</p>
-        <p className="text-base text-slate-700">
-          Chủ quán: {s.owner_name} · <Tel phone={s.owner_phone} />
-        </p>
-      </div>
+    <Card
+      className="space-y-4"
+      tab={
+        <>
+          <StateBadge state={state} />
+          <Badge tone="blue">{JOB_LABEL[s.job_type]}</Badge>
+          {s.urgent ? <Badge tone="red">GẤP</Badge> : null}
+          {missing > 0 ? <Badge tone="red">THIẾU {missing} người chính</Badge> : null}
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div>
+          <p className="text-base text-ink-soft">{fmtDate(s.starts_at)}</p>
+          <p className="tabular font-num text-3xl font-bold leading-tight text-ink">
+            {fmtTime(s.starts_at)}–{fmtTime(s.ends_at)}
+          </p>
+          <p className="mt-2 text-lg font-semibold text-ink">{s.facility_name}</p>
+          <p className="text-base text-ink">{s.address}</p>
+          <p className="text-base text-ink">
+            Chủ quán: {s.owner_name} · <Tel phone={s.owner_phone} />
+          </p>
+        </div>
 
-      <div>
-        <p className="text-base font-bold text-slate-900">
-          Người chính ({primaries.length}/{s.headcount})
-        </p>
-        {primaries.length === 0 ? <p className="text-base text-slate-600">Chưa có ai nhận.</p> : null}
-        <ul className="mt-1 space-y-2">
-          {primaries.map((c) => (
-            <li key={c.worker_id} className="rounded-xl bg-slate-50 p-3">
-              <p className="flex flex-wrap items-center gap-2 text-base">
-                <span className="font-semibold">{c.name}</span>
-                <Tel phone={c.phone} />
-                {c.minor ? <Badge tone="amber">dưới 18</Badge> : null}
-              </p>
-              {notEnded ? (
-                <details>
-                  <summary className={summaryCls}>Người chính báo bận</summary>
-                  <ActionForm action={primaryBusy} className="space-y-3 pt-1">
-                    <input type="hidden" name="shift_id" value={s.id} />
-                    <input type="hidden" name="worker_id" value={c.worker_id} />
-                    <Field label="Ghi chú">
-                      <input name="note" className={inputCls} placeholder="Lý do, ai báo, lúc nào…" maxLength={300} />
-                    </Field>
-                    <SubmitButton variant="danger" confirm="Chuyển người dự phòng lên và ghi sự cố?">
-                      {c.name} báo bận
-                    </SubmitButton>
-                  </ActionForm>
-                </details>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div>
-        <p className="text-base font-bold text-slate-900">Người dự phòng</p>
-        {backups.length === 0 ? (
-          <p className="mt-1"><Badge tone="amber">Chưa có dự phòng</Badge></p>
-        ) : (
-          <ul className="mt-1 space-y-1">
-            {backups.map((c) => (
-              <li key={c.worker_id} className="flex flex-wrap items-center gap-2 text-base">
-                <span className="font-semibold">{c.name}</span>
-                <Tel phone={c.phone} />
-                {c.minor ? <Badge tone="amber">dưới 18</Badge> : null}
+        <div>
+          <p className="text-base font-bold text-ink">
+            Người chính ({primaries.length}/{s.headcount})
+          </p>
+          {primaries.length === 0 ? <p className="text-base text-ink-soft">Chưa có ai nhận.</p> : null}
+          <ul className="mt-2 divide-y divide-rule border-y border-rule">
+            {primaries.map((c) => (
+              <li key={c.worker_id} className="py-2">
+                <p className="flex flex-wrap items-center gap-2 text-base">
+                  <span className="font-semibold">{c.name}</span>
+                  <Tel phone={c.phone} />
+                  {c.minor ? <Badge tone="amber">dưới 18</Badge> : null}
+                </p>
+                {notEnded ? (
+                  <Disclosure label="Người chính báo bận">
+                    <ActionForm action={primaryBusy} className="space-y-4 px-2 pb-2 pt-2">
+                      <input type="hidden" name="shift_id" value={s.id} />
+                      <input type="hidden" name="worker_id" value={c.worker_id} />
+                      <Field label="Ghi chú">
+                        <input name="note" className={inputCls} placeholder="Lý do, ai báo, lúc nào…" maxLength={300} />
+                      </Field>
+                      <SubmitButton variant="danger" confirm="Chuyển người dự phòng lên và ghi sự cố?">
+                        {c.name} báo bận
+                      </SubmitButton>
+                    </ActionForm>
+                  </Disclosure>
+                ) : null}
               </li>
             ))}
           </ul>
-        )}
-      </div>
+        </div>
 
-      <CopyButton text={reminderText(s)}>Sao chép tin nhắn nhắc ca</CopyButton>
-      <p>
-        <Link href={`/quan/ca/${s.id}`} className={linkCls}>Xem chi tiết ca</Link>
-      </p>
+        <div>
+          <p className="text-base font-bold text-ink">Người dự phòng</p>
+          {backups.length === 0 ? (
+            <p className="mt-2"><Badge tone="amber">Chưa có dự phòng</Badge></p>
+          ) : (
+            <ul className="mt-2 space-y-2">
+              {backups.map((c) => (
+                <li key={c.worker_id} className="flex flex-wrap items-center gap-2 text-base">
+                  <span className="font-semibold">{c.name}</span>
+                  <Tel phone={c.phone} />
+                  {c.minor ? <Badge tone="amber">dưới 18</Badge> : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <CopyButton text={reminderText(s)}>Sao chép tin nhắn nhắc ca</CopyButton>
+          <Link href={`/quan/ca/${s.id}`} className={linkCls}>Xem chi tiết ca</Link>
+        </div>
+      </div>
     </Card>
   );
 }
 
 function PendingCard({ s }: { s: PendingConfirmation }) {
   return (
-    <Card className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone="blue">{JOB_LABEL[s.job_type]}</Badge>
-        {s.expired ? <Badge tone="red">Quá hạn 72 giờ</Badge> : <Badge tone="amber">Chờ xác nhận</Badge>}
-        {s.primary_count === 0 ? <Badge tone="gray">Không có người nhận</Badge> : null}
+    <Card
+      tab={
+        <>
+          <Badge tone="blue">{JOB_LABEL[s.job_type]}</Badge>
+          {s.expired ? <Badge tone="red">Quá hạn 72 giờ</Badge> : <Badge tone="amber">Chờ xác nhận</Badge>}
+          {s.primary_count === 0 ? <Badge tone="gray">Không có người nhận</Badge> : null}
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div>
+          <p className="text-lg font-semibold text-ink">{s.facility_name}</p>
+          <p className="text-base text-ink">{fmtRange(s.starts_at, s.ends_at)}</p>
+          <p className="text-base text-ink">
+            Chủ quán: {s.owner_name} · <Tel phone={s.owner_phone} />
+          </p>
+          <p className="text-base text-ink">Hạn xác nhận: {fmtDateTime(s.confirm_expires_at)}</p>
+        </div>
+        <div className="space-y-2">
+          {s.expired ? null : <CopyButton text={ownerText(s)}>Sao chép tin nhắn cho chủ quán</CopyButton>}
+          <Link href={`/quan/ca/${s.id}`} className={linkCls}>Xem chi tiết ca</Link>
+        </div>
       </div>
-      <div>
-        <p className="text-lg font-semibold text-slate-900">{s.facility_name}</p>
-        <p className="text-base text-slate-700">{fmtRange(s.starts_at, s.ends_at)}</p>
-        <p className="text-base text-slate-700">
-          Chủ quán: {s.owner_name} · <Tel phone={s.owner_phone} />
-        </p>
-        <p className="text-base text-slate-700">Hạn xác nhận: {fmtDateTime(s.confirm_expires_at)}</p>
-      </div>
-      {s.expired ? null : <CopyButton text={ownerText(s)}>Sao chép tin nhắn cho chủ quán</CopyButton>}
-      <p>
-        <Link href={`/quan/ca/${s.id}`} className={linkCls}>Xem chi tiết ca</Link>
-      </p>
     </Card>
   );
 }
@@ -174,24 +202,27 @@ export default async function DispatchPage({ searchParams }: { searchParams: Pro
         </Flash>
       ) : null}
 
-      <section className="space-y-3">
-        <h2 className="text-xl font-bold text-slate-900">Ca trong 24 giờ tới ({upcoming.length})</h2>
-        {short > 0 ? <Alert tone="red">Có {short} ca đang thiếu người chính.</Alert> : null}
-        {upcoming.length === 0 ? (
-          <Empty>Không có ca nào trong 24 giờ tới</Empty>
-        ) : (
-          upcoming.map((s) => <UpcomingCard key={s.id} s={s} now={now} />)
-        )}
-      </section>
+      {/* Hai cột từ 1024px: ca sắp diễn ra (việc gấp) bên trái, ca chờ xác nhận bên phải. */}
+      <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-ink">Ca trong 24 giờ tới ({upcoming.length})</h2>
+          {short > 0 ? <Alert tone="red">Có {short} ca đang thiếu người chính.</Alert> : null}
+          {upcoming.length === 0 ? (
+            <Empty>Không có ca nào trong 24 giờ tới</Empty>
+          ) : (
+            upcoming.map((s) => <UpcomingCard key={s.id} s={s} now={now} />)
+          )}
+        </section>
 
-      <section className="space-y-3">
-        <h2 className="text-xl font-bold text-slate-900">Ca chờ chủ quán xác nhận ({pending.length})</h2>
-        {pending.length === 0 ? (
-          <Empty>Không có ca nào đang chờ xác nhận</Empty>
-        ) : (
-          pending.map((s) => <PendingCard key={s.id} s={s} />)
-        )}
-      </section>
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-ink">Ca chờ chủ quán xác nhận ({pending.length})</h2>
+          {pending.length === 0 ? (
+            <Empty>Không có ca nào đang chờ xác nhận</Empty>
+          ) : (
+            pending.map((s) => <PendingCard key={s.id} s={s} />)
+          )}
+        </section>
+      </div>
     </div>
   );
 }

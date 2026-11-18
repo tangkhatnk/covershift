@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { CirclePlus } from 'lucide-react';
 import { Alert, Empty, PageTitle, ShiftCard, btn } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
@@ -12,23 +13,29 @@ type Facility = { id: string; name: string; address: string; verified: boolean; 
 function Group({ title, shifts }: { title: string; shifts: Shift[] }) {
   if (!shifts.length) return null;
   return (
-    <section className="space-y-3">
-      <h2 className="text-xl font-bold text-slate-900">
-        {title} <span className="font-normal text-slate-500">({shifts.length})</span>
+    <section className="space-y-4">
+      <h2 className="text-xl font-bold text-ink">
+        {title} <span className="font-normal text-ink-soft">({shifts.length})</span>
       </h2>
-      {shifts.map((s) => (
-        <ShiftCard
-          key={s.id}
-          shift={s}
-          showState
-          href={`/quan/ca/${s.id}`}
-          extra={
-            <p className="text-base text-slate-700">
-              Người chính: <b>{s.primary_count}/{s.headcount}</b> · Dự phòng: <b>{s.backup_count > 0 ? 'có' : 'chưa'}</b>
-            </p>
-          }
-        />
-      ))}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {shifts.map((s) => {
+          const st = shiftState(s);
+          return (
+            <ShiftCard
+              key={s.id}
+              shift={s}
+              showState
+              href={`/quan/ca/${s.id}`}
+              // Ca còn chỗ / đã đủ người đã có Dãy cửa chớp ghi đúng các số này; các trạng thái khác thì ghi bằng chữ.
+              extra={st === 'open' || st === 'filled' ? undefined : (
+                <p className="text-base text-ink">
+                  Người chính: <b>{s.primary_count}/{s.headcount}</b> · Dự phòng: <b>{s.backup_count > 0 ? 'có' : 'chưa'}</b>
+                </p>
+              )}
+            />
+          );
+        })}
+      </div>
     </section>
   );
 }
@@ -58,7 +65,7 @@ export default async function EmployerHomePage() {
   const canPost = !!facility && facility.verified && facility.status === 'active';
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageTitle sub={facility ? `${facility.name} · ${facility.address}` : undefined}>Ca của quán</PageTitle>
 
       {facError ? <Alert tone="red">Không tải được thông tin cơ sở. Vui lòng thử lại sau ít phút.</Alert> : null}
@@ -76,16 +83,19 @@ export default async function EmployerHomePage() {
       ) : null}
 
       {canPost ? (
-        <Link href="/quan/dang-ca" className={`${btn('primary')} !min-h-[3.75rem] !text-xl`}>
-          + Đăng ca mới
-        </Link>
+        <div>
+          <Link href="/quan/dang-ca" className={`${btn('primary')} !min-h-[3.75rem] !text-xl sm:w-auto`}>
+            <CirclePlus className="h-6 w-6" aria-hidden="true" />
+            Đăng ca mới
+          </Link>
+        </div>
       ) : null}
 
       {shiftError ? <Alert tone="red">{friendlyError(shiftError)}</Alert> : null}
 
       {awaiting.length ? (
-        <div className="space-y-3 rounded-2xl border-2 border-amber-300 bg-amber-50 p-3">
-          <p className="text-base text-amber-900">Ca đã xong. Anh/chị bấm vào từng ca để xác nhận ai đã làm.</p>
+        <div className="space-y-4">
+          <Alert tone="amber">Ca đã xong. Anh/chị bấm vào từng ca để xác nhận ai đã làm.</Alert>
           <Group title="Cần anh/chị xác nhận" shifts={awaiting} />
         </div>
       ) : null}
