@@ -1,9 +1,8 @@
 import Link from 'next/link';
-import { ChevronDown } from 'lucide-react';
 import { primaryBusy } from '@/app/actions';
 import { ActionForm, CopyButton, Flash, SubmitButton } from '@/components/client';
 import { LiveRefresh, ShiftMap, type MapPoint } from '@/components/map';
-import { Alert, Badge, Card, Empty, Field, PageTitle, StateBadge, Tel, inputCls } from '@/components/ui';
+import { Alert, Badge, Card, Disclosure, Empty, Field, PageTitle, StateBadge, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { JOB_LABEL, SITE_URL } from '@/lib/constants';
 import { friendlyError } from '@/lib/errors';
@@ -13,21 +12,6 @@ import type { DispatchBoard, DispatchShift, PendingConfirmation } from '@/lib/ty
 export const metadata = { title: 'Điều phối' };
 
 const linkCls = 'inline-flex min-h-[3rem] items-center font-semibold text-shutter underline underline-offset-4';
-const summaryCls =
-  'flex min-h-[3rem] cursor-pointer items-center justify-between gap-2 rounded-ui px-2 text-base font-semibold text-shutter hover:bg-shutter-tint';
-
-/** Phần mở rộng (<details>): chạy bằng bàn phím, mũi tên xoay khi mở. */
-function Disclosure({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <details className="group">
-      <summary className={summaryCls}>
-        {label}
-        <ChevronDown className="h-5 w-5 shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
-      </summary>
-      {children}
-    </details>
-  );
-}
 
 function reminderText(s: DispatchShift) {
   const maps =
@@ -91,11 +75,11 @@ function UpcomingCard({ s, now }: { s: DispatchShift; now: number }) {
               <li key={c.worker_id} className="py-2">
                 <p className="flex flex-wrap items-center gap-2 text-base">
                   <span className="font-semibold">{c.name}</span>
-                  <Tel phone={c.phone} />
+                  <Tel phone={c.phone} block />
                   {c.minor ? <Badge tone="amber">dưới 18</Badge> : null}
                 </p>
                 {notEnded ? (
-                  <Disclosure label="Người chính báo bận">
+                  <Disclosure summary="Người chính báo bận">
                     <ActionForm action={primaryBusy} className="space-y-4 px-2 pb-2 pt-2">
                       <input type="hidden" name="shift_id" value={s.id} />
                       <input type="hidden" name="worker_id" value={c.worker_id} />
@@ -122,7 +106,7 @@ function UpcomingCard({ s, now }: { s: DispatchShift; now: number }) {
               {backups.map((c) => (
                 <li key={c.worker_id} className="flex flex-wrap items-center gap-2 text-base">
                   <span className="font-semibold">{c.name}</span>
-                  <Tel phone={c.phone} />
+                  <Tel phone={c.phone} block />
                   {c.minor ? <Badge tone="amber">dưới 18</Badge> : null}
                 </li>
               ))}

@@ -1,8 +1,8 @@
-import { ChevronDown, MapPin } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { setAccountStatus, setFacilityLocation, setFacilityStatus, verifyFacility } from '@/app/actions';
 import { ActionForm, SubmitButton } from '@/components/client';
 import { LocationPicker, ShiftMap, type MapPoint } from '@/components/map';
-import { Alert, Badge, Card, Check, Empty, Field, PageTitle, Tel, inputCls } from '@/components/ui';
+import { Alert, Badge, Card, Check, Disclosure, Empty, Field, PageTitle, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
 import { AREA_LABEL, FACILITY_STATUS_LABEL, FACILITY_TYPE_LABEL } from '@/lib/constants';
@@ -11,24 +11,7 @@ import type { AdminFacility } from '@/lib/types';
 
 export const metadata = { title: 'Duyệt cơ sở' };
 
-const summaryCls =
-  'flex min-h-[3rem] cursor-pointer items-center justify-between gap-2 rounded-ui px-2 text-base font-semibold text-shutter hover:bg-shutter-tint';
 const yesNo = (ok: boolean) => (ok ? 'Có' : 'Không');
-const th = 'px-4 py-2 text-left text-base font-semibold text-ink';
-const td = 'px-4 py-4 align-top text-base text-ink';
-
-/** Phần mở rộng (<details>): chạy bằng bàn phím, mũi tên xoay khi mở. */
-function Disclosure({ label, open, children }: { label: string; open?: boolean; children: React.ReactNode }) {
-  return (
-    <details className="group" open={open}>
-      <summary className={summaryCls}>
-        {label}
-        <ChevronDown className="h-5 w-5 shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
-      </summary>
-      {children}
-    </details>
-  );
-}
 
 function StatusBadges({ f }: { f: AdminFacility }) {
   return (
@@ -90,7 +73,7 @@ function Actions({ f, today, verifier }: { f: AdminFacility; today: string; veri
   const ownerLocked = f.owner_status === 'locked';
   return (
     <div className="grid gap-4 lg:grid-cols-2 lg:items-start lg:gap-8">
-      <Disclosure label="Phiếu xác minh thực tế" open={f.status === 'pending'}>
+      <Disclosure summary="Phiếu xác minh thực tế" defaultOpen={f.status === 'pending'}>
         <ActionForm action={verifyFacility} className="space-y-4 px-2 pb-2 pt-2">
           <input type="hidden" name="facility_id" value={f.id} />
           <Check name="address_ok">Đã đến đúng địa chỉ</Check>
@@ -111,7 +94,7 @@ function Actions({ f, today, verifier }: { f: AdminFacility; today: string; veri
       </Disclosure>
 
       {f.status !== 'removed' ? (
-        <Disclosure label="Vị trí trên bản đồ">
+        <Disclosure summary="Vị trí trên bản đồ">
           <ActionForm action={setFacilityLocation} className="space-y-4 px-2 pb-2 pt-2">
             <input type="hidden" name="facility_id" value={f.id} />
             <LocationPicker lat={f.lat} lng={f.lng} />
@@ -120,7 +103,7 @@ function Actions({ f, today, verifier }: { f: AdminFacility; today: string; veri
         </Disclosure>
       ) : null}
 
-      <Disclosure label="Gỡ cơ sở / khóa chủ quán">
+      <Disclosure summary="Gỡ cơ sở / khóa chủ quán">
         <div className="space-y-6 px-2 pb-2 pt-2">
           {f.status !== 'removed' ? (
             <ActionForm action={setFacilityStatus} className="space-y-4">
@@ -191,46 +174,20 @@ export default async function FacilitiesPage() {
             <Alert tone="amber">Chưa cơ sở nào có ghim vị trí.</Alert>
           )}
 
-          {/* Điện thoại: mỗi cơ sở một thẻ. */}
-          <div className="space-y-4 lg:hidden">
+          {/* Một thẻ cho mỗi cơ sở ở mọi bề rộng; từ 1024px phần thông tin chia ba cột, thao tác trải hết bề ngang. */}
+          <div className="space-y-4">
             {list.map((f) => (
               <Card key={f.id} tab={<StatusBadges f={f} />}>
                 <div className="space-y-4">
-                  <div><Identity f={f} /></div>
-                  <Owner f={f} />
-                  <div className="border-t border-rule pt-4"><Verification f={f} /></div>
+                  <div className="grid gap-4 lg:grid-cols-3 lg:gap-8">
+                    <div><Identity f={f} /></div>
+                    <Owner f={f} />
+                    <Verification f={f} />
+                  </div>
                   <div className="border-t border-rule pt-2"><Actions f={f} today={today} verifier={verifier} /></div>
                 </div>
               </Card>
             ))}
-          </div>
-
-          {/* Từ 1024px: bảng. Mỗi cơ sở hai hàng (thông tin, rồi các thao tác trải hết bề ngang). */}
-          <div className="hidden overflow-hidden rounded-ui border border-rule bg-white lg:block">
-            <table className="w-full border-collapse">
-              <caption className="sr-only">Danh sách cơ sở và thao tác xác minh</caption>
-              <thead className="bg-wall-tint">
-                <tr>
-                  <th scope="col" className={th}>Cơ sở</th>
-                  <th scope="col" className={th}>Trạng thái</th>
-                  <th scope="col" className={th}>Chủ quán</th>
-                  <th scope="col" className={th}>Xác minh</th>
-                </tr>
-              </thead>
-              {list.map((f) => (
-                <tbody key={f.id} className="border-t border-rule">
-                  <tr>
-                    <th scope="row" className={`${td} text-left font-normal`}><Identity f={f} /></th>
-                    <td className={td}><StatusBadges f={f} /></td>
-                    <td className={td}><Owner f={f} /></td>
-                    <td className={td}><Verification f={f} /></td>
-                  </tr>
-                  <tr>
-                    <td colSpan={4} className="px-4 pb-4"><Actions f={f} today={today} verifier={verifier} /></td>
-                  </tr>
-                </tbody>
-              ))}
-            </table>
           </div>
         </>
       )}

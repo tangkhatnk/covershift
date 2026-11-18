@@ -10,9 +10,6 @@ import type { AdminReport } from '@/lib/types';
 
 export const metadata = { title: 'Hộp báo cáo' };
 
-const th = 'px-4 py-2 text-left text-base font-semibold text-ink';
-const td = 'px-4 py-4 align-top text-base text-ink';
-
 function Kind({ r }: { r: AdminReport }) {
   const open = r.status === 'open';
   return (
@@ -96,50 +93,19 @@ export default async function ReportsPage() {
         <Empty>Chưa có báo cáo nào</Empty>
       ) : (
         <>
-          {/* Điện thoại: mỗi báo cáo một thẻ. */}
-          <div className="space-y-4 lg:hidden">
+          {/* Một thẻ cho mỗi báo cáo ở mọi bề rộng; từ 1024px nội dung và người liên quan chia hai cột. */}
+          <div className="space-y-4">
             {list.map((r) => (
               <Card key={r.id} tab={<><Kind r={r} /><span className="text-base text-ink-soft">{fmtDateTime(r.created_at)}</span></>}>
                 <div className="space-y-4">
-                  <Body r={r} />
-                  <Related r={r} />
+                  <div className="grid gap-4 lg:grid-cols-2 lg:gap-8">
+                    <Body r={r} />
+                    <Related r={r} />
+                  </div>
                   {r.status === 'open' ? <Resolve r={r} /> : null}
                 </div>
               </Card>
             ))}
-          </div>
-
-          {/* Từ 1024px: bảng. Báo cáo đang mở có thêm một hàng để ghi cách xử lý. */}
-          <div className="hidden overflow-hidden rounded-ui border border-rule bg-white lg:block">
-            <table className="w-full border-collapse">
-              <caption className="sr-only">Danh sách báo cáo</caption>
-              <thead className="bg-wall-tint">
-                <tr>
-                  <th scope="col" className={th}>Loại và thời gian</th>
-                  <th scope="col" className={th}>Nội dung</th>
-                  <th scope="col" className={th}>Liên quan</th>
-                </tr>
-              </thead>
-              {list.map((r) => (
-                <tbody key={r.id} className="border-t border-rule">
-                  <tr>
-                    <th scope="row" className={`${td} text-left font-normal`}>
-                      <div className="space-y-2">
-                        <Kind r={r} />
-                        <p className="text-base text-ink-soft">{fmtDateTime(r.created_at)}</p>
-                      </div>
-                    </th>
-                    <td className={td}><Body r={r} /></td>
-                    <td className={td}><Related r={r} /></td>
-                  </tr>
-                  {r.status === 'open' ? (
-                    <tr>
-                      <td colSpan={3} className="px-4 pb-4"><Resolve r={r} /></td>
-                    </tr>
-                  ) : null}
-                </tbody>
-              ))}
-            </table>
           </div>
         </>
       )}
