@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode, Ref } from 'react';
 import {
-  Ban, CircleAlert, CircleCheck, CirclePlay, DoorClosed, DoorOpen, Hourglass, Info, OctagonAlert, Star, TriangleAlert,
+  Ban, CircleAlert, CircleCheck, CirclePlay, DoorClosed, DoorOpen, Hourglass, Info, OctagonAlert, Phone, Star, TriangleAlert,
   type LucideIcon,
 } from 'lucide-react';
 import { AREA_LABEL, JOB_LABEL } from '@/lib/constants';
@@ -146,7 +146,12 @@ export function Empty({ children }: { children: ReactNode }) {
 /** Link gọi điện, bấm là gọi. */
 export function Tel({ phone }: { phone: string | null | undefined }) {
   if (!phone) return <span className="text-ink-soft">(chưa có số)</span>;
-  return <a href={`tel:${phone}`} className="font-semibold text-shutter underline underline-offset-4">{phone}</a>;
+  return (
+    <a href={`tel:${phone}`} className="inline-flex min-h-[3rem] items-center gap-2 font-semibold text-shutter underline underline-offset-4">
+      <Phone className="h-5 w-5 shrink-0" aria-hidden="true" />
+      {phone}
+    </a>
+  );
 }
 
 export function Stars({ value }: { value: number | null | undefined }) {
