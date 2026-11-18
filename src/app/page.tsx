@@ -21,13 +21,12 @@ function sampleShift(): Shift {
   };
 }
 
-/** Ghim minh họa: tọa độ năm quán demo trong supabase/seed.sql. Không phải dữ liệu thật. */
+/** Ghim minh họa: tọa độ bốn quán demo đã xác minh trong supabase/seed.sql. Không phải dữ liệu thật. */
 const DEMO_PINS: MapPoint[] = [
   { id: 'd1', lat: 10.3441, lng: 107.0749, text: 'Demo 1', label: 'Quán Demo 1, quán cà phê', tone: 'open' },
   { id: 'd2', lat: 10.3318, lng: 107.089, text: 'Demo 2', label: 'Quán Demo 2, nhà hàng', tone: 'open' },
   { id: 'd3', lat: 10.338, lng: 107.0853, text: 'Demo 3', label: 'Quán Demo 3, homestay', tone: 'open' },
   { id: 'd4', lat: 10.3524, lng: 107.0881, text: 'Demo 4', label: 'Quán Demo 4, khách sạn nhỏ', tone: 'open' },
-  { id: 'd5', lat: 10.3964, lng: 107.1081, text: 'Demo 5', label: 'Quán Demo 5, quán cà phê đang chờ xác minh', tone: 'pending' },
 ];
 
 function Point({ title, children }: { title: string; children: ReactNode }) {
@@ -81,7 +80,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <section className="mx-auto max-w-6xl space-y-4 px-4 py-8 lg:px-8 lg:py-16">
         <h2 className="text-3xl font-bold text-ink">Ca nằm ở đâu trên bản đồ</h2>
         <p className="text-base text-ink">Người làm xem quán nào gần nhà trước khi nhận ca. Chủ quán tự ghim vị trí quán.</p>
-        <ShiftMap points={DEMO_PINS} className="h-72 lg:h-96" caption="Bản đồ minh họa, dữ liệu mẫu" />
+        <ShiftMap points={DEMO_PINS} className="h-96 lg:h-[28rem]" caption="Bản đồ minh họa, dữ liệu mẫu" />
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-8 lg:px-8 lg:py-16">
