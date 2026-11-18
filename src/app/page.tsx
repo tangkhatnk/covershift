@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { ShieldCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Alert, ShiftCard, SlotStrip, btn } from '@/components/ui';
 import { getContext, homeFor } from '@/lib/auth';
@@ -52,7 +53,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <p className="text-lg text-ink">
               {APP_NAME} kết nối quán cà phê, nhà hàng, homestay, khách sạn nhỏ đã được xác minh với học sinh (từ 15 tuổi) và sinh viên.
             </p>
-            <p className="inline-flex rounded-ui bg-shutter-deep px-4 py-2 text-lg font-bold text-white">{NO_FEE}</p>
+            <p className="flex items-center gap-2 text-lg font-bold text-ink">
+              <ShieldCheck className="h-6 w-6 shrink-0" aria-hidden="true" />
+              {NO_FEE}
+            </p>
             <div className="sm:max-w-xs">
               <Link href="/dang-nhap" className={btn('primary')}>Bắt đầu</Link>
             </div>

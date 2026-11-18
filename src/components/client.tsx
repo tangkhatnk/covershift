@@ -221,7 +221,18 @@ const ADMIN_MORE: NavItem[] = [
 ];
 
 const BARE = /^\/(xac-nhan|dong-y|h)(\/|$)/; // trang token / hồ sơ công khai: không có nav chính
-const WIDE = new Set(['/dang-nhap', '/dieu-khoan', '/chinh-sach-du-lieu']); // trang tự dựng bố cục rộng
+const WIDE_EXACT = new Set(['/dang-nhap', '/dieu-khoan', '/chinh-sach-du-lieu', '/ca', '/ca-cua-toi', '/quan']);
+
+/**
+ * Bề rộng nội dung theo đường dẫn: trang rộng (nhiều cột, bảng, danh sách + bản đồ) dùng max-w-6xl, còn lại max-w-3xl;
+ * '/' tự dựng bố cục nên không bị khung bao. Trang mới cần rộng thì thêm vào đây, không tự đặt max-w-* bao ngoài.
+ */
+function contentWidth(pathname: string) {
+  const p = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  if (p === '/') return '';
+  const wide = WIDE_EXACT.has(p) || p === '/admin' || p.startsWith('/admin/');
+  return `mx-auto w-full px-4 py-6 lg:px-8 lg:py-8 ${wide ? 'max-w-6xl' : 'max-w-3xl'}`;
+}
 
 /** Mục nav đang chọn = href dài nhất khớp theo từng đoạn đường dẫn. */
 function activeHref(pathname: string, items: NavItem[]) {
@@ -302,7 +313,7 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
   const moreActive = more ? more.some((m) => m.href === current) : false;
   const railHasAccount = allItems.some((i) => i.href === '/tai-khoan');
 
-  const mainWidth = pathname === '/' ? '' : `mx-auto w-full px-4 py-6 lg:px-8 lg:py-8 ${WIDE.has(pathname) ? 'max-w-6xl' : 'max-w-3xl'}`;
+  const mainWidth = contentWidth(pathname);
 
   return (
     <>
