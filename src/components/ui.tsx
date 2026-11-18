@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode, Ref } from 'react';
 import {
-  Ban, CircleAlert, CircleCheck, CirclePlay, DoorClosed, DoorOpen, Hourglass, Info, OctagonAlert, Phone, Star, TriangleAlert,
+  Ban, ChevronDown, CircleAlert, CircleCheck, CirclePlay, DoorClosed, DoorOpen, Hourglass, Info, OctagonAlert, Phone, Star, TriangleAlert,
   type LucideIcon,
 } from 'lucide-react';
 import { AREA_LABEL, JOB_LABEL } from '@/lib/constants';
@@ -143,14 +143,32 @@ export function Empty({ children }: { children: ReactNode }) {
   return <p className="rounded-ui border-2 border-dashed border-rule-strong p-6 text-center text-base text-ink-soft">{children}</p>;
 }
 
-/** Link gọi điện, bấm là gọi. */
-export function Tel({ phone }: { phone: string | null | undefined }) {
+/**
+ * Link gọi điện, bấm là gọi. Mặc định `inline`: nằm giữa dòng chữ, không đổi chiều cao dòng
+ * (py-2 chỉ nới vùng chạm, không nới dòng). `block`: đứng riêng một hàng, cao tối thiểu 3rem.
+ */
+export function Tel({ phone, block = false }: { phone: string | null | undefined; block?: boolean }) {
   if (!phone) return <span className="text-ink-soft">(chưa có số)</span>;
-  return (
+  return block ? (
     <a href={`tel:${phone}`} className="inline-flex min-h-[3rem] items-center gap-2 font-semibold text-shutter underline underline-offset-4">
       <Phone className="h-5 w-5 shrink-0" aria-hidden="true" />
       {phone}
     </a>
+  ) : (
+    <a href={`tel:${phone}`} className="py-2 font-semibold text-shutter underline underline-offset-4">{phone}</a>
+  );
+}
+
+/** Phần mở rộng (<details>): chạy bằng bàn phím, mũi tên xoay khi mở. Dòng tóm tắt cao tối thiểu 3rem. */
+export function Disclosure({ summary, defaultOpen, children }: { summary: ReactNode; defaultOpen?: boolean; children: ReactNode }) {
+  return (
+    <details className="group" open={defaultOpen}>
+      <summary className="flex min-h-[3rem] cursor-pointer items-center justify-between gap-2 rounded-ui px-2 text-base font-semibold text-shutter hover:bg-shutter-tint">
+        {summary}
+        <ChevronDown className="h-5 w-5 shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
+      </summary>
+      {children}
+    </details>
   );
 }
 

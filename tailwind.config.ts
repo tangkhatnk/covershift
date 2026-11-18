@@ -14,8 +14,6 @@ export default {
         roof: { DEFAULT: '#B0391F', tint: '#F8DDD5' }, // ngói (lỗi, nguy hiểm)
         sea: { DEFAULT: '#1C5F8A', tint: '#D6E6EF' }, // biển (thông tin)
         rule: { DEFAULT: '#CFCAB2', strong: '#7C8479' }, // viền hairline / viền ô nhập
-        // Tên cũ, giữ để các trang chưa làm lại vẫn có màu (sẽ bỏ khi các trang đó được làm lại).
-        brand: { 50: '#DDEBE3', 100: '#DDEBE3', 600: '#1F5C45', 700: '#153F30', 800: '#153F30' },
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
