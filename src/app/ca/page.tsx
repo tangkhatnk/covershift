@@ -8,7 +8,7 @@ import type { Shift } from '@/lib/types';
 
 export const metadata = { title: 'Tìm ca' };
 
-const linkCls = 'font-semibold underline underline-offset-4';
+const linkCls = 'font-semibold text-shutter underline underline-offset-4';
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? '';
 /** Ngày YYYY-MM-DD có thật (loại 2026-13-45, 2026-02-30). */
 const isYmd = (v: string) => {
@@ -79,26 +79,26 @@ export default async function FeedPage({ searchParams }: {
         )
       ) : null}
 
-      <form method="get" className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <Field label="Ngày">
-          <input type="date" name="ngay" defaultValue={ngay} min={vnDateInput()} className={inputCls} />
-        </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Khu vực">
-            <select name="khu" defaultValue={khu} className={inputCls}>
-              <option value="">Tất cả</option>
-              {Object.entries(AREA_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
-          </Field>
-          <Field label="Loại việc">
-            <select name="viec" defaultValue={viec} className={inputCls}>
-              <option value="">Tất cả</option>
-              {Object.entries(JOB_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
+      <form method="get" className="grid grid-cols-2 gap-4 rounded-ui border border-rule bg-white p-4 lg:grid-cols-[2fr_2fr_2fr_auto] lg:items-end">
+        <div className="col-span-2 lg:col-span-1">
+          <Field label="Ngày">
+            <input type="date" name="ngay" defaultValue={ngay} min={vnDateInput()} className={inputCls} />
           </Field>
         </div>
-        <div className="flex items-center gap-4">
-          <button type="submit" className={btn('primary')}>Lọc</button>
+        <Field label="Khu vực">
+          <select name="khu" defaultValue={khu} className={inputCls}>
+            <option value="">Tất cả</option>
+            {Object.entries(AREA_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </Field>
+        <Field label="Loại việc">
+          <select name="viec" defaultValue={viec} className={inputCls}>
+            <option value="">Tất cả</option>
+            {Object.entries(JOB_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </Field>
+        <div className="col-span-2 flex items-center gap-4 lg:col-span-1">
+          <button type="submit" className={`${btn('primary')} lg:px-8`}>Lọc</button>
           {filtering ? <Link href="/ca" className={`${btn('ghost', false)} whitespace-nowrap`}>Bỏ lọc</Link> : null}
         </div>
       </form>
@@ -110,7 +110,7 @@ export default async function FeedPage({ searchParams }: {
           {filtering ? 'Không có ca nào khớp bộ lọc. Thử bỏ lọc xem sao.' : 'Hiện chưa có ca nào đang tìm người. Bạn quay lại sau nhé.'}
         </Empty>
       ) : (
-        <ul className="space-y-3">
+        <ul className="grid gap-4 lg:grid-cols-2">
           {shifts.map((s) => (
             <li key={s.id}>
               <ShiftCard

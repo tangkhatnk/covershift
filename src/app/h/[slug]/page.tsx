@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { CircleCheck, Clock } from 'lucide-react';
 import { PrintButton } from '@/components/client';
 import { Alert, Badge, PageTitle, Stars } from '@/components/ui';
 import { APP_NAME, JOB_LABEL } from '@/lib/constants';
@@ -10,10 +11,12 @@ export const metadata: Metadata = { title: 'Hồ sơ ca làm', robots: { index: 
 
 function Stat({ label, value, extra }: { label: string; value: string; extra?: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-center print:bg-white">
-      <p className="text-3xl font-extrabold leading-tight text-slate-900">{value}</p>
-      {extra ? <p className="text-lg leading-none">{extra}</p> : null}
-      <p className="mt-1 text-sm font-semibold text-slate-600">{label}</p>
+    <div className="flex flex-col-reverse justify-end rounded-ui border border-rule bg-chalk p-4 text-center print:bg-white">
+      <dt className="mt-2 text-base font-semibold text-ink-soft">{label}</dt>
+      <dd>
+        <span className="tabular font-num block text-4xl font-bold leading-tight text-ink">{value}</span>
+        {extra ? <span className="block">{extra}</span> : null}
+      </dd>
     </div>
   );
 }
@@ -52,57 +55,61 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
         </div>
       ) : null}
 
-      <article className="rounded-2xl border-2 border-brand-600 bg-white p-5 shadow-sm print:border print:border-slate-400 print:p-0 print:shadow-none">
-        <header className="border-b-2 border-slate-200 pb-4 text-center">
-          <p className="text-sm font-bold uppercase tracking-widest text-brand-700">{APP_NAME} · Hồ sơ ca làm</p>
-          <h1 className="mt-1 break-words text-3xl font-extrabold leading-tight text-slate-900">{p.name}</h1>
+      <article className="overflow-hidden rounded-ui border border-rule bg-white print:border-ink print:bg-white">
+        <header className="bg-wall px-4 py-6 text-center print:border-b-2 print:border-ink print:bg-white">
+          <h1 className="break-words text-3xl font-bold leading-tight text-ink">{p.name}</h1>
+          <p className="mt-2 text-base text-shutter-deep print:text-ink">Hồ sơ ca làm · {APP_NAME}</p>
         </header>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 print:grid-cols-4">
-          <Stat label="Ca đã xác nhận" value={String(p.confirmed_shifts)} />
-          <Stat label="Tổng số giờ" value={String(p.total_hours)} />
-          <Stat label="Điểm trung bình" value={p.avg_rating != null ? `${p.avg_rating}/5` : '—'} extra={<Stars value={p.avg_rating} />} />
-          <Stat label="Đúng giờ" value={p.on_time_rate != null ? `${p.on_time_rate}%` : '—'} />
-        </div>
+        <div className="p-4 sm:p-6">
+          <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4 print:grid-cols-4">
+            <Stat label="Ca đã xác nhận" value={String(p.confirmed_shifts)} />
+            <Stat label="Tổng số giờ" value={String(p.total_hours)} />
+            <Stat label="Điểm trung bình" value={p.avg_rating != null ? `${p.avg_rating}/5` : '—'} extra={<Stars value={p.avg_rating} />} />
+            <Stat label="Đúng giờ" value={p.on_time_rate != null ? `${p.on_time_rate}%` : '—'} />
+          </dl>
 
-        <section className="mt-5">
-          <h2 className="text-lg font-bold text-slate-900">Việc đã làm</h2>
-          {jobTypes.length ? (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {jobTypes.map((j) => <Badge key={j} tone="blue">{JOB_LABEL[j] ?? j}</Badge>)}
-            </div>
-          ) : (
-            <p className="mt-1 text-base text-slate-600">Chưa có ca nào được xác nhận.</p>
-          )}
-        </section>
-
-        {reviews.length ? (
-          <section className="mt-5">
-            <h2 className="text-lg font-bold text-slate-900">Các ca đã làm và nhận xét</h2>
-            <ul className="divide-y divide-slate-200">
-              {reviews.map((r, i) => (
-                <li key={i} className="space-y-1 py-3 print:break-inside-avoid">
-                  <p className="break-words text-base font-bold text-slate-900">
-                    {fmtPlainDate(r.date)} · {r.facility_name}
-                  </p>
-                  <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-base text-slate-700">
-                    <span>{JOB_LABEL[r.job_type] ?? r.job_type}</span>
-                    <span className="text-lg leading-none"><Stars value={r.rating} /></span>
-                    <span className={r.on_time ? 'font-semibold text-emerald-700' : 'font-semibold text-amber-700'}>
-                      {r.on_time ? 'Đúng giờ' : 'Trễ'}
-                    </span>
-                  </p>
-                  {r.comment ? <p className="break-words text-base text-slate-800">“{r.comment}”</p> : null}
-                </li>
-              ))}
-            </ul>
+          <section className="mt-6 break-inside-avoid">
+            <h2 className="text-xl font-bold text-ink">Việc đã làm</h2>
+            {jobTypes.length ? (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {jobTypes.map((j) => <Badge key={j} tone="blue">{JOB_LABEL[j] ?? j}</Badge>)}
+              </div>
+            ) : (
+              <p className="mt-2 text-base text-ink-soft">Chưa có ca nào được xác nhận.</p>
+            )}
           </section>
-        ) : null}
 
-        <footer className="mt-5 border-t-2 border-slate-200 pt-3 text-sm text-slate-600">
-          <p>Các ca trên đã được nơi thuê xác nhận qua {APP_NAME}.</p>
-          <p>Ngày in: {fmtPlainDate(vnDateInput())}</p>
-        </footer>
+          {reviews.length ? (
+            <section className="mt-6">
+              <h2 className="break-after-avoid text-xl font-bold text-ink">Các ca đã làm và nhận xét</h2>
+              <ul className="mt-2 divide-y divide-rule">
+                {reviews.map((r, i) => (
+                  <li key={i} className="space-y-2 py-4 break-inside-avoid">
+                    <p className="break-words text-base font-bold text-ink">
+                      {fmtPlainDate(r.date)} · {r.facility_name}
+                    </p>
+                    <p className="flex flex-wrap items-center gap-x-4 gap-y-2 text-base text-ink">
+                      <span>{JOB_LABEL[r.job_type] ?? r.job_type}</span>
+                      <Stars value={r.rating} />
+                      {r.on_time ? (
+                        <Badge tone="green" icon={<CircleCheck className="h-4 w-4 shrink-0" aria-hidden="true" />}>Đúng giờ</Badge>
+                      ) : (
+                        <Badge tone="amber" icon={<Clock className="h-4 w-4 shrink-0" aria-hidden="true" />}>Trễ</Badge>
+                      )}
+                    </p>
+                    {r.comment ? <p className="break-words text-base text-ink">“{r.comment}”</p> : null}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          <footer className="mt-6 space-y-2 border-t border-rule pt-4 text-base text-ink-soft">
+            <p>Các ca trên đã được nơi thuê xác nhận qua {APP_NAME}.</p>
+            <p>Ngày in: {fmtPlainDate(vnDateInput())}</p>
+          </footer>
+        </div>
       </article>
 
       <PrintButton />
