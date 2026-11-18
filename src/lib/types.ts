@@ -24,6 +24,8 @@ export type Shift = {
   area: Area;
   address: string;
   maps_url: string | null;
+  lat: number | null;
+  lng: number | null;
   primary_count: number;
   backup_count: number;
   my_role: 'primary' | 'backup' | null;
@@ -138,6 +140,8 @@ export type AdminFacility = {
   address: string;
   area: Area;
   maps_url: string | null;
+  lat: number | null;
+  lng: number | null;
   verified: boolean;
   status: 'pending' | 'active' | 'removed';
   created_at: string;
