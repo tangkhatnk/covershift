@@ -173,17 +173,21 @@ function shortText(t: string) {
   return (w.length > 1 ? w[w.length - 1] : t).slice(0, 3);
 }
 const PIN_W = 63; // min-w-[3.5rem] ở cỡ chữ gốc 18px
+const PIN_W_NARROW = 45; // min-w-[2.5rem]
+const isNum = (t: string) => /^\d{1,2}$/.test(t);
 const PIN_H = 46; // cao pin + đuôi, phía trên điểm
 
 // Biển giờ chữ nhật. Vùng chạm mở rộng bằng ::after để đủ 48px mà biển vẫn gọn.
 function Pin({ p, selected, lit, crowded, onPick }: { p: MapPoint; selected: boolean; lit: boolean; crowded: boolean; onPick: () => void }) {
   const on = selected || lit;
-  const compact = crowded && !on;
+  // Chữ số ngắn ("1", "2") đã gọn, không rút thêm; pin hẹp nhưng vẫn cao 2rem+ (chữ 20px) và vùng chạm >= 48px nhờ ::after.
+  const compact = crowded && !on && !isNum(p.text);
+  const narrow = compact || isNum(p.text);
   const c = on ? PIN_ON : PIN[p.tone];
   return (
     <div className={`flex flex-col items-center ${on ? '-translate-y-1' : ''}`}>
       <button type="button" aria-label={p.label} aria-pressed={selected} onClick={onPick}
-        className={`relative z-10 ${compact ? 'min-w-[2.5rem]' : 'min-w-[3.5rem]'} rounded-ui px-2 py-1 font-num text-lg font-bold leading-6 tabular after:absolute after:-inset-x-1 after:-inset-y-2 after:content-[''] ${c.bg} ${c.fg} ${c.bd} ${
+        className={`relative z-10 ${narrow ? 'min-w-[2.5rem]' : 'min-w-[3.5rem]'} rounded-ui px-2 py-1 font-num text-lg font-bold leading-6 tabular after:absolute after:-inset-x-1 after:-inset-y-2 after:content-[''] ${c.bg} ${c.fg} ${c.bd} ${
           on ? 'border-[3px] shadow-lg' : 'border-2 shadow-md'
         }`}>
         {compact ? shortText(p.text) : p.text}
@@ -193,10 +197,12 @@ function Pin({ p, selected, lit, crowded, onPick }: { p: MapPoint; selected: boo
   );
 }
 
-export function ShiftMap({ points, selectedId, onSelect, highlightId, className = 'h-80', lazy = true, caption }: {
+export function ShiftMap({ points, selectedId, onSelect, highlightId, fitIds, className = 'h-80', lazy = true, caption }: {
   points: MapPoint[]; selectedId?: string | null; onSelect?: (id: string) => void;
   /** Thêm so với hợp đồng gốc: pin chỉ sáng lên (không chọn, không kéo bản đồ). */
   highlightId?: string | null;
+  /** Khung nhìn ban đầu chỉ ôm các điểm có id này (các điểm khác vẫn hiện, kéo bản đồ để xem). */
+  fitIds?: string[];
   className?: string; lazy?: boolean; caption?: string;
 }) {
   const base = useBaseMap(lazy);
@@ -255,7 +261,8 @@ export function ShiftMap({ points, selectedId, onSelect, highlightId, className 
       for (let i = 0; i < at.length; i++) for (let j = i + 1; j < at.length; j++) {
         const a = at[i], b = at[j];
         if (a.p.lat === b.p.lat && a.p.lng === b.p.lng) continue; // cùng quán: đã xếp dọc
-        const wa = Math.max(PIN_W, a.p.text.length * 11 + 20), wb = Math.max(PIN_W, b.p.text.length * 11 + 20);
+        const w = (t: string) => Math.max(isNum(t) ? PIN_W_NARROW : PIN_W, t.length * 11 + 20);
+        const wa = w(a.p.text), wb = w(b.p.text);
         if (Math.abs(a.x - b.x) < (wa + wb) / 2 && Math.abs(a.y - b.y) < PIN_H) { ids.add(a.p.id); ids.add(b.p.id); }
       }
       setCrowded([...ids].sort().join('|'));
@@ -278,9 +285,12 @@ export function ShiftMap({ points, selectedId, onSelect, highlightId, className 
     if (!ctx || !points.length || moved.current) return;
     const { map, lib } = ctx;
     const b = new lib.LngLatBounds();
-    points.forEach((p) => b.extend([p.lng, p.lat]));
-    map.fitBounds(b, { padding: FIT_PAD, maxZoom: 15, animate: !reduced() });
-  }, [ctx, sig]);
+    const ids = fitIds?.length ? new Set(fitIds) : null;
+    const target = ids && points.some((p) => ids.has(p.id)) ? points.filter((p) => ids.has(p.id)) : points;
+    target.forEach((p) => b.extend([p.lng, p.lat]));
+    // Có fitIds: cho zoom gần hơn (tới 16) để các quán sát nhau tách ra.
+    map.fitBounds(b, { padding: FIT_PAD, maxZoom: ids ? 16 : 15, animate: !reduced() });
+  }, [ctx, sig, fitIds?.join('|')]);
 
   // Chọn từ ngoài: pin sáng lên và, nếu ngoài khung nhìn, bản đồ dời tới.
   useEffect(() => {
