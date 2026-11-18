@@ -419,8 +419,8 @@ select pg_temp.t_do('12h. Chủ quán xóa ghim của mình (cả hai null)', 'e
   $$select set_facility_location('f0000000-0000-4000-a000-000000000001', null, null)$$,
   $$select lat is null and lng is null from facilities where id = 'f0000000-0000-4000-a000-000000000001'$$);
 select pg_temp.t_do('12i. Chủ quán đặt lại vị trí của mình, không có dòng audit (không phải admin)', 'e0000000-0000-4000-a000-000000000001',
-  $$select set_facility_location('f0000000-0000-4000-a000-000000000001', 10.3498, 107.0768)$$,
-  $$select lat = 10.3498 and lng = 107.0768 from facilities where id = 'f0000000-0000-4000-a000-000000000001'
+  $$select set_facility_location('f0000000-0000-4000-a000-000000000001', 10.3441, 107.0749)$$,
+  $$select lat = 10.3441 and lng = 107.0749 from facilities where id = 'f0000000-0000-4000-a000-000000000001'
        and not exists (select 1 from admin_audit_log where action = 'set_facility_location' and target_id = 'f0000000-0000-4000-a000-000000000001')$$);
 select pg_temp.t_do('12j. Admin đặt vị trí cơ sở bất kỳ, có dòng audit set_facility_location', '00000000-0000-4000-a000-000000000001',
   $$select set_facility_location('f0000000-0000-4000-a000-000000000002', 10.34, 107.09)$$,
@@ -443,7 +443,7 @@ select pg_temp.t_true('12q. feed_shifts có lat/lng ở mọi ca, vẫn không c
   $$select count(*) > 0 and bool_and(e ? 'lat' and e ? 'lng') and feed_shifts()::text not like '%0900000%'
     from jsonb_array_elements(feed_shifts()) e$$);
 select pg_temp.t_true('12r. admin_list_facilities trả lat/lng của Quán Demo 1', '00000000-0000-4000-a000-000000000001',
-  $$select (e ->> 'lat')::float8 = 10.3498 and (e ->> 'lng')::float8 = 107.0768
+  $$select (e ->> 'lat')::float8 = 10.3441 and (e ->> 'lng')::float8 = 107.0749
     from jsonb_array_elements(admin_list_facilities()) e where e ->> 'id' = 'f0000000-0000-4000-a000-000000000001'$$);
 
 select pg_temp.as_user(null, null);
