@@ -25,10 +25,10 @@ Hiện trạng (quyết định 17/11/2026): app là **bản mô phỏng**, ch�
 ## Cách làm việc
 - Chủ dự án muốn: tự quyết những gì hợp lý, ghi lại giả định, chỉ hỏi khi quyết định ảnh hưởng nghiệp vụ mà đề bài chưa nói.
 - Trả lời bằng tiếng Việt.
-- Mỗi thay đổi ở `supabase/` phải chạy lại `npm run test:db` (kỳ vọng `86/86`, `privileges_check: … 0 dòng SAI/KIỂM`, `tái chạy … ĐẠT`, 5 dòng `✔ chạy đua`, `dọn dữ liệu demo … ĐẠT`; hoặc nhiều test hơn nếu thêm test).
+- Mỗi thay đổi ở `supabase/` phải chạy lại `npm run test:db` (kỳ vọng `104/104`, `privileges_check: … 0 dòng SAI/KIỂM`, `tái chạy … ĐẠT`, 5 dòng `✔ chạy đua`, `dọn dữ liệu demo … ĐẠT`; hoặc nhiều test hơn nếu thêm test).
 - Mỗi thay đổi ở `src/` phải chạy `npx tsc --noEmit`; trước khi báo xong chạy thêm `next build` (lệnh ở mục Lệnh).
 - `tsc` và `build` sạch **không** có nghĩa là chạy đúng. Chưa mở trên trình duyệt thì nói rõ là chưa kiểm.
-- Migration `0001_init.sql` **đã áp lên Supabase thật ngày 17/11/2026** (lúc đó 85/85 test đạt trên Supabase; từ đó thêm test 11b nên nay là 86) → **KHÔNG sửa file này nữa**. Mọi thay đổi schema là file migration mới (`0002_...sql`) kèm test, chủ dự án dán bằng SQL Editor, rồi chạy `supabase/tests/privileges_check.sql`.
+- Migration `0001_init.sql` **đã áp lên Supabase thật ngày 17/11/2026** (lúc đó 85/85 test đạt trên Supabase; từ đó thêm test 11b nên là 86; migration `0002_toa_do_co_so.sql` thêm 18 test nhóm 12 nên nay là 104) → **KHÔNG sửa file này nữa**. Mọi thay đổi schema là file migration mới (`0003_...sql` trở đi) kèm test, chủ dự án dán bằng SQL Editor, rồi chạy `supabase/tests/privileges_check.sql`.
 - Thông báo lỗi nghiệp vụ là tiếng Việt trong `raise exception`; `edge_cases.sql` khớp theo chuỗi này → sửa câu chữ thì sửa cả test.
 - Test SQL: hành động và kiểm tra phải là hai câu lệnh riêng (`pg_temp.t_do`), vì một câu không thấy dữ liệu hàm volatile vừa ghi.
 - Server chạy UTC: mọi hiển thị giờ đi qua `src/lib/format.ts`.
@@ -41,14 +41,14 @@ Xem `AGENTS.md`, mục 5 ("Quy trình agent mặc định"). Phiên chính chạ
 
 ## Lệnh
 ```bash
-npm run test:db                 # migration + seed + 86 test + kiểm quyền + tái chạy + chạy đua + dọn demo, trên Postgres nhúng
+npm run test:db                 # migration (0001 + 0002) + seed + 104 test + kiểm quyền + tái chạy + chạy đua + dọn demo, trên Postgres nhúng
 npx tsc --noEmit
 NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=dummy npx next build
 npm run dev                     # cần .env.local trỏ tới Supabase thật
 ```
 
 ## Bản đồ nhanh
-- `supabase/migrations/0001_init.sql` — nguồn sự thật của mọi quy tắc
+- `supabase/migrations/0001_init.sql`, `0002_toa_do_co_so.sql` — nguồn sự thật của mọi quy tắc
 - `supabase/seed.sql` · `supabase/tests/edge_cases.sql` · `db-test/`
 - `supabase/tests/check_before_migration.sql` (trước migration) · `supabase/tests/privileges_check.sql` (sau migration) — chỉ đọc, dán vào SQL Editor
 - `supabase/xoa_du_lieu_demo.sql` — xóa dữ liệu demo theo đúng thứ tự. **Không chạy** khi app còn là bản mô phỏng: xóa user demo thì nút đăng nhập hỏng (khôi phục bằng chạy lại `seed.sql`). Không xóa user demo hàng loạt bằng tay: lỗi khóa ngoại 23503

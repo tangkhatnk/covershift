@@ -59,7 +59,7 @@ Dùng ranh giới sở hữu sẵn có trước khi tạo ranh giới mới. Đ�
 
 - `supabase/migrations/`
   - schema, trigger, constraint, RLS, RPC;
-  - hiện có `0001_init.sql`, đã áp lên Supabase thật ngày 17/11/2026: không sửa nữa, thay đổi mới là file migration mới (`0002_...sql`).
+  - hiện có `0001_init.sql` (đã áp lên Supabase thật ngày 17/11/2026: không sửa nữa) và `0002_toa_do_co_so.sql` (cột `lat`/`lng` của cơ sở); thay đổi mới là file migration mới (`0003_...sql`).
 - `supabase/seed.sql`
   - dữ liệu mẫu; phải chạy lại được nhiều lần.
 - `supabase/tests/`
@@ -461,8 +461,8 @@ grant execute on function public.ten_ham(...) to authenticated;
 - Một thay đổi schema gồm đủ các phần:
   - file migration;
   - test trong `supabase/tests/edge_cases.sql`;
-  - cập nhật `db-test/run.mjs`: hiện file này chỉ chạy đúng `0001_init.sql`, nên migration mới không được kiểm nếu không thêm vào;
-  - cập nhật số test kỳ vọng ghi trong `CLAUDE.md`, `README.md`, `TESTING.md` (hiện là `86/86`).
+  - cập nhật `db-test/run.mjs`: file này chạy lần lượt từng migration (hiện `0001`, `0002`) theo danh sách viết tay, nên migration mới không được kiểm nếu không thêm vào;
+  - cập nhật số test kỳ vọng ghi trong `CLAUDE.md`, `README.md`, `TESTING.md` (hiện là `104/104`).
 - Chạy `npm run test:db` trước khi báo xong. Kỳ vọng như `CLAUDE.md`: tất cả test đạt, `privileges_check` không có dòng `SAI`/`KIỂM`, `tái chạy` đạt, 5 dòng `✔ chạy đua`, `dọn dữ liệu demo` đạt.
 - Chủ dự án dán migration vào Supabase SQL Editor, rồi chạy `supabase/tests/privileges_check.sql` trên project thật. Agent không tự chạy DDL hay ghi dữ liệu lên project Supabase thật, kể cả khi máy có kết nối MCP tới đó.
 - Không dùng đường tắt bỏ qua file migration: `supabase db push`, `supabase db reset`, sửa bảng bằng Table Editor, hay sinh schema bằng diff/pull rồi áp thẳng. Mọi thay đổi phải truy vết được trong `supabase/migrations/`.
@@ -740,14 +740,14 @@ npm run test:db
 Kỳ vọng (theo `CLAUDE.md`, hiện tại):
 
 ```text
-86/86 test đạt
+104/104 test đạt
 privileges_check: ... 0 dòng SAI/KIỂM
 tái chạy ... ĐẠT
 5 dòng ✔ chạy đua
 dọn dữ liệu demo ... ĐẠT
 ```
 
-Thêm test thì số `86` tăng theo; cập nhật con số trong `CLAUDE.md` và `TESTING.md` cùng PR.
+Thêm test thì số `104` tăng theo; cập nhật con số trong `CLAUDE.md` và `TESTING.md` cùng PR.
 
 ### Thay đổi trong `src/` hoặc `middleware.ts`
 
