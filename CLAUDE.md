@@ -53,5 +53,5 @@ npm run dev                     # cần .env.local trỏ tới Supabase thật
 - `supabase/tests/check_before_migration.sql` (trước migration) · `supabase/tests/privileges_check.sql` (sau migration) — chỉ đọc, dán vào SQL Editor
 - `supabase/xoa_du_lieu_demo.sql` — xóa dữ liệu demo theo đúng thứ tự. **Không chạy** khi app còn là bản mô phỏng: xóa user demo thì nút đăng nhập hỏng (khôi phục bằng chạy lại `seed.sql`). Không xóa user demo hàng loạt bằng tay: lỗi khóa ngoại 23503
 - `src/app/actions.ts` — mọi server action (1 action = 1 RPC; ngoại lệ duy nhất là `demoLogin`)
-- `src/lib/{constants,types,format,auth}.ts` · `src/components/{ui,client}.tsx` · `tailwind.config.ts` (bảng màu, font) · `PRODUCT.md` (hướng giao diện; chi tiết quy tắc ở `AGENTS.md` mục 18–23)
+- `src/lib/{constants,types,format,auth}.ts` · `src/components/{ui,client}.tsx` · `tailwind.config.ts` (bảng màu, font) · `PRODUCT.md` (hướng giao diện) · `DESIGN.md` (hệ hình ảnh đang chạy) · `src/app/icon.svg` (biểu tượng trình duyệt); quy tắc bắt buộc ở `AGENTS.md` mục 18–23
 - `README.md` (cài đặt, deploy) · `TESTING.md` (A: tự động, B: kịch bản tay)

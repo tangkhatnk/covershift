@@ -166,14 +166,16 @@ Cần `0002_toa_do_co_so.sql` đã áp và `seed.sql` đã chạy lại (seed gh
 2. N vào `/ca`: ✔ bản đồ chỉ hiện ghim cho ca còn chỗ ở Quán Demo 1–4 (Quán Demo 5 chưa xác minh nên không có ca); chạm một ghim → ✔ thẻ ca tương ứng được chọn và cuộn tới; chạm một thẻ ca → ✔ ghim tương ứng nổi lên. Lọc khu vực/loại việc → ✔ bản đồ và danh sách cùng đổi. Ca không có tọa độ (nếu có) vẫn hiện trong danh sách.
 3. Tự làm mới: Q đăng thêm một ca (hoặc N nhận ca) ở tab khác, N để `/ca` mở ≥ 30 giây ✔ danh sách và ghim tự cập nhật, không nhảy mất vị trí cuộn.
 4. N mở một ca ở `/ca/[id]`: ✔ bản đồ nhỏ một ghim; "Chỉ đường" mở Google Maps tới đúng tọa độ ghim; không có số điện thoại ở bản đồ hay popup.
-5. Q vào `/quan`: thẻ "Vị trí quán trên bản đồ" ✔ hiện ghim Quán Demo 1. Chạm chỗ khác trên bản đồ (hoặc kéo ghim) → Lưu vị trí → ✔ "Đã lưu vị trí quán."; N mở `/ca/[id]` ca của Quán Demo 1 → ghim đã đổi. Thử "Dùng vị trí hiện tại" (cho phép định vị) khi đang ở ngoài Vũng Tàu → ✔ báo lỗi tiếng Việt, không lưu. **Cuối bài test, đặt lại tọa độ seed** của Quán Demo 1 (10.3441, 107.0749) hoặc chạy lại `seed.sql`.
+5. Q vào `/quan`: dòng "Vị trí quán: đã ghim" (bấm vào để sửa) ✔ nằm ở cuối trang, sau các nhóm ca, và thu gọn (bản đồ chưa tải). Bấm vào dòng đó → ✔ bản đồ dựng đúng khung, hiện ghim Quán Demo 1; đóng rồi mở lại vẫn đúng khung. (Quán chưa có ghim: ✔ dòng "Chưa ghim vị trí quán" nền vàng nằm sau nhóm "Cần anh/chị xác nhận", trước các nhóm ca khác, cũng thu gọn.) Chạm chỗ khác trên bản đồ (hoặc kéo ghim) → Lưu vị trí → ✔ "Đã lưu vị trí quán."; N mở `/ca/[id]` ca của Quán Demo 1 → ghim đã đổi. Thử "Dùng vị trí hiện tại" (cho phép định vị) khi đang ở ngoài Vũng Tàu → ✔ báo lỗi tiếng Việt, không lưu. **Cuối bài test, đặt lại tọa độ seed** của Quán Demo 1 (10.3441, 107.0749) hoặc chạy lại `seed.sql`.
 6. A vào `/admin`: ✔ bản đồ ca trong 24 giờ tới, chạm ghim mở `/quan/ca/<id>`; trang tự làm mới mỗi 30 giây. A vào `/admin/co-so`: ✔ bản đồ mọi cơ sở (đã xác minh / chờ xác minh / đã gỡ khác màu), mở "Vị trí trên bản đồ" của một cơ sở để đặt ghim. **Đừng thử đặt ghim bằng tài khoản nhóm vận hành**: thao tác này ghi nhật ký (`Đặt vị trí cơ sở`) vào `/admin/nhat-ky`; nếu lỡ làm thì chạy lại `seed.sql` để trả tọa độ.
 7. Bàn phím và đọc màn hình: ghim chọn được bằng Tab, mỗi ghim có tên đọc được ("Quán Demo 1, ..."). Bề rộng 360px: bản đồ không gây cuộn ngang, kéo bản đồ không làm cuộn cả trang bị kẹt (có thể lướt qua bản đồ bằng một ngón).
 8. Mất mạng hoặc chặn `tiles.openfreemap.org` → ✔ danh sách ca vẫn dùng được, bản đồ báo không tải được bằng chữ.
 
 ### B10. Kiểm tra giao diện
 
-- Bề rộng 360px: không có thanh cuộn ngang ở mọi trang; nút cao ≥ 48px; chữ ≥ 18px.
+- Bề rộng 360px: không có thanh cuộn ngang ở mọi trang; nút cao ≥ 48px; chữ ≥ 18px. Lặp lại ở 390px, 414px, 1024px (đổi giữa thanh dưới và rail trái), 1280px và 1440px.
+- Link nằm trong đoạn văn (vd. "Xem trước" ở `/ho-so`) là chữ gạch chân liền dòng, không làm dòng cao bất thường; link đứng riêng và nút vẫn cao ≥ 48px.
+- Tab trình duyệt hiện biểu tượng ô cửa chớp (`src/app/icon.svg`), đọc được ở 16px.
 - Đưa điện thoại cho một người lớn tuổi thử: đăng ca (mở form → điền → gửi) và xác nhận sau ca (mở link → chọn → gửi) đều ≤ 3 bước.
 - Chân mọi trang có "Không bao giờ thu phí người làm."; `/dieu-khoan` có câu "SafeShift chỉ kết nối người làm và nơi thuê…".
 - Gửi link trang web cho chính mình qua Zalo, bấm mở **trong Zalo** → `/dang-nhap` ✔ ba nút demo hiện đủ và bấm được trong Zalo (không cần Google, không mở cửa sổ ngoài). Bấm "chủ quán" → ✔ vào `/quan`.

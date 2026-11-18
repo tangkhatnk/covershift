@@ -9,7 +9,7 @@ export const metadata = { title: 'Ca của tôi' };
 function ClaimBadge({ s }: { s: MyShift }) {
   if (s.attended === false) return <Badge tone="red">Không đến</Badge>;
   if (s.claim_status === 'cancelled') {
-    return s.cancel_kind === 'late_cancel' ? <Badge tone="red">Hủy sát giờ</Badge> : <Badge tone="gray">Đã hủy</Badge>;
+    return s.cancel_kind === 'late_cancel' ? <Badge tone="red">Hủy sát giờ</Badge> : <Badge tone="amber">Bạn đã hủy</Badge>;
   }
   return s.claim_role === 'primary' ? <Badge tone="green">Người chính</Badge> : <Badge tone="amber">Dự phòng</Badge>;
 }

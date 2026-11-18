@@ -193,6 +193,17 @@ export function PrintButton({ children = 'In / Lưu PDF' }: { children?: ReactNo
 // Nhãn "Thêm" của nhóm vận hành dùng <details>: chạy được bằng bàn phím và trong trình duyệt nhúng của Zalo.
 // ---------------------------------------------------------------------------------------------
 
+/** Dấu hiệu thương hiệu: cùng hình với src/app/icon.svg (nền tường vàng, cánh cửa xanh có 3 thanh chớp). */
+function Mark() {
+  return (
+    <svg viewBox="0 0 32 32" className="h-8 w-8 shrink-0" aria-hidden="true">
+      <rect width="32" height="32" rx="5" className="fill-wall" />
+      <rect x="6" y="4" width="20" height="24" rx="2" className="fill-shutter-deep" />
+      <path d="M9 10h14M9 15h14M9 20h14" className="stroke-wall" strokeWidth="2.5" fill="none" />
+    </svg>
+  );
+}
+
 type NavItem = { href: string; label: string; icon: LucideIcon };
 
 const NAV: Record<Role, NavItem[]> = {
@@ -269,7 +280,7 @@ function MoreMenu({ items, pathname, active }: { items: NavItem[]; pathname: str
       }}
     >
       <summary
-        className={`flex h-full cursor-pointer flex-col items-center justify-center border-t-4 px-2 text-center text-sm font-semibold leading-tight ${
+        className={`flex h-full cursor-pointer flex-col items-center justify-start border-t-4 px-1 pt-1 text-center text-sm font-semibold leading-tight ${
           active ? 'border-wall text-wall' : 'border-transparent text-white'
         }`}
       >
@@ -320,7 +331,7 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
       <div className={`flex min-h-dvh flex-col ${items ? 'shell-pad lg:pl-60' : ''}`}>
         <header data-chrome className={`surface-dark sticky top-0 z-30 h-14 bg-shutter-deep ${items ? 'lg:hidden' : ''}`}>
           <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4">
-            <Link href={homeHref} className="inline-flex min-h-[3rem] items-center rounded px-2 text-xl font-bold text-white">{APP_NAME}</Link>
+            <Link href={homeHref} className="inline-flex min-h-[3rem] items-center gap-2 rounded px-2 text-xl font-bold text-white"><Mark />{APP_NAME}</Link>
             {bare ? null : signedIn ? (
               <Link href="/tai-khoan" className="inline-flex min-h-[3rem] items-center gap-2 rounded-ui px-2 text-base font-semibold text-white">
                 <CircleUser className="h-6 w-6" aria-hidden="true" />
@@ -344,7 +355,7 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
       {items ? (
         <>
           <aside data-chrome data-rail className="surface-dark fixed inset-y-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto bg-shutter-deep text-white lg:flex">
-            <Link href={homeHref} className="m-4 inline-flex min-h-[3rem] items-center rounded px-2 text-xl font-bold text-white">{APP_NAME}</Link>
+            <Link href={homeHref} className="m-4 inline-flex min-h-[3rem] items-center gap-2 rounded px-2 text-xl font-bold text-white"><Mark />{APP_NAME}</Link>
             <nav aria-label="Điều hướng chính" className="flex-1 px-4">
               <ul className="space-y-2">
                 {allItems.map((it) => (
@@ -390,7 +401,7 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
                   <Link
                     href={it.href}
                     aria-current={it.href === current ? 'page' : undefined}
-                    className={`flex h-full flex-col items-center justify-center border-t-4 px-2 text-center text-sm font-semibold leading-tight ${
+                    className={`flex h-full flex-col items-center justify-start border-t-4 px-1 pt-1 text-center text-sm font-semibold leading-tight ${
                       it.href === current ? 'border-wall text-wall' : 'border-transparent text-white'
                     }`}
                   >

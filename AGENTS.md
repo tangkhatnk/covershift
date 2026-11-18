@@ -616,7 +616,7 @@ Quy ước Next 15 của repo:
 
 Dùng lại trước khi tạo mới:
 
-- `src/components/ui.tsx` (Server Component dùng được): `btn(variant, full)`, `inputCls`, `PageTitle`, `Card` (prop `tab`), `Badge` (prop `icon`), `StateBadge`, `Alert`, `Field`, `Check`, `Empty`, `Tel`, `Stars`, `SlotStrip`, `ShiftCard`, `Doc`/`DocSection`/`DocList` (tờ đọc điều khoản và chính sách), kiểu `BtnVariant` và `Tone`.
+- `src/components/ui.tsx` (Server Component dùng được): `btn(variant, full)`, `inputCls`, `PageTitle`, `Card` (prop `tab`), `Badge` (prop `icon`), `StateBadge`, `Alert`, `Field`, `Check`, `Empty`, `Tel`, `Disclosure` (khối thu gọn bằng `<details>`, tóm tắt cao tối thiểu `3rem`), `Stars`, `SlotStrip`, `ShiftCard`, `Doc`/`DocSection`/`DocList` (tờ đọc điều khoản và chính sách), kiểu `BtnVariant` và `Tone`.
 - `src/components/client.tsx`: `AppShell` (khung trang, mục 19), `ActionForm`, `SubmitButton`, `Flash`, `CopyButton`, `PrintButton`.
 - Nhãn hiển thị nằm ở `src/lib/constants.ts` (`JOB_LABEL`, `AREA_LABEL`, ...) và `src/lib/format.ts` (`SHIFT_STATE_LABEL`, `SHIFT_STATE_TONE`); icon của từng trạng thái ca nằm trong `StateBadge` (`ui.tsx`). Thêm giá trị enum mới thì thêm nhãn (và icon) ở đó, không viết chuỗi rời trong trang.
 - Chỉ tạo thành phần mới khi mẫu đó đã lặp thật sự (từ hai chỗ trở lên) hoặc thành phần chung không đáp ứng được. Không thêm prop, biến thể hay lớp bọc "để dành" cho nhu cầu chưa có. Thành phần chỉ dùng một trang thì để ngay trong trang đó.
@@ -628,7 +628,7 @@ Dùng lại trước khi tạo mới:
 
 Bề mặt chính là điện thoại 360 đến 414px, thường mở từ Zalo hoặc Facebook. Chủ quán là nhóm có nhiều người lớn tuổi. Thiết kế cho họ trước. Desktop cũng phải đẹp, không chỉ "không vỡ": buổi demo 26/11 trình bày cho ban giám khảo trên laptop hoặc máy chiếu.
 
-Hướng giao diện (nội bộ gọi là "Phố cửa chớp": tường vàng, cửa chớp xanh, nền vôi) ghi ở `PRODUCT.md`; bảng màu và token ở `tailwind.config.ts`.
+Hướng giao diện (nội bộ gọi là "Phố cửa chớp": tường vàng, cửa chớp xanh, nền vôi) ghi ở `PRODUCT.md`; bảng màu và token ở `tailwind.config.ts`. `DESIGN.md` (gốc repo) mô tả hệ hình ảnh đang chạy (màu, chữ, thành phần, quy tắc dùng); nó là bản mô tả, còn quy tắc bắt buộc nằm ở file này.
 
 ### Khung trang
 
@@ -663,17 +663,12 @@ Khung do `AppShell` (`src/components/client.tsx`) dựng, `layout.tsx` chỉ tru
   - `sea` `#1C5F8A`, `sea-tint` `#D6E6EF`: thông tin.
   - `rule` `#CFCAB2` (viền hairline) và `rule-strong` `#7C8479` (viền ô nhập, ô tick).
   - Trạng thái qua `Tone`: `green` = shutter, `amber` = wall, `red` = roof, `blue` = sea, `gray` = chalk có viền `rule`.
-  - Màu `brand` chỉ còn là bí danh tạm trỏ về `shutter` để các trang chưa làm lại vẫn có màu; không dùng `brand` trong mã mới.
 - Bo góc duy nhất là `rounded-ui` (6px). Không đổ bóng, không gradient, không kính mờ (glass), không viền trái màu; ngoại lệ duy nhất là bóng mềm của pin trên bản đồ (`src/components/map.tsx`), để pin nổi lên khỏi nền bản đồ; không dùng bóng ở chỗ khác. Không đưa vào bảng màu, font, bo góc hay đổ bóng thứ hai. Cần sắc độ mới thì thêm vào `tailwind.config.ts`.
 - Bố cục nội dung là các mô-đun chữ nhật viền hairline (`Card`, `ShiftCard`). Dải đầu của mô-đun (`Card tab`, đầu `ShiftCard`) chứa dữ liệu thật (loại việc, trạng thái, nhãn "GẤP"), không phải nhãn trang trí. Không dùng nhãn kicker hoặc eyebrow (dòng chữ nhỏ viết hoa phía trên tiêu đề). Không bọc từng dòng trong thẻ, không lồng thẻ trong thẻ.
 - Dãy cửa chớp (`SlotStrip`) là hình đặc trưng của sản phẩm: mỗi người chính là một ô cửa (đóng = đã có người, trống = còn chỗ), có một ô dự phòng nét đứt tách bằng một trụ. Hình chỉ là minh họa (`aria-hidden`); luôn kèm câu chữ đọc được ("2/3 người chính · chưa có dự phòng") và chữ "Dự phòng" đầy đủ, không rút gọn, không chỉ dựa vào hình và màu.
 - Từ điển trạng thái ca đóng (`StateBadge`): mỗi trạng thái đúng một icon, một nhãn, một tông. Không tự ghép Badge trạng thái ca ở trang khác.
 - App chỉ có giao diện sáng: không có `dark:` hay `prefers-color-scheme` nào. Không thêm chế độ tối nếu không được giao. Vùng nền xanh đậm (thanh trên, rail, nav dưới, chân trang) mang lớp `surface-dark` để vòng focus đổi sang vàng (mục 22); đó là bề mặt của khung, không phải chế độ tối.
 - Không dùng trang trí không có chức năng (gradient, ảnh minh họa lớn, hiệu ứng). Ảnh hưởng đến tải trang trên 4G yếu.
-
-### Tồn đọng, làm lại ở PR sau
-
-Các trang chưa làm lại (`/admin/*`, `/quan/*`, `/ca/*`, `/ca-cua-toi`, `/ho-so`, `/tai-khoan`, `/dang-ky/*`, `/h/[slug]`, `/xac-nhan`, `/dong-y`) vẫn dùng lớp cũ: `slate-*`, `emerald-*`, `sky-*`, `brand-*`, `shadow-sm`, `rounded-xl`/`rounded-2xl`. `/h/[slug]` còn nhãn viết hoa `uppercase tracking-widest` cỡ `text-sm` (khoảng 15,8px) phía trên tiêu đề, và `/quan/ca/[id]` còn tiêu đề viết hoa. Đây là nợ của hệ cũ, không phải mẫu để lặp lại; khi sửa các trang đó thì chuyển sang token ở trên.
 
 ---
 
@@ -685,10 +680,9 @@ Icon dùng `lucide-react` (ghim `1.74.0`, giấy phép ISC): khung điều hư�
 - Icon trang trí phải ẩn khỏi trình đọc màn hình (`aria-hidden="true"`). Nút chỉ có icon phải có tên truy cập được (`aria-label` hoặc chữ ẩn bằng `sr-only`). Nút to tối thiểu `3rem` vẫn áp dụng cho nút chỉ có icon. Hiện các icon đều đi kèm chữ.
 - Trạng thái quan trọng phải có chữ (ví dụ "Đã sao chép", "Đã làm"), không chỉ dựa vào icon hay màu.
 - Không dùng ký tự Unicode hay emoji làm icon, và không thêm ký tự mới kiểu đó.
-- Tồn đọng, thay ở PR sau: `✓` và `★` trong `src/app/xac-nhan/[token]/confirm-form.tsx` (nhãn `Choice` và nút chấm sao), `←` ở link "Về danh sách" trong `src/app/quan/ca/[id]/page.tsx`. Không phải khuôn mẫu để lặp lại.
 - `Stars` (`src/components/ui.tsx`) vẽ năm icon `Star` của Lucide: sao đầy tô `wall` viền `shutter-deep`, sao rỗng chỉ có viền `rule-strong`; bao ngoài là `<span role="img" aria-label="… trên 5 sao">`, các icon bên trong `aria-hidden`. Nút chấm sao trong `confirm-form.tsx` là `<button>` có `aria-label="{n} sao"`, nên ký tự bên trong không bị đọc thừa.
 - Thêm thư viện icon thứ hai là thay đổi dependency, cần nêu trong PR (mục 21).
-- Custom SVG chỉ dành cho logo hay hình minh họa riêng của SafeShift, không dùng để tự vẽ lại bộ icon. Ô cửa chớp trong `SlotStrip` là hình minh họa riêng của sản phẩm nên được vẽ bằng SVG.
+- Custom SVG chỉ dành cho logo hay hình minh họa riêng của SafeShift, không dùng để tự vẽ lại bộ icon. Ô cửa chớp trong `SlotStrip` là hình minh họa riêng của sản phẩm nên được vẽ bằng SVG; biểu tượng trình duyệt `src/app/icon.svg` (ô cửa chớp, màu `shutter-deep` và `wall`) là logo, được phép viết mã hex vì file SVG không dùng được token Tailwind.
 
 ---
 

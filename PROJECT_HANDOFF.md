@@ -321,10 +321,12 @@ Chức năng: đăng ca / nhân bản / đổi thứ tự chính–dự phòng �
 - Đã rà 6 file trang chủ quán và trang công khai do subagent thứ ba viết.
 - Nút ẩn/hiện nhận xét cho nhóm vận hành ở `/quan/ca/[id]`.
 - Deploy Vercel (https://safeshift-beta.vercel.app).
+- Giao diện đã làm lại theo hướng "Phố cửa chớp" (`PRODUCT.md`, `DESIGN.md`): PR #10 (khung trang, thành phần, trang công khai), #12 (người làm, hồ sơ ca làm, phiếu phụ huynh), #13 (chủ quán, xác nhận sau ca, nhóm vận hành), #14 (bản đồ ca và cơ sở, ghim vị trí quán; cần migration 0002, đã áp) và PR hoàn thiện (dọn lớp màu cũ và bí danh `brand`, link trong đoạn văn, biểu tượng trình duyệt `src/app/icon.svg`, thẻ vị trí quán ở `/quan` thu gọn).
+- Bản đồ: MapLibre + OpenFreeMap (`src/components/map.tsx`): `/` (minh họa, dữ liệu mẫu), `/ca`, `/ca/[id]`, `/quan` (ghim vị trí), `/admin`, `/admin/co-so`. Kịch bản kiểm tay: `TESTING.md` B11.
 
 ### Còn lại, theo thứ tự
 1. ~~Chạy lại `supabase/seed.sql` trên Supabase thật~~ — đã xong (18/11). Còn lại: thử bấm 3 nút ở `/dang-nhap` trên bản deploy.
-2. **Chạy tay toàn bộ `TESTING.md` mục B** trên điện thoại thật, đăng nhập bằng nút demo. Ưu tiên B1 (luồng chính), B6 (xác nhận sau ca), B4 (số điện thoại). Chạy lại `seed.sql` sau mỗi lượt test để khôi phục dữ liệu.
+2. **Chạy tay toàn bộ `TESTING.md` mục B** (gồm B10 giao diện và B11 bản đồ; giao diện mới chưa được kiểm trên điện thoại thật và trong Zalo) trên điện thoại thật, đăng nhập bằng nút demo. Ưu tiên B1 (luồng chính), B6 (xác nhận sau ca), B4 (số điện thoại). Chạy lại `seed.sql` sau mỗi lượt test để khôi phục dữ liệu.
 3. Nhờ chủ dự án đọc duyệt hai trang `/dieu-khoan`, `/chinh-sach-du-lieu` và cung cấp thông tin liên hệ. **Không bịa tên pháp nhân, địa chỉ, email, số điện thoại.** Nếu đổi quy tắc nghiệp vụ (bảng G ở mục 4) thì sửa câu chữ tương ứng trong hai trang này.
 4. Demo **26/11**: chạy lại `seed.sql` ngay trước buổi demo để dữ liệu mẫu về trạng thái ban đầu. Gói miễn phí Supabase tự tạm dừng sau khoảng 1 tuần không truy cập: mở web mỗi vài ngày.
 5. Gửi chủ dự án bản tổng kết (giả định + rủi ro).

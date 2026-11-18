@@ -1,8 +1,7 @@
-import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { reviewWorker, setAccountStatus } from '@/app/actions';
 import { ActionForm, SubmitButton } from '@/components/client';
-import { Alert, Badge, Card, Empty, Field, PageTitle, Tel, inputCls } from '@/components/ui';
+import { Alert, Badge, Card, Disclosure, Empty, Field, PageTitle, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
 import { APPROVAL_LABEL, AREA_LABEL, AVAILABILITY_LABEL, CONSENT_LABEL } from '@/lib/constants';
@@ -10,24 +9,6 @@ import { fmtDateTime, fmtPlainDate } from '@/lib/format';
 import type { AdminWorker } from '@/lib/types';
 
 export const metadata = { title: 'Duyệt người làm' };
-
-const summaryCls =
-  'flex min-h-[3rem] cursor-pointer items-center justify-between gap-2 rounded-ui px-2 text-base font-semibold text-shutter hover:bg-shutter-tint';
-const th = 'px-4 py-2 text-left text-base font-semibold text-ink';
-const td = 'px-4 py-4 align-top text-base text-ink';
-
-/** Phần mở rộng (<details>): chạy bằng bàn phím, mũi tên xoay khi mở. */
-function Disclosure({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <details className="group">
-      <summary className={summaryCls}>
-        {label}
-        <ChevronDown className="h-5 w-5 shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
-      </summary>
-      {children}
-    </details>
-  );
-}
 
 const APPROVAL_TONE = { pending: 'amber', approved: 'green', rejected: 'gray' } as const;
 const FILTERS = ['cho-duyet', 'da-duyet', 'tat-ca'] as const;
@@ -136,14 +117,14 @@ function Actions({ w }: { w: AdminWorker }) {
     <div className="grid gap-4 lg:grid-cols-2 lg:items-start lg:gap-8">
       <div>
         {w.approval === 'approved' ? (
-          <Disclosure label="Đổi quyết định">
+          <Disclosure summary="Đổi quyết định">
             <div className="px-2 pb-2 pt-2"><ReviewForm w={w} /></div>
           </Disclosure>
         ) : (
           <div className="px-2"><ReviewForm w={w} /></div>
         )}
       </div>
-      <Disclosure label="Khóa / mở tài khoản">
+      <Disclosure summary="Khóa / mở tài khoản">
         <ActionForm action={setAccountStatus} className="space-y-4 px-2 pb-2 pt-2">
           <input type="hidden" name="user_id" value={w.user_id} />
           <input type="hidden" name="status" value={locked ? 'active' : 'locked'} />
@@ -210,50 +191,21 @@ export default async function WorkersPage({ searchParams }: { searchParams: Prom
         <Empty>Không có người làm nào trong nhóm này</Empty>
       ) : (
         <>
-          {/* Điện thoại: mỗi người một thẻ. */}
-          <div className="space-y-4 lg:hidden">
+          {/* Một thẻ cho mỗi người ở mọi bề rộng; từ 1024px phần thông tin chia ba cột, thao tác trải hết bề ngang. */}
+          <div className="space-y-4">
             {list.map((w) => (
               <Card key={w.user_id} tab={<Badges w={w} />}>
                 <div className="space-y-4">
-                  <div><Identity w={w} /></div>
-                  <Contact w={w} />
-                  <Stats w={w} />
+                  <div className="grid gap-4 lg:grid-cols-3 lg:gap-8">
+                    <div><Identity w={w} /></div>
+                    <Contact w={w} />
+                    <Stats w={w} />
+                  </div>
                   <Consent w={w} />
                   <div className="border-t border-rule pt-2"><Actions w={w} /></div>
                 </div>
               </Card>
             ))}
-          </div>
-
-          {/* Từ 1024px: bảng. Mỗi người hai hàng (thông tin, rồi phiếu phụ huynh và thao tác trải hết bề ngang). */}
-          <div className="hidden overflow-hidden rounded-ui border border-rule bg-white lg:block">
-            <table className="w-full border-collapse">
-              <caption className="sr-only">Danh sách người làm và thao tác duyệt</caption>
-              <thead className="bg-wall-tint">
-                <tr>
-                  <th scope="col" className={th}>Người làm</th>
-                  <th scope="col" className={th}>Trạng thái</th>
-                  <th scope="col" className={th}>Liên hệ</th>
-                  <th scope="col" className={th}>Ca làm</th>
-                </tr>
-              </thead>
-              {list.map((w) => (
-                <tbody key={w.user_id} className="border-t border-rule">
-                  <tr>
-                    <th scope="row" className={`${td} text-left font-normal`}><Identity w={w} /></th>
-                    <td className={td}><Badges w={w} /></td>
-                    <td className={td}><Contact w={w} /></td>
-                    <td className={td}><Stats w={w} /></td>
-                  </tr>
-                  <tr>
-                    <td colSpan={4} className="space-y-4 px-4 pb-4">
-                      <Consent w={w} />
-                      <Actions w={w} />
-                    </td>
-                  </tr>
-                </tbody>
-              ))}
-            </table>
           </div>
         </>
       )}
