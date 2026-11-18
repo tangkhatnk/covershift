@@ -37,7 +37,10 @@ export default async function AccountPage() {
           {profile ? (
             <div><dt className="text-base text-ink-soft">Họ tên</dt><dd className="font-semibold">{profile.full_name}</dd></div>
           ) : null}
-          <div><dt className="text-base text-ink-soft">Email đăng nhập</dt><dd className="break-all font-semibold">{user.email ?? '(không có)'}</dd></div>
+          <div><dt className="text-base text-ink-soft">Email đăng nhập</dt><dd className="font-semibold [overflow-wrap:anywhere]">
+            {/* Cho ngắt dòng ở trước "@" và "." để không lẻ một chữ cái mồ côi. */}
+            {user.email ? user.email.split(/(?=[@.])/).map((part, i) => <span key={i}>{i > 0 ? <wbr /> : null}{part}</span>) : '(không có)'}
+          </dd></div>
           {profile ? (
             <div><dt className="text-base text-ink-soft">Vai trò</dt><dd className="font-semibold">{ROLE_LABEL[profile.role]}</dd></div>
           ) : null}

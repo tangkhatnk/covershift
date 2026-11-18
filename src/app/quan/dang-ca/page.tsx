@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ActionForm, SubmitButton } from '@/components/client';
-import { Alert, Card, Check, Field, PageTitle, btn, inputCls } from '@/components/ui';
+import { Alert, Card, Check, Disclosure, Field, PageTitle, btn, inputCls } from '@/components/ui';
 import { createShift } from '@/app/actions';
 import { requireRole } from '@/lib/auth';
 import { JOB_LABEL, type JobType } from '@/lib/constants';
@@ -60,26 +60,6 @@ export default async function NewShiftPage({ searchParams }: { searchParams: Pro
         </Alert>
       ) : from ? (
         <Alert tone="amber">Không tìm thấy ca cũ để nhân bản. Anh/chị điền ca mới bên dưới.</Alert>
-      ) : null}
-
-      {!from && recent.length ? (
-        <Card>
-          <h2 className="text-lg font-bold text-ink">Nhân bản ca cũ</h2>
-          <p className="text-base text-ink-soft">Bấm vào một ca để dùng lại, chỉ cần chọn ngày mới.</p>
-          <ul className="mt-2 divide-y divide-rule">
-            {recent.map((s) => (
-              <li key={s.id}>
-                <Link href={`/quan/dang-ca?from=${s.id}`} className="flex min-h-[3rem] items-center justify-between gap-4 py-2 text-base">
-                  <span>
-                    <b>{JOB_LABEL[s.job_type]}</b> · {fmtTime(s.starts_at)}–{fmtTime(s.ends_at)} · {fmtMoney(s.hourly_wage)}/giờ
-                    <span className="block text-sm text-ink-soft">Ca ngày {fmtDate(s.starts_at)}</span>
-                  </span>
-                  <span className="shrink-0 font-semibold text-shutter underline underline-offset-4">Dùng lại</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </Card>
       ) : null}
 
       <ActionForm action={createShift}>
@@ -151,6 +131,27 @@ export default async function NewShiftPage({ searchParams }: { searchParams: Pro
           <SubmitButton>Đăng ca</SubmitButton>
         </div>
       </ActionForm>
+
+      {!from && recent.length ? (
+        <Card>
+          <Disclosure summary={<span>Nhân bản ca cũ ({recent.length})</span>}>
+            <p className="mt-2 text-base text-ink-soft">Bấm vào một ca để dùng lại, chỉ cần chọn ngày mới.</p>
+            <ul className="mt-2 divide-y divide-rule">
+              {recent.map((s) => (
+                <li key={s.id}>
+                  <Link href={`/quan/dang-ca?from=${s.id}`} className="flex min-h-[3rem] items-center justify-between gap-4 py-2 text-base">
+                    <span>
+                      <b>{JOB_LABEL[s.job_type]}</b> · {fmtTime(s.starts_at)}–{fmtTime(s.ends_at)} · {fmtMoney(s.hourly_wage)}/giờ
+                      <span className="block text-sm text-ink-soft">Ca ngày {fmtDate(s.starts_at)}</span>
+                    </span>
+                    <span className="shrink-0 font-semibold text-shutter underline underline-offset-4">Dùng lại</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Disclosure>
+        </Card>
+      ) : null}
     </div>
   );
 }

@@ -132,7 +132,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           </div>
         ) : (
           <p className="mt-2 text-base">
-            <Link href={`/h/${wp.public_slug}`} className={`${linkCls} inline-flex min-h-[3rem] items-center`}>Xem trước</Link>{' '}
+            <Link href={`/h/${wp.public_slug}`} className={linkCls}>Xem trước</Link>{' '}
             <span className="text-ink-soft">(chỉ mình bạn xem được khi đang tắt)</span>
           </p>
         )}
