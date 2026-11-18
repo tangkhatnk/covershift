@@ -32,7 +32,7 @@ Hiện trạng (quyết định 17/11/2026): app là **bản mô phỏng**, ch�
 - Thông báo lỗi nghiệp vụ là tiếng Việt trong `raise exception`; `edge_cases.sql` khớp theo chuỗi này → sửa câu chữ thì sửa cả test.
 - Test SQL: hành động và kiểm tra phải là hai câu lệnh riêng (`pg_temp.t_do`), vì một câu không thấy dữ liệu hàm volatile vừa ghi.
 - Server chạy UTC: mọi hiển thị giờ đi qua `src/lib/format.ts`.
-- `'use client'` chỉ còn hai file: `src/components/client.tsx`, `src/app/xac-nhan/[token]/confirm-form.tsx`. `/dang-nhap` là Server Component, không có client Supabase cho đăng nhập.
+- `'use client'` chỉ còn ba file: `src/components/client.tsx` (có `AppShell`), `src/app/xac-nhan/[token]/confirm-form.tsx`, `src/app/error.tsx` (error boundary của Next bắt buộc là Client Component). `/dang-nhap` là Server Component, không có client Supabase cho đăng nhập.
 - Next 15: `params` / `searchParams` là `Promise`.
 - Không chạy `next dev` và `next build` cùng lúc (chung thư mục `.next`).
 
@@ -53,5 +53,5 @@ npm run dev                     # cần .env.local trỏ tới Supabase thật
 - `supabase/tests/check_before_migration.sql` (trước migration) · `supabase/tests/privileges_check.sql` (sau migration) — chỉ đọc, dán vào SQL Editor
 - `supabase/xoa_du_lieu_demo.sql` — xóa dữ liệu demo theo đúng thứ tự. **Không chạy** khi app còn là bản mô phỏng: xóa user demo thì nút đăng nhập hỏng (khôi phục bằng chạy lại `seed.sql`). Không xóa user demo hàng loạt bằng tay: lỗi khóa ngoại 23503
 - `src/app/actions.ts` — mọi server action (1 action = 1 RPC; ngoại lệ duy nhất là `demoLogin`)
-- `src/lib/{constants,types,format,auth}.ts` · `src/components/{ui,client}.tsx`
+- `src/lib/{constants,types,format,auth}.ts` · `src/components/{ui,client}.tsx` · `tailwind.config.ts` (bảng màu, font) · `PRODUCT.md` (hướng giao diện; chi tiết quy tắc ở `AGENTS.md` mục 18–23)
 - `README.md` (cài đặt, deploy) · `TESTING.md` (A: tự động, B: kịch bản tay)
