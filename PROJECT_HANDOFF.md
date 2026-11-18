@@ -20,7 +20,7 @@ Nguồn của tài liệu này chỉ là **một phiên làm việc duy nhất**
 |---|---|
 | Thư mục dự án | `/Users/macpro/Desktop/Project/startup` |
 | Hạn chót | Deploy ổn định **trước 20/11/2026**. Chạy **21–22/11**. Demo **26/11**. Theo quyết định 17/11/2026, app là **bản mô phỏng**: đợt 21–22/11 không dùng người thật, chỉ dữ liệu mẫu. |
-| Hiện trạng | **17/11: migration đã áp lên Supabase thật (85/85 test đạt trên Supabase lúc đó; nay có 86 test).** Web đã deploy production tại https://safeshift-beta.vercel.app (Vercel project `safeshift`, team `safeshift`, nối GitHub: merge vào `main` là tự deploy; biến `NEXT_PUBLIC_*` đã đặt). Đăng nhập chỉ bằng 3 nút demo ở `/dang-nhap` (server action `demoLogin`, mật khẩu chung công khai đặt bởi `seed.sql`); đã bỏ Google OAuth và magic link. **Chưa chạy lại `seed.sql` trên Supabase thật nên chưa có mật khẩu demo; chưa chạy tay `TESTING.md` mục B trên trình duyệt.** |
+| Hiện trạng | **17/11: migration đã áp lên Supabase thật (85/85 test đạt trên Supabase lúc đó; nay có 86 test).** Web đã deploy production tại https://safeshift-beta.vercel.app (Vercel project `safeshift`, team `safeshift`, nối GitHub: merge vào `main` là tự deploy; biến `NEXT_PUBLIC_*` đã đặt). Đăng nhập chỉ bằng 3 nút demo ở `/dang-nhap` (server action `demoLogin`, mật khẩu chung công khai đặt bởi `seed.sql`); đã bỏ Google OAuth và magic link. **18/11: đã chạy lại `seed.sql` trên Supabase thật (16/16 user demo có mật khẩu; 3 tài khoản của nút demo đăng nhập được qua Supabase Auth). Chưa chạy tay `TESTING.md` mục B trên trình duyệt.** |
 | Việc gấp nhất | Chạy lại `seed.sql` trên Supabase thật (để có mật khẩu demo) → chạy tay `TESTING.md` mục B → chuẩn bị demo 26/11. |
 
 Lệnh kiểm tra nhanh trạng thái (đều đã chạy đạt lúc bàn giao):
@@ -119,7 +119,7 @@ SafeShift: web app kết nối ca làm ngắn hạn giữa cơ sở dịch vụ 
 
 ### Chưa thực hiện
 1. ~~Hai trang `/dieu-khoan`, `/chinh-sach-du-lieu`~~ — **đã viết** (xem bảng trên). Nội dung do agent soạn theo hành vi thật của hệ thống; **chủ dự án chưa đọc duyệt** và đây không phải văn bản do luật sư soạn.
-2. ~~Tạo Supabase project, deploy Vercel~~ — đã xong (17/11). Không còn cấu hình Google OAuth (đã bỏ). Còn lại: chạy lại `seed.sql` trên Supabase thật để có mật khẩu demo.
+2. ~~Tạo Supabase project, deploy Vercel~~ — đã xong (17/11). Không còn cấu hình Google OAuth (đã bỏ). `seed.sql` đã chạy lại trên Supabase thật (18/11), user demo có mật khẩu.
 3. Chưa chạy bất kỳ luồng nào trên trình duyệt (kịch bản tay ở `TESTING.md` mục B chưa ai chạy).
 4. ~~`git init`~~ — đã xong; repo `tangkhatnk/covershift`, làm việc theo `AGENTS.md` mục 6.
 5. ~~Giao diện cho action `hideComment`~~ — đã có nút ẩn/hiện nhận xét ở `/quan/ca/[id]` cho nhóm vận hành.
@@ -256,7 +256,7 @@ TESTING.md                        A: test tự động · B: kịch bản tay tr
 ### Tích hợp
 | Tích hợp | Trạng thái |
 |---|---|
-| Supabase Auth (mật khẩu demo qua `demoLogin`; đã bỏ Google OAuth và magic link) | Chạy được sau khi chạy lại `seed.sql` trên Supabase thật. **[CHƯA KIỂM]** trên trình duyệt |
+| Supabase Auth (mật khẩu demo qua `demoLogin`; đã bỏ Google OAuth và magic link) | Seed đã chạy lại (18/11); 3 tài khoản demo đăng nhập được qua API Supabase Auth. **[CHƯA KIỂM]** bấm nút trên trình duyệt |
 | Vercel | Đã deploy: https://safeshift-beta.vercel.app |
 | Resend (email nhắc ca) | Tùy chọn, chưa cấu hình |
 | Zalo | **Không tích hợp API** — admin bấm "sao chép tin nhắn" rồi dán tay [ĐỀ BÀI] |
@@ -322,7 +322,7 @@ Chức năng: đăng ca / nhân bản / đổi thứ tự chính–dự phòng �
 - Deploy Vercel (https://safeshift-beta.vercel.app).
 
 ### Còn lại, theo thứ tự
-1. **Chạy lại `supabase/seed.sql` trong SQL Editor** của Supabase thật để 16 user demo có mật khẩu; thử bấm 3 nút ở `/dang-nhap` trên bản deploy.
+1. ~~Chạy lại `supabase/seed.sql` trên Supabase thật~~ — đã xong (18/11). Còn lại: thử bấm 3 nút ở `/dang-nhap` trên bản deploy.
 2. **Chạy tay toàn bộ `TESTING.md` mục B** trên điện thoại thật, đăng nhập bằng nút demo. Ưu tiên B1 (luồng chính), B6 (xác nhận sau ca), B4 (số điện thoại). Chạy lại `seed.sql` sau mỗi lượt test để khôi phục dữ liệu.
 3. Nhờ chủ dự án đọc duyệt hai trang `/dieu-khoan`, `/chinh-sach-du-lieu` và cung cấp thông tin liên hệ. **Không bịa tên pháp nhân, địa chỉ, email, số điện thoại.** Nếu đổi quy tắc nghiệp vụ (bảng G ở mục 4) thì sửa câu chữ tương ứng trong hai trang này.
 4. Demo **26/11**: chạy lại `seed.sql` ngay trước buổi demo để dữ liệu mẫu về trạng thái ban đầu. Gói miễn phí Supabase tự tạm dừng sau khoảng 1 tuần không truy cập: mở web mỗi vài ngày.
