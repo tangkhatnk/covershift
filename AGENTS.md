@@ -635,8 +635,8 @@ Khung do `AppShell` (`src/components/client.tsx`) dựng, `layout.tsx` chỉ tru
 - Từ `lg` (1024px): rail trái cố định rộng `15rem` thay cho thanh trên và thanh dưới; nội dung lùi `lg:pl-60`.
 - Người làm và chủ quán có 3 mục nav. Nhóm vận hành có 4 tab (Điều phối, Cơ sở, Người làm, Báo cáo) và nút "Thêm" (KPI, Nhật ký, Tài khoản) mở bằng `<details>`; rail desktop hiện đủ các mục. Mục `NAV` nằm ở `client.tsx`; thêm trang vào nav là sửa ở đó.
 - Không có nav chính ở trang token và hồ sơ công khai (`/xac-nhan`, `/dong-y`, `/h`), và khi chưa đăng nhập, chưa đăng ký hoặc bị khóa. Những trang đó chỉ có thanh trên.
-- Bề rộng nội dung do `AppShell` đặt: trang chủ `/` tự dựng bố cục; `/dang-nhap`, `/dieu-khoan`, `/chinh-sach-du-lieu` (tập `WIDE`) rộng `max-w-6xl`; mọi trang còn lại `max-w-3xl`. Trang mới cần rộng hơn thì thêm vào `WIDE`, không tự đặt `max-w-*` bao ngoài.
-- Không dựng bố cục nhiều cột hay bảng rộng ở trang `max-w-3xl` nếu không được giao rõ. Điều khoản và chính sách dùng `Doc` (bề rộng đọc `40rem`, mục lục dính bên phải ở desktop).
+- Bề rộng nội dung do hàm `contentWidth(pathname)` trong `src/components/client.tsx` (qua `AppShell`) đặt: trang chủ `/` tự dựng bố cục; `max-w-6xl` cho `/dang-nhap`, `/dieu-khoan`, `/chinh-sach-du-lieu`, `/ca`, `/ca-cua-toi`, `/quan`, `/admin` và mọi `/admin/*` (đúng đường dẫn, không gồm `/ca/[id]`, `/quan/ca/...`, `/quan/dang-ca`); mọi trang còn lại `max-w-3xl`. Trang mới cần rộng hơn thì sửa `contentWidth`, không tự đặt `max-w-*` bao ngoài.
+- Trang rộng được dùng nhiều cột và bảng thật; trang `max-w-3xl` không dựng bố cục nhiều cột hay bảng rộng nếu không được giao rõ. Cột chữ của trang đọc vẫn tự giới hạn: điều khoản và chính sách dùng `Doc` (bề rộng đọc `40rem`, mục lục dính bên phải ở desktop).
 
 ### Chữ, vùng chạm, khoảng cách
 
