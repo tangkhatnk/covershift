@@ -267,6 +267,23 @@ export async function setFacilityStatus(_: ActionState, fd: FormData): Promise<A
   }, { ok: 'Đã cập nhật cơ sở.', revalidate: ['/admin/co-so', '/admin'] });
 }
 
+/** Form: facility_id, lat, lng (hai ô rỗng = xóa ghim). Chủ cơ sở hoặc nhóm vận hành; RPC kiểm quyền và vùng Vũng Tàu. */
+export async function setFacilityLocation(_: ActionState, fd: FormData): Promise<ActionState> {
+  const num = (key: string) => {
+    const raw = str(fd, key).replace(',', '.');
+    return raw ? Number(raw) : null;
+  };
+  const lat = num('lat');
+  const lng = num('lng');
+  if ((lat !== null && !Number.isFinite(lat)) || (lng !== null && !Number.isFinite(lng))) {
+    return { error: 'Tọa độ chưa đúng. Hãy chạm vào bản đồ để chọn lại vị trí.' };
+  }
+  return call('set_facility_location', { p_facility: str(fd, 'facility_id'), p_lat: lat, p_lng: lng }, {
+    ok: lat === null ? 'Đã xóa ghim vị trí.' : 'Đã lưu vị trí quán.',
+    revalidate: ['/quan', '/ca', '/admin', '/admin/co-so'],
+  });
+}
+
 /** Form: worker_id, decision (approve | reject), note */
 export async function reviewWorker(_: ActionState, fd: FormData): Promise<ActionState> {
   const approve = str(fd, 'decision') === 'approve';

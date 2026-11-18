@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { ChevronLeft, Flag } from 'lucide-react';
 import { cancelClaim, claimShift, createReport, submitPayment } from '@/app/actions';
 import { ActionForm, SubmitButton } from '@/components/client';
+import { ShiftMap } from '@/components/map';
 import { Alert, Badge, Card, PageTitle, SlotStrip, StateBadge, Stars, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { AREA_LABEL, FACILITY_TYPE_LABEL, JOB_LABEL, PAYMENT_LABEL, type PaymentAnswer } from '@/lib/constants';
@@ -82,9 +83,11 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
     if (!res.error && res.data) contact = (res.data as Contacts).facility;
   }
 
+  const hasPin = s.lat != null && s.lng != null;
   const mapsHref = s.maps_url && /^https:\/\//i.test(s.maps_url)
     ? s.maps_url
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${s.facility_name} ${s.address}`)}`;
+  const directionsHref = hasPin ? `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}` : null;
 
   const showClaim = isWorker && upcoming && !active;
   const showActive = active && s.status !== 'cancelled';
@@ -137,8 +140,19 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
               <Row label="Địa chỉ">
                 <span className="font-normal">{s.address}</span>
                 <a href={mapsHref} target="_blank" rel="noopener noreferrer" className={`${linkCls} block min-h-[3rem] text-base leading-[3rem]`}>Xem bản đồ</a>
+                {directionsHref ? (
+                  <a href={directionsHref} target="_blank" rel="noopener noreferrer" className={`${linkCls} block min-h-[3rem] text-base leading-[3rem]`}>Chỉ đường</a>
+                ) : null}
               </Row>
             </dl>
+            {hasPin ? (
+              <div className="mt-2 border-t border-rule pt-4">
+                <ShiftMap
+                  className="h-64"
+                  points={[{ id: s.id, lat: s.lat!, lng: s.lng!, text: fmtTime(s.starts_at), label: `${s.facility_name}, ${s.address}`, tone: 'open' }]}
+                />
+              </div>
+            ) : null}
             {upcoming ? (
               <div className="mt-2 border-t border-rule pt-4">
                 <SlotStrip headcount={s.headcount} primary={s.primary_count} backup={s.backup_count} />

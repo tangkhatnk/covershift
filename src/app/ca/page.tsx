@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Alert, Badge, Empty, Field, PageTitle, ShiftCard, btn, inputCls } from '@/components/ui';
+import { Alert, Empty, Field, PageTitle, btn, inputCls } from '@/components/ui';
+import { LiveRefresh, ShiftExplorer } from '@/components/map';
 import { requireRole } from '@/lib/auth';
 import { AREA_LABEL, JOB_LABEL } from '@/lib/constants';
 import { friendlyError } from '@/lib/errors';
@@ -51,6 +52,7 @@ export default async function FeedPage({ searchParams }: {
 
   return (
     <div className="space-y-4">
+      <LiveRefresh />
       <PageTitle sub="Ca gấp hiện lên đầu. Bấm vào ca để xem và nhận.">Tìm ca</PageTitle>
 
       {profile.role === 'worker' && approval !== 'approved' ? (
@@ -110,21 +112,7 @@ export default async function FeedPage({ searchParams }: {
           {filtering ? 'Không có ca nào khớp bộ lọc. Thử bỏ lọc xem sao.' : 'Hiện chưa có ca nào đang tìm người. Bạn quay lại sau nhé.'}
         </Empty>
       ) : (
-        <ul className="grid gap-4 lg:grid-cols-2">
-          {shifts.map((s) => (
-            <li key={s.id}>
-              <ShiftCard
-                shift={s}
-                href={`/ca/${s.id}`}
-                extra={s.my_role ? (
-                  <Badge tone={s.my_role === 'primary' ? 'green' : 'amber'}>
-                    Bạn là {s.my_role === 'primary' ? 'người chính' : 'người dự phòng'}
-                  </Badge>
-                ) : undefined}
-              />
-            </li>
-          ))}
-        </ul>
+        <ShiftExplorer shifts={shifts} />
       )}
     </div>
   );

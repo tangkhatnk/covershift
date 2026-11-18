@@ -84,7 +84,8 @@ Dùng ranh giới sở hữu sẵn có trước khi tạo ranh giới mới. Đ�
   - `constants.ts`, `types.ts`, `format.ts`, `errors.ts`, `auth.ts`;
   - `supabase/` (client, server, middleware).
 - `src/components/`
-  - `ui.tsx` (thành phần trình bày), `client.tsx` (thành phần client: `AppShell`, `ActionForm`, `SubmitButton`...).
+  - `ui.tsx` (thành phần trình bày), `client.tsx` (thành phần client: `AppShell`, `ActionForm`, `SubmitButton`...),
+  `map.tsx` (bản đồ MapLibre: `ShiftMap`, `ShiftExplorer`, `LiveRefresh`, `LocationPicker`; Client Component vì maplibre-gl cần trình duyệt).
 - `middleware.ts`
   - làm mới phiên đăng nhập qua `src/lib/supabase/middleware.ts`; matcher bỏ qua file tĩnh và các trang token công khai.
 
@@ -110,7 +111,7 @@ Repo là một package Next.js ở thư mục gốc, không phải npm workspace
 - Next.js 15.5.29 (App Router), React 19;
 - TypeScript 5.9.3, Tailwind CSS 3.4.19;
 - `@supabase/ssr` 0.12.7, `@supabase/supabase-js` 2.119.0;
-- `lucide-react` 1.74.0 (icon, giấy phép ISC); font Be Vietnam Pro (chữ) và Barlow Condensed (số giờ ca) qua `next/font/google`, tự host lúc build;
+- `lucide-react` 1.74.0 (icon, giấy phép ISC); `maplibre-gl` 6.19.0 (bản đồ, giấy phép BSD-3-Clause; nền bản đồ từ OpenFreeMap, xem mục 16); font Be Vietnam Pro (chữ) và Barlow Condensed (số giờ ca) qua `next/font/google`, tự host lúc build;
 - `tailwind.config.ts` giữ bảng màu và font của giao diện (mục 19);
 - `db-test/`: `embedded-postgres` và `pg`.
 
@@ -126,7 +127,7 @@ npm run test:db       # tự chạy npm install trong db-test, rồi node run.mj
 Quy tắc:
 
 - không đổi package manager nếu không có task riêng;
-- không nâng phiên bản thư viện như việc phụ; phiên bản `@supabase/*`, `next`, `tailwindcss`, `typescript`, `lucide-react` đang ghim chính xác, giữ nguyên;
+- không nâng phiên bản thư viện như việc phụ; phiên bản `@supabase/*`, `next`, `tailwindcss`, `typescript`, `lucide-react`, `maplibre-gl` đang ghim chính xác, giữ nguyên;
 - thay đổi phụ thuộc phải kèm lockfile tương ứng và chỉ khi task cần;
 - không thêm bộ định dạng toàn repo (Prettier, ESLint...) chỉ vì repo chưa có; không chạy công cụ định dạng trên file không liên quan;
 - không commit `.env*` (trừ `.env.example`), `.next/`, `db-test/.pgdata`, `tsconfig.tsbuildinfo`, `node_modules/`.
@@ -490,6 +491,7 @@ Số điện thoại:
 - Ngoại lệ có chủ đích, chỉ hai loại:
   - chính chủ đọc SĐT của mình (policy `private_contacts_read`);
   - admin xem SĐT để vận hành, qua `get_shift_contacts()` và các RPC `admin_dispatch_board`, `admin_list_workers`, `admin_list_facilities`, `admin_list_reports`.
+- Bản đồ (`ShiftMap`, `ShiftExplorer`, popup và nhãn ghim) không bao giờ hiện SĐT; chỉ có tên quán, giờ ca và vị trí ghim. `lat`, `lng` của cơ sở đi qua `_shift_json()` và `admin_list_facilities()`: đó là vị trí quán do chủ quán hoặc nhóm vận hành tự ghim, không phải dữ liệu cá nhân của người làm. SafeShift không lưu vị trí người làm.
 - Không trả SĐT ở bất kỳ RPC hay trang nào khác. Đặc biệt `feed_shifts`, `shift_detail`, `my_shifts`, `employer_shifts`, `get_confirmation`, `get_parental_consent`, `get_public_profile`, và `_shift_json()` (hàm dùng chung cho nhiều RPC; thêm trường vào đó là thêm vào mọi nơi dùng). Test 5a, 7h, 7i.
 
 Phụ huynh:
@@ -563,7 +565,8 @@ Repo `tangkhatnk/covershift` là **PUBLIC**. Mọi thứ đã commit, kể cả 
 ## 16. Tích hợp ngoài
 
 - Chỉ dùng gói miễn phí của Supabase và Vercel. Không thêm dịch vụ trả phí hay dịch vụ đòi thẻ thanh toán.
-- Không thêm dịch vụ bên thứ ba mới (analytics, theo dõi lỗi, chat, CDN font/script, dịch vụ AI) khi chưa được duyệt. Hiện mã web không gọi dịch vụ ngoài nào ngoài Supabase.
+- Không thêm dịch vụ bên thứ ba mới (analytics, theo dõi lỗi, chat, CDN font/script, dịch vụ AI) khi chưa được duyệt. Hiện mã web chỉ gọi Supabase, và bản đồ gọi OpenFreeMap (xem dưới).
+- Bản đồ dùng OpenFreeMap (miễn phí, không cần khóa): **trình duyệt** của người dùng tải ô bản đồ, kiểu bản đồ và phông chữ (glyph) từ `tiles.openfreemap.org`. Dịch vụ này nhận địa chỉ IP và vùng bản đồ đang xem; mã web và Server Action không gửi cho nó dữ liệu cá nhân nào. Chủ dự án đã duyệt dịch vụ này trong brief của PR bản đồ; `/chinh-sach-du-lieu` có mục "Bản đồ" nêu điều này. Nút "Dùng vị trí hiện tại" chỉ đọc vị trí trên máy của chủ quán và chỉ gửi tọa độ quán khi bấm Lưu (RPC `set_facility_location`). Đổi nhà cung cấp bản đồ hay thêm dịch vụ bản đồ khác là thay đổi cần duyệt.
 - Không gửi dữ liệu cá nhân (họ tên, SĐT, email, ngày sinh, trường, token link) ra dịch vụ ngoài khi luồng sản phẩm chưa cho phép và `/chinh-sach-du-lieu` chưa nêu. Không dán dữ liệu thật vào công cụ AI hay công cụ bên ngoài khi làm việc.
 - Edge Function `supabase/functions/shift-reminders/index.ts` (nhắc ca qua email) là phần phụ, **mặc định tắt**: chưa deploy, chưa chạy thử.
   - Không bật, deploy, hay tạo lịch `pg_cron` khi chủ dự án chưa yêu cầu.
@@ -578,8 +581,8 @@ Repo `tangkhatnk/covershift` là **PUBLIC**. Mọi thứ đã commit, kể cả 
 
 ## 17. Chính sách phụ thuộc
 
-- Ưu tiên cái đã có (Next.js, React, `@supabase/ssr`, `@supabase/supabase-js`, Tailwind, `lucide-react` cho icon, `next/font` cho font) và API của nền tảng. Không thêm thư viện chỉ để tránh viết vài dòng rõ ràng.
-- Phiên bản đang được ghim có chủ đích để ổn định (Next `15.5.29`, Tailwind `3.4.19`, TypeScript `5.9.3`, `@supabase/ssr` `0.12.7`, `@supabase/supabase-js` `2.119.0`, `lucide-react` `1.74.0`, Node `24.x`). Không nâng cấp, nhất là nâng major, kèm một việc khác. Nâng cấp là task riêng, phải chạy `npx tsc --noEmit` và `next build`.
+- Ưu tiên cái đã có (Next.js, React, `@supabase/ssr`, `@supabase/supabase-js`, Tailwind, `lucide-react` cho icon, `maplibre-gl` cho bản đồ, `next/font` cho font) và API của nền tảng. Không thêm thư viện chỉ để tránh viết vài dòng rõ ràng.
+- Phiên bản đang được ghim có chủ đích để ổn định (Next `15.5.29`, Tailwind `3.4.19`, TypeScript `5.9.3`, `@supabase/ssr` `0.12.7`, `@supabase/supabase-js` `2.119.0`, `lucide-react` `1.74.0`, `maplibre-gl` `6.19.0`, Node `24.x`). Không nâng cấp, nhất là nâng major, kèm một việc khác. Nâng cấp là task riêng, phải chạy `npx tsc --noEmit` và `next build`.
 - Thay đổi dependency phải kèm lockfile tương ứng (`package-lock.json` ở gốc, hoặc `db-test/package-lock.json`). Không để lockfile đổi vặt: nếu `npm run test:db` làm đổi `db-test/package-lock.json` mà task không đụng dependency thì không commit phần đó.
 - Không thêm Supabase admin SDK, service-role client hay thư viện gửi dữ liệu ra ngoài vào mã web.
 - `db-test/` có cây phụ thuộc riêng (`embedded-postgres`, `pg`, `package.json` và lockfile riêng). Không gộp vào `package.json` gốc, không import từ `src/`, và không để mã web phụ thuộc vào nó.
@@ -606,7 +609,7 @@ Quyền và điều hướng:
 Quy ước Next 15 của repo:
 
 - `params` và `searchParams` là `Promise`: khai kiểu `Promise<...>` và `await` (xem `src/app/xac-nhan/[token]/page.tsx`, `src/app/ca/page.tsx`).
-- `'use client'` chỉ khi cần trạng thái, hiệu ứng hoặc API trình duyệt. Hiện có ba file: `src/components/client.tsx` (có `AppShell`, dùng `usePathname`), `src/app/xac-nhan/[token]/confirm-form.tsx` và `src/app/error.tsx` (Next bắt buộc error boundary là Client Component). `src/app/not-found.tsx` là Server Component. Trang `/dang-nhap` là Server Component, ba nút demo là form gọi server action `demoLogin`. Client Component nhỏ, đặt ở lá cây; trang bao ngoài vẫn là Server Component. Không dùng `createClient()` từ `@/lib/supabase/client` để đọc hay ghi dữ liệu nghiệp vụ.
+- `'use client'` chỉ khi cần trạng thái, hiệu ứng hoặc API trình duyệt. Hiện có bốn file: `src/components/client.tsx` (có `AppShell`, dùng `usePathname`), `src/components/map.tsx` (maplibre-gl cần `window`, WebGL và DOM; chỉ nhận dữ liệu JSON thuần từ trang Server Component), `src/app/xac-nhan/[token]/confirm-form.tsx` và `src/app/error.tsx` (Next bắt buộc error boundary là Client Component). `src/app/not-found.tsx` là Server Component. Trang `/dang-nhap` là Server Component, ba nút demo là form gọi server action `demoLogin`. Client Component nhỏ, đặt ở lá cây; trang bao ngoài vẫn là Server Component. Không dùng `createClient()` từ `@/lib/supabase/client` để đọc hay ghi dữ liệu nghiệp vụ.
 - Trang chứa token hoặc dữ liệu riêng (`/xac-nhan`, `/dong-y`, `/h`, `/admin`) đặt `robots: { index: false, follow: false }`. Trang mới cùng loại làm tương tự.
 - Server chạy UTC. Mọi giờ và ngày hiển thị qua `src/lib/format.ts` (`fmtDate`, `fmtTime`, `fmtRange`, `fmtDateTime`, `fmtPlainDate`, `vnDateInput`, `fmtMoney`, `hoursBetween`, `shiftState`). Không gọi `toLocaleString`, `Date#getHours` hay tự ghép giờ trong component. Giá trị điền vào `<input type="time">` cũng lấy từ đó (có chủ đích dùng `hourCycle: 'h23'`).
 - Không chạy `next dev` và `next build` cùng lúc (chung thư mục `.next`).
@@ -661,7 +664,7 @@ Khung do `AppShell` (`src/components/client.tsx`) dựng, `layout.tsx` chỉ tru
   - `rule` `#CFCAB2` (viền hairline) và `rule-strong` `#7C8479` (viền ô nhập, ô tick).
   - Trạng thái qua `Tone`: `green` = shutter, `amber` = wall, `red` = roof, `blue` = sea, `gray` = chalk có viền `rule`.
   - Màu `brand` chỉ còn là bí danh tạm trỏ về `shutter` để các trang chưa làm lại vẫn có màu; không dùng `brand` trong mã mới.
-- Bo góc duy nhất là `rounded-ui` (6px). Không đổ bóng, không gradient, không kính mờ (glass), không viền trái màu; ngoại lệ duy nhất dự kiến là pin của bản đồ (PR sau). Không đưa vào bảng màu, font, bo góc hay đổ bóng thứ hai. Cần sắc độ mới thì thêm vào `tailwind.config.ts`.
+- Bo góc duy nhất là `rounded-ui` (6px). Không đổ bóng, không gradient, không kính mờ (glass), không viền trái màu; ngoại lệ duy nhất là bóng mềm của pin trên bản đồ (`src/components/map.tsx`), để pin nổi lên khỏi nền bản đồ; không dùng bóng ở chỗ khác. Không đưa vào bảng màu, font, bo góc hay đổ bóng thứ hai. Cần sắc độ mới thì thêm vào `tailwind.config.ts`.
 - Bố cục nội dung là các mô-đun chữ nhật viền hairline (`Card`, `ShiftCard`). Dải đầu của mô-đun (`Card tab`, đầu `ShiftCard`) chứa dữ liệu thật (loại việc, trạng thái, nhãn "GẤP"), không phải nhãn trang trí. Không dùng nhãn kicker hoặc eyebrow (dòng chữ nhỏ viết hoa phía trên tiêu đề). Không bọc từng dòng trong thẻ, không lồng thẻ trong thẻ.
 - Dãy cửa chớp (`SlotStrip`) là hình đặc trưng của sản phẩm: mỗi người chính là một ô cửa (đóng = đã có người, trống = còn chỗ), có một ô dự phòng nét đứt tách bằng một trụ. Hình chỉ là minh họa (`aria-hidden`); luôn kèm câu chữ đọc được ("2/3 người chính · chưa có dự phòng") và chữ "Dự phòng" đầy đủ, không rút gọn, không chỉ dựa vào hình và màu.
 - Từ điển trạng thái ca đóng (`StateBadge`): mỗi trạng thái đúng một icon, một nhãn, một tông. Không tự ghép Badge trạng thái ca ở trang khác.
@@ -691,7 +694,7 @@ Icon dùng `lucide-react` (ghim `1.74.0`, giấy phép ISC): khung điều hư�
 
 ## 21. Thư viện frontend
 
-Dependency hiện tại nhỏ: `next`, `react`, `react-dom`, `@supabase/ssr`, `@supabase/supabase-js`, `lucide-react`; Tailwind 3.4.19, PostCSS, Autoprefixer. Font đi qua `next/font`, không phải gói riêng. Bằng đó là đủ cho một giao diện đơn giản.
+Dependency hiện tại nhỏ: `next`, `react`, `react-dom`, `@supabase/ssr`, `@supabase/supabase-js`, `lucide-react`, `maplibre-gl`; Tailwind 3.4.19, PostCSS, Autoprefixer. Font đi qua `next/font`, không phải gói riêng. `maplibre-gl` chỉ nằm trong `src/components/map.tsx`, tải theo yêu cầu (lazy) để trang không có bản đồ không phải gánh dung lượng của nó. Bằng đó là đủ cho một giao diện đơn giản.
 
 - Không thêm UI framework hay hệ thiết kế lớn (MUI, Ant Design, Chakra, Bootstrap, shadcn cho cả repo) để làm đẹp một màn hình. Đề xuất riêng và nêu đánh đổi trước khi coi là được phép.
 - Không nâng Tailwind 3 lên 4 như việc phụ. Bảng màu, font và `rounded-ui` khai trong `tailwind.config.ts`; thêm màu hoặc cỡ mới ở đó. Đổi cách cấu hình (`tailwind.config.ts`, `@tailwind` trong `globals.css`) là việc riêng, cần issue và kiểm lại toàn bộ giao diện.

@@ -22,6 +22,7 @@ Trình duyệt ──► Next.js trên Vercel (Server Component + Server Action,
 ```
 
 - Ứng dụng **không dùng service-role key**. Vercel chỉ giữ anon key. Lộ mã nguồn frontend không lộ quyền gì.
+- Bản đồ (MapLibre) tải ô bản đồ và phông chữ từ `tiles.openfreemap.org` ngay trên trình duyệt người dùng: không cần khóa, không cấu hình thêm, nhưng cần có mạng; dịch vụ này nhận IP và vùng đang xem, không nhận dữ liệu tài khoản.
 - Số điện thoại nằm ở bảng riêng `private_contacts`; chỉ lộ qua `get_shift_contacts()` cho hai bên đã ghép ca.
 - Trang không cần đăng nhập (`/xac-nhan/[token]`, `/dong-y/[token]`, `/h/[slug]`) gọi RPC bằng quyền `anon`, bảo vệ bằng token ngẫu nhiên 244 bit.
 

@@ -2,29 +2,36 @@ import { TZ } from './constants';
 import type { Shift } from './types';
 
 // Server Vercel chạy giờ UTC => LUÔN định dạng theo múi giờ Việt Nam.
-const dateFmt = new Intl.DateTimeFormat('vi-VN', { timeZone: TZ, weekday: 'short', day: '2-digit', month: '2-digit' });
+// Mọi chữ hiển thị tự ghép từ SỐ (Intl chỉ cho ra chữ số), không dùng tên thứ/tháng của Intl: ICU của Node và của từng
+// trình duyệt cho chữ khác nhau ("Thứ 5" và "Th 5") nên trang dựng ở server rồi hydrate trên client sẽ lệch (React #418).
 // hourCycle 'h23' (không dùng hour12: false) để nửa đêm luôn là "00:00", không bao giờ "24:00" — giá trị
 // này còn được điền vào <input type="time"> ở form nhân bản ca.
-const timeFmt = new Intl.DateTimeFormat('vi-VN', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
-const fullFmt = new Intl.DateTimeFormat('vi-VN', {
-  timeZone: TZ, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+const partsFmt = new Intl.DateTimeFormat('en-US', {
+  timeZone: TZ, weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
 });
-const isoDateFmt = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
+const WEEKDAY: Record<string, string> = { Sun: 'CN', Mon: 'Thứ 2', Tue: 'Thứ 3', Wed: 'Thứ 4', Thu: 'Thứ 5', Fri: 'Thứ 6', Sat: 'Thứ 7' };
+/** Các thành phần ngày giờ theo giờ Việt Nam. */
+function vn(d: Date | string) {
+  const o: Record<string, string> = {};
+  for (const p of partsFmt.formatToParts(new Date(d))) o[p.type] = p.value;
+  return o;
+}
 
-/** "Th 7, 21/11" */
-export const fmtDate = (iso: string) => dateFmt.format(new Date(iso));
+/** "Thứ 7, 21/11" ("CN, 22/11" cho Chủ nhật) */
+export const fmtDate = (iso: string) => { const p = vn(iso); return `${WEEKDAY[p.weekday]}, ${p.day}/${p.month}`; };
 /** "08:00" */
-export const fmtTime = (iso: string) => timeFmt.format(new Date(iso));
-/** "Th 7, 21/11 · 08:00–12:00" */
+export const fmtTime = (iso: string) => { const p = vn(iso); return `${p.hour}:${p.minute}`; };
+/** "Thứ 7, 21/11 · 08:00–12:00" */
 export const fmtRange = (start: string, end: string) => `${fmtDate(start)} · ${fmtTime(start)}–${fmtTime(end)}`;
-/** "21/11/2026 08:00" */
-export const fmtDateTime = (iso: string) => fullFmt.format(new Date(iso));
+/** "08:00 21/11/2026" */
+export const fmtDateTime = (iso: string) => { const p = vn(iso); return `${p.hour}:${p.minute} ${p.day}/${p.month}/${p.year}`; };
 /** "2026-11-21" theo giờ Việt Nam, dùng cho <input type="date"> và tham số ngày của RPC */
-export const vnDateInput = (d: Date | string = new Date()) => isoDateFmt.format(new Date(d));
+export const vnDateInput = (d: Date | string = new Date()) => { const p = vn(d); return `${p.year}-${p.month}-${p.day}`; };
 /** "21/11/2026" từ chuỗi ngày thuần "2026-11-21" */
 export const fmtPlainDate = (ymd: string) => ymd.split('-').reverse().join('/');
-/** "27.000đ" */
-export const fmtMoney = (n: number) => `${new Intl.NumberFormat('vi-VN').format(n)}đ`;
+/** "27.000đ" (số nguyên tự ghép dấu chấm hàng nghìn, để server và trình duyệt giống nhau) */
+export const fmtMoney = (n: number) =>
+  `${Number.isInteger(n) ? String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.') : new Intl.NumberFormat('vi-VN').format(n)}đ`;
 /** Số giờ của ca (1 chữ số thập phân) */
 export const hoursBetween = (start: string, end: string) =>
   Math.round(((new Date(end).getTime() - new Date(start).getTime()) / 3_600_000) * 10) / 10;

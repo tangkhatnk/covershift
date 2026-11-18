@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { CirclePlus } from 'lucide-react';
-import { Alert, Empty, PageTitle, ShiftCard, btn } from '@/components/ui';
+import { setFacilityLocation } from '@/app/actions';
+import { ActionForm, SubmitButton } from '@/components/client';
+import { LocationPicker } from '@/components/map';
+import { Alert, Card, Empty, PageTitle, ShiftCard, btn } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
 import { shiftState } from '@/lib/format';
@@ -8,7 +11,7 @@ import type { Shift } from '@/lib/types';
 
 export const metadata = { title: 'Ca của quán' };
 
-type Facility = { id: string; name: string; address: string; verified: boolean; status: 'pending' | 'active' | 'removed' };
+type Facility = { id: string; name: string; address: string; verified: boolean; status: 'pending' | 'active' | 'removed'; lat: number | null; lng: number | null };
 
 function Group({ title, shifts }: { title: string; shifts: Shift[] }) {
   if (!shifts.length) return null;
@@ -43,7 +46,7 @@ function Group({ title, shifts }: { title: string; shifts: Shift[] }) {
 export default async function EmployerHomePage() {
   const { supabase, profile } = await requireRole('employer');
   const [{ data: facData, error: facError }, { data: shiftData, error: shiftError }] = await Promise.all([
-    supabase.from('facilities').select('id, name, address, verified, status').eq('owner_id', profile.id).maybeSingle(),
+    supabase.from('facilities').select('id, name, address, verified, status, lat, lng').eq('owner_id', profile.id).maybeSingle(),
     supabase.rpc('employer_shifts'),
   ]);
   const facility = facData as Facility | null;
@@ -89,6 +92,20 @@ export default async function EmployerHomePage() {
             Đăng ca mới
           </Link>
         </div>
+      ) : null}
+
+      {facility && facility.status !== 'removed' ? (
+        <Card>
+          <h2 className="text-xl font-bold text-ink">Vị trí quán trên bản đồ</h2>
+          <p className="mb-4 mt-2 text-base text-ink">
+            {facility.lat == null ? 'Ghim vị trí quán để người làm tìm đường.' : 'Chạm vào bản đồ hoặc kéo ghim để đổi vị trí, rồi bấm Lưu.'}
+          </p>
+          <ActionForm action={setFacilityLocation}>
+            <input type="hidden" name="facility_id" value={facility.id} />
+            <LocationPicker lat={facility.lat} lng={facility.lng} />
+            <SubmitButton variant="secondary">Lưu vị trí</SubmitButton>
+          </ActionForm>
+        </Card>
       ) : null}
 
       {shiftError ? <Alert tone="red">{friendlyError(shiftError)}</Alert> : null}

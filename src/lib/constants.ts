@@ -68,6 +68,7 @@ export const FACILITY_STATUS_LABEL = { pending: 'Chờ xác minh', active: 'Đan
 export const AUDIT_ACTION_LABEL: Record<string, string> = {
   verify_facility: 'Xác minh cơ sở',
   set_facility_status: 'Đổi trạng thái cơ sở',
+  set_facility_location: 'Đặt vị trí cơ sở',
   approve_worker: 'Duyệt người làm',
   reject_worker: 'Từ chối người làm',
   lock_account: 'Khóa tài khoản',

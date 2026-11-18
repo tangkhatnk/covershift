@@ -16,7 +16,7 @@ export default function DataPolicyPage() {
           <li>Email dùng để đăng nhập</li>
         </UL>
         <p><b>Phụ huynh của người làm 15–17 tuổi:</b> họ tên, số điện thoại và thời điểm đồng ý.</p>
-        <p><b>Chủ quán:</b> họ tên người liên hệ, số điện thoại, email đăng nhập, tên, loại hình, địa chỉ và khu vực của cơ sở.</p>
+        <p><b>Chủ quán:</b> họ tên người liên hệ, số điện thoại, email đăng nhập, tên, loại hình, địa chỉ và khu vực của cơ sở, cùng vị trí ghim trên bản đồ nếu chủ quán chọn ghim.</p>
         <p>Ngoài ra hệ thống ghi lại lịch sử ca: ca đã nhận, đã hủy, kết quả chủ quán xác nhận và câu trả lời về tiền công.</p>
     </>) },
     { title: "Chúng tôi KHÔNG thu", body: (<>
@@ -64,6 +64,23 @@ export default function DataPolicyPage() {
           Dữ liệu được lưu trên dịch vụ cơ sở dữ liệu Supabase và trang web chạy trên Vercel. Đây là bản mô phỏng: mọi dữ liệu
           là dữ liệu mẫu, ba tài khoản demo dùng chung mật khẩu công khai, vì vậy bạn không nhập thông tin thật.
         </p>
+    </>) },
+    { title: "Bản đồ", body: (<>
+        <UL>
+          <li>
+            Bản đồ ở trang tìm ca và chi tiết ca hiện vị trí quán do chủ quán tự ghim. Người làm nào thấy ca đó cũng thấy ghim này,
+            không có số điện thoại đi kèm.
+          </li>
+          <li>
+            Khi bạn mở một trang có bản đồ, trình duyệt tải ảnh bản đồ và phông chữ của bản đồ từ <b>tiles.openfreemap.org</b> (dịch vụ OpenFreeMap).
+            Dịch vụ này nhận địa chỉ IP của bạn và vùng bản đồ bạn đang xem. Chúng tôi không gửi tên, số điện thoại hay dữ liệu tài khoản tới dịch vụ này.
+          </li>
+          <li>
+            Nút &quot;Dùng vị trí hiện tại&quot; của chủ quán chỉ đọc vị trí trên máy của chủ quán. Tọa độ chỉ được gửi cho SafeShift khi chủ quán bấm Lưu,
+            và chỉ là vị trí quán.
+          </li>
+          <li>SafeShift không lưu vị trí của người làm.</li>
+        </UL>
     </>) },
     { title: "Quyền của bạn", body: (<>
         <UL>

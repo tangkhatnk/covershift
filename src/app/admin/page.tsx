@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
 import { primaryBusy } from '@/app/actions';
 import { ActionForm, CopyButton, Flash, SubmitButton } from '@/components/client';
+import { LiveRefresh, ShiftMap, type MapPoint } from '@/components/map';
 import { Alert, Badge, Card, Empty, Field, PageTitle, StateBadge, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { JOB_LABEL, SITE_URL } from '@/lib/constants';
@@ -183,11 +184,17 @@ export default async function DispatchPage({ searchParams }: { searchParams: Pro
   const upcoming = board?.upcoming ?? [];
   const pending = board?.pending ?? [];
   const now = Date.now();
+  const points: MapPoint[] = upcoming.flatMap((s) => s.lat == null || s.lng == null ? [] : [{
+    id: s.id, lat: s.lat, lng: s.lng, text: fmtTime(s.starts_at),
+    label: `${s.facility_name}, ${fmtRange(s.starts_at, s.ends_at)}`, href: `/quan/ca/${s.id}`,
+    tone: s.claims.filter((c) => c.role === 'primary').length >= s.headcount ? 'full' as const : s.urgent ? 'urgent' as const : 'open' as const,
+  }]);
   const short = upcoming.filter((s) => s.claims.filter((c) => c.role === 'primary').length < s.headcount).length;
 
   return (
     <div className="space-y-6">
-      <PageTitle sub={`Cập nhật lúc ${fmtDateTime(new Date(now).toISOString())}. Tải lại trang để xem mới nhất.`}>
+      <LiveRefresh />
+      <PageTitle sub={`Cập nhật lúc ${fmtDateTime(new Date(now).toISOString())}. Trang tự làm mới mỗi 30 giây.`}>
         Bảng điều phối
       </PageTitle>
 
@@ -200,6 +207,10 @@ export default async function DispatchPage({ searchParams }: { searchParams: Pro
         <Flash param="bao-ban" tone="red">
           <b>Đã ghi sự cố nhưng ca này KHÔNG có người dự phòng.</b> Cần tìm người thay ngay.
         </Flash>
+      ) : null}
+
+      {points.length > 0 ? (
+        <ShiftMap points={points} className="h-72 lg:h-96" caption="Ca trong 24 giờ tới. Chạm vào ghim để mở ca." />
       ) : null}
 
       {/* Hai cột từ 1024px: ca sắp diễn ra (việc gấp) bên trái, ca chờ xác nhận bên phải. */}
