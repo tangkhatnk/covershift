@@ -272,7 +272,7 @@ TESTING.md                        A: test tự động · B: kịch bản tay tr
 - Server chạy UTC: mọi hiển thị giờ phải qua `src/lib/format.ts`.
 - Next 15: `params` / `searchParams` là `Promise`.
 - `_bypass()` (bỏ qua trigger khi seed) chỉ bật khi `app.seed_mode = 'on'` **và** `session_user` là `postgres`/`supabase_admin`. Không nới điều kiện này.
-- **`0001_init.sql` đã áp lên Supabase thật ngày 17/11/2026 → không sửa file này nữa.** Mọi thay đổi schema là file migration mới (`0002_...sql`) kèm test.
+- **`0001_init.sql` (17/11/2026) và `0002_toa_do_co_so.sql` (18/11/2026) đã áp lên Supabase thật → không sửa hai file này nữa.** Mọi thay đổi schema là file migration mới (`0003_...sql`) kèm test.
 - `next build` và `next dev` dùng chung `.next/` — đừng chạy song song.
 
 ---
@@ -317,6 +317,7 @@ Chức năng: đăng ca / nhân bản / đổi thứ tự chính–dự phòng �
 
 ### Đã xong
 - Migration `0001_init.sql` đã áp lên Supabase thật (17/11).
+- Migration `0002_toa_do_co_so.sql` (cột `lat`/`lng` của cơ sở, RPC `set_facility_location`) đã áp lên Supabase thật ngày 18/11: chủ dự án tự dán bằng SQL Editor, chạy `privileges_check.sql` (theo chủ dự án không có dòng SAI/KIỂM; chưa có agent nào tự kiểm trực tiếp) và chạy lại `seed.sql`. Kiểm công khai sau khi áp (chỉ đọc): anon gọi `set_facility_location` → 401 `42501`; anon đọc `private_contacts`, `parental_consents` (cột `parent_phone`), `facilities` (cột `lat`,`lng`) → đều 401 `42501`; anon đọc `app_config` → 200. Trên production chỉ bấm 3 nút đăng nhập: cả 3 vai trò vào được; `/ca` có 3 ca; ca `…0002` của `nguoilam1` không còn "Bạn là người chính"; `/xac-nhan/demo-token-con-han` hiện lại form; `/quan`, `/admin/co-so`, `/admin` mở không có thông báo lỗi.
 - Đã rà 6 file trang chủ quán và trang công khai do subagent thứ ba viết.
 - Nút ẩn/hiện nhận xét cho nhóm vận hành ở `/quan/ca/[id]`.
 - Deploy Vercel (https://safeshift-beta.vercel.app).
