@@ -132,6 +132,17 @@ Quy tắc:
 - không thêm bộ định dạng toàn repo (Prettier, ESLint...) chỉ vì repo chưa có; không chạy công cụ định dạng trên file không liên quan;
 - không commit `.env*` (trừ `.env.example`), `.next/`, `db-test/.pgdata`, `tsconfig.tsbuildinfo`, `node_modules/`.
 
+### Skill thiết kế giao diện
+
+Skill chỉ gợi ý; mục 19–22 và `PRODUCT.md`, `DESIGN.md` là nguồn sự thật. Gợi ý nào mâu thuẫn thì bỏ, không sửa luật cho khớp skill.
+
+- Được tự gọi khi làm việc giao diện: `impeccable` (`critique`, `audit`, `adapt`, `harden`, `polish`, `extract`), `emil-design-eng`, `animate`, `animation-performance`, `improve-animations` (chỉ lập kế hoạch).
+- Chỉ chạy khi chủ dự án gọi tay: `design-taste-frontend` (nhắm vào trang giới thiệu công ty; chỉ dùng cho trang chủ) và `review-animations`. Hai skill này đã khóa tự gọi trên máy chủ dự án; agent không tự bật lại.
+- Thứ tự cho một PR giao diện, mỗi lượt một skill: `critique` → `adapt` (kiểm 360, 390, 414px) → `harden` → `audit` (không còn P0/P1) → `polish` → chuyển động (cuối cùng, theo mục 22) → kiểm trực quan (mục 23).
+- `/impeccable live` chỉ chạy trên máy cục bộ, không trên bản đã deploy, và phải đặt `IMPECCABLE_LIVE_COPY_AGENT=chat` (nếu không, bước Apply có thể chạy CLI `claude` với sandbox tắt). Hook của impeccable quét file giao diện vừa sửa và vẫn chạy cả khi lệnh của model bị chặn; không tắt nó trong lượt làm việc thường.
+- Bản thiết kế từ Claude Design (handoff hoặc ZIP) là đầu vào, không phải kết quả cuối: dựng lại bằng token và component của dự án (mục 18–19), không chép nguyên mã trong bundle, không thêm phụ thuộc từ bundle, và đi qua PR như mọi thay đổi (mục 6).
+- Worker không tự cài skill, plugin hay MCP mới; cần thêm thì ghi vào báo cáo để chủ dự án quyết.
+
 ---
 
 ## 5. Quy trình agent mặc định (agent chính, execution manager, 2 worker)
@@ -710,7 +721,7 @@ Dependency hiện tại nhỏ: `next`, `react`, `react-dom`, `@supabase/ssr`, `@
 - Cũng vì trình duyệt nhúng: trang token không phụ thuộc vào `alert`, `prompt`, cửa sổ mới hay bước đăng nhập. Đăng nhập demo là form thường nên chạy được trong trình duyệt nhúng; không thêm lại luồng đăng nhập cần cửa sổ ngoài.
 - Menu "Thêm" của nhóm vận hành dùng `<details>`/`<summary>` (chạy bằng bàn phím và trong trình duyệt nhúng, đóng bằng Esc hoặc chạm ra ngoài); không thay bằng menu thả cần JS phức tạp. Nav có `aria-label="Điều hướng chính"` và mục đang chọn mang `aria-current="page"`.
 - Nhóm lựa chọn dùng input radio/checkbox thật khi có thể. Bộ chấm sao trong `confirm-form.tsx` dùng `role="radiogroup"` với các `button role="radio"` và chưa có điều khiển bằng phím mũi tên. Nếu viết lại kiểu này, hoặc dùng input radio thật, hoặc bổ sung đủ hành vi bàn phím của radiogroup.
-- Chuyển động: hiện chỉ có `transition` màu và vòng quay đang gửi; `globals.css` đã rút mọi `animation`/`transition` về gần 0 khi `prefers-reduced-motion: reduce`. Nếu thêm animation, bọc bằng `motion-reduce:` hoặc `@media (prefers-reduced-motion: reduce)`, và chỉ dùng cho phản hồi trạng thái. Không dùng animation che việc thiếu trạng thái đang tải hay lỗi. Cuộn tới thông báo (`ActionForm`, `Flash`) dùng `scrollIntoView({ block: 'center' })`, mượt trừ khi người dùng chọn giảm chuyển động (`scrollBehavior()` trong `client.tsx`); thêm cuộn kiểu này thì kiểm điều kiện đó. Thông báo mang `scroll-my-4` và `<html>` có `scroll-padding` theo `--chrome-top`/`--chrome-bottom`, để thông báo hay mục neo không nằm dưới thanh dính. Vòng quay của `SubmitButton` dùng `motion-safe:animate-spin`.
+- Chuyển động: hiện chỉ có `transition` màu và vòng quay đang gửi; `globals.css` đã rút mọi `animation`/`transition` về gần 0 khi `prefers-reduced-motion: reduce`. Nếu thêm animation, bọc bằng `motion-reduce:` hoặc `@media (prefers-reduced-motion: reduce)`, và chỉ dùng cho phản hồi trạng thái. Không dùng animation che việc thiếu trạng thái đang tải hay lỗi. Cuộn tới thông báo (`ActionForm`, `Flash`) dùng `scrollIntoView({ block: 'center' })`, mượt trừ khi người dùng chọn giảm chuyển động (`scrollBehavior()` trong `client.tsx`); thêm cuộn kiểu này thì kiểm điều kiện đó. Thông báo mang `scroll-my-4` và `<html>` có `scroll-padding` theo `--chrome-top`/`--chrome-bottom`, để thông báo hay mục neo không nằm dưới thanh dính. Vòng quay của `SubmitButton` dùng `motion-safe:animate-spin`. Skill chuyển động (`animate`, `emil-design-eng`, `improve-animations`) chỉ được gợi ý trong khuôn khổ này: chỉ CSS, không thêm thư viện (không `framer-motion`), không hiệu ứng trang trí; đề xuất nào vượt khuôn khổ thì bỏ. `design-taste-frontend` nhắm vào trang giới thiệu công ty, không dùng cho màn thao tác của chủ quán và người làm (chỉ chạy khi chủ dự án gọi tay cho trang chủ).
 - Tương phản đạt WCAG AA: chữ nội dung dùng `ink` hoặc `ink-soft` trên `chalk`/trắng, chữ trên nền `shutter-deep` là trắng hoặc `wall`; không tự pha màu chữ nhạt hơn `ink-soft` cho nội dung (chỉ `placeholder` dùng `ink-soft/80`). Cặp màu mới phải tự tính tỉ lệ tương phản (4,5:1 cho chữ thường). Không chỉ dùng màu để phân biệt trạng thái: luôn kèm chữ như `Badge` đang làm.
 
 ---
