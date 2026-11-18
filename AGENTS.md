@@ -170,6 +170,7 @@ Việc tìm hiểu ngoài phần agent chính cần để quyết định hướ
 - Agent con bị dừng giữa chừng (vd. 429): kiểm tra đĩa (`git status`, `git diff`) xem nó đã ghi gì, đợi giới hạn reset rồi gọi lại chính agent đó (`SendMessage`) thay vì tạo mới.
 - Không dùng agent con cho thao tác cần tài khoản của chủ dự án (Supabase dashboard, Vercel). Những bước đó chủ dự án tự làm; agent hướng dẫn từng bước.
 - Bốn agent cũ (`implementer`, `db-guardian`, `contract-reviewer`, `ui-qa`) không còn trong luồng mặc định. Worker đọc file của chúng làm checklist chuyên môn khi việc chạm tới lĩnh vực đó: `db-guardian` cho `supabase/`, `contract-reviewer` cho giao diện so với RPC, `ui-qa` cho kiểm trực quan ở 360–414px theo `TESTING.md` mục B.
+- Sửa tài liệu cho khớp với thay đổi trong cùng PR (`AGENTS.md`, `CLAUDE.md`, `README.md`, `TESTING.md`, `PROJECT_HANDOFF.md`, `PRODUCT.md`), theo mục 29, là việc thường lệ: worker làm khi brief của agent chính hoặc `execution-manager` giao, không cần chủ dự án xác nhận lại từng lần. Đổi quy tắc nghiệp vụ, bảo mật, quyền hay quy trình agent vẫn cần chủ dự án duyệt (mục 6).
 
 ### Khi mở phiên mà chủ dự án chưa giao việc
 
