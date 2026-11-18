@@ -91,7 +91,7 @@ Dùng ranh giới sở hữu sẵn có trước khi tạo ranh giới mới. Đ�
 ### Công cụ và tài liệu
 
 - `.claude/agents/`
-  - agent điều phối `safeshift-lead` và 4 subagent (`implementer`, `db-guardian`, `contract-reviewer`, `ui-qa`), xem mục 5.
+  - agent chính `safeshift-lead`, `execution-manager` và `worker` (đang dùng); `implementer`, `db-guardian`, `contract-reviewer`, `ui-qa` giữ làm checklist cho worker. Xem mục 5.
 - `.claude/settings.json`
   - cấu hình Claude Code dùng chung: bật `safeshift-lead` làm agent của phiên chính. `.claude/settings.local.json` là cấu hình cá nhân, bị `.gitignore`.
 - Tài liệu: `AGENTS.md` (file này), `CLAUDE.md` (ghi chú riêng cho Claude Code, nạp `AGENTS.md`), `PROJECT_HANDOFF.md` (bối cảnh và quyết định), `README.md` (cài đặt, deploy), `TESTING.md` (A: tự động, B: kịch bản tay), `PROMPT_CLAUDE_CODE.md` (prompt tiếp quản).
@@ -131,44 +131,52 @@ Quy tắc:
 
 ---
 
-## 5. Quy trình agent mặc định (3 subagent)
+## 5. Quy trình agent mặc định (agent chính, execution manager, 2 worker)
 
-Áp dụng cho mọi phiên làm việc của coding agent trong repo này. Với Claude Code, quy trình được bật sẵn: `.claude/settings.json` chạy agent điều phối `safeshift-lead`, agent này tự gửi lượt đầu tiên theo mục này khi mở phiên.
+Áp dụng cho mọi phiên làm việc của coding agent trong repo này. Với Claude Code, quy trình được bật sẵn: `.claude/settings.json` chạy agent chính `safeshift-lead`, agent này tự gửi lượt đầu tiên theo mục này khi mở phiên.
+
+Chủ dự án đã giao quyền chạy liền mạch: agent tự push nhánh task, mở PR và merge vào `main` khi đủ các cổng ở mục 6, không chờ chủ dự án duyệt từng PR. Mục đích là để phiên chạy xuyên suốt; chủ dự án đọc lại kết quả sau.
 
 ### Vai trò
 
-- **Agent điều phối** (phiên chính): đọc yêu cầu, lập kế hoạch, chia việc, tự kiểm lại kết quả của subagent, quản lý nhánh/commit/PR, báo cáo cho chủ dự án. Agent điều phối chịu trách nhiệm cuối cùng về mọi thay đổi.
-- **Subagent** (trong `.claude/agents/`, cả bốn chạy `claude-sonnet-5-5`, effort `high`, khai trong frontmatter — khi gọi **không** truyền `model`/`effort` để khỏi đè):
+| Vai trò | Agent | Model | Được làm | Không được làm |
+|---|---|---|---|---|
+| Agent chính (gốc) | `safeshift-lead` (phiên chính) | model của phiên chính | điều phối gốc; thiết kế kiến trúc và hướng làm; giao việc cho `execution-manager`; đọc lại diff và kết quả kiểm tra; review cuối ở cấp agent; ra lệnh merge | viết hoặc sửa mã, sửa file, chạy test/build, thao tác git ghi (commit, push, merge) |
+| Execution manager | `execution-manager` | `claude-sonnet-5-5`, effort `high` | chia việc và viết brief; gọi tối đa 2 `worker`; kiểm lại báo cáo của worker; chạy kiểm tra tổng; làm mọi thao tác git (nhánh, commit, push, PR, merge) | tự viết mã hay sửa file (ngoài thao tác git) |
+| Worker (tối đa 2) | `worker` | `claude-sonnet-5-5`, effort `high` | implementation, test, debug, verification trên nhóm file được giao | thao tác git ghi, sửa file ngoài brief, gọi agent con |
 
-| Subagent | Việc | Được sửa file |
-|---|---|---|
-| `implementer` | Viết/sửa mã trong `src/`, tài liệu, theo danh sách file được giao | Có, chỉ file được giao |
-| `db-guardian` | Migration, trigger, RLS, RPC, test SQL; soát độ tương thích Supabase | Có, chỉ trong `supabase/` và `db-test/` |
-| `contract-reviewer` | Rà mã giao diện so với RPC, server action, kiểu dữ liệu | Không |
-| `ui-qa` | Chạy kịch bản `TESTING.md` mục B trên trình duyệt ở 360–414px | Không |
+`execution-manager` và `worker` khai `model` và `effort` trong frontmatter (`.claude/agents/`): khi gọi **không** truyền `model`/`effort` để khỏi đè. Phân cấp là agent chính → `execution-manager` → `worker`; Claude Code cho phép sẵn tối đa ba tầng agent con, không đặt `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` dưới 2.
 
-### Mỗi giai đoạn chạy đúng 3 subagent song song
+Agent chính chỉ đọc (`Read`, `git status`, `git diff`, `gh pr view`/`diff`/`list`…). Agent chính không tự sửa dù chỉ một dòng: việc nhỏ cũng giao cho `execution-manager`.
 
-1. **Tìm hiểu** — 3 subagent cùng lúc, mỗi cái một góc không trùng (vd. `db-guardian` soát tầng database liên quan, `contract-reviewer` soát các trang liên quan, `implementer` ở chế độ chỉ đọc lập danh sách file cần sửa). Bỏ qua giai đoạn này nếu việc nhỏ và đã rõ file cần sửa.
-2. **Thực hiện** — tối đa 3 subagent viết song song, mỗi cái một nhóm file **không giao nhau**. Việc ở `supabase/` chỉ giao `db-guardian`. Việc quá nhỏ để chia ba thì giao ít hơn hoặc agent điều phối tự làm; không chia việc giả để đủ số.
-3. **Rà soát** — 3 subagent cùng lúc trên diff cuối: `contract-reviewer` (giao diện), `db-guardian` (database, ở chế độ chỉ soát), và `ui-qa` nếu app đang chạy được với Supabase thật — nếu không, một `contract-reviewer` thứ hai rà phần còn lại của diff.
+### Luồng một task
 
-### Quy tắc khi dùng subagent
+1. **Agent chính** đọc yêu cầu, kiểm hiện trạng (chỉ đọc), quyết định hướng làm và ranh giới: khối nào của repo, bất biến nào phải giữ (mục 10–17), tiêu chí xong, kiểm tra nào trong ma trận mục 25. Giao cho `execution-manager` bằng một brief.
+2. **Execution manager** chia việc thành các nhóm file **không giao nhau** và gọi `worker` song song. Chia theo bản chất việc (ví dụ worker A: implementation và debug; worker B: test và verification) hoặc theo nhóm file. Việc nhỏ chỉ cần một worker thì gọi một, không chia giả để đủ hai. Việc ở `supabase/` chỉ giao một worker, kèm dặn đọc `.claude/agents/db-guardian.md` làm checklist.
+3. **Worker** làm đúng brief, ghi từng file ra đĩa ngay khi xong, chạy kiểm tra của phần mình, báo cáo.
+4. **Execution manager** đọc lại diff, chạy lại kiểm tra theo ma trận mục 25 trên cả nhánh; chỗ hỏng thì gửi lại đúng worker sửa (`SendMessage`). Khi đạt: commit theo mục 8, tự rà diff cuối theo mục 29, push nhánh, mở PR, báo agent chính.
+5. **Agent chính** review cuối ở cấp agent: tự đọc diff PR và kết quả kiểm tra (không tin báo cáo), đối chiếu với yêu cầu, hướng làm đã định, bất biến mục 10–17 và danh sách mục 29. Kết luận `APPROVE`, hoặc nêu rõ cần sửa gì rồi trả lại `execution-manager` (quay về bước 2 hoặc 4).
+6. **Execution manager** ghi kết luận `APPROVE` vào PR bằng một bình luận, merge theo mục 6, dọn nhánh, báo kết quả.
 
-- Không quá 3 subagent chạy cùng lúc. Tài khoản có giới hạn dùng theo cửa sổ 5 giờ; ngày 16/11/2026 ba agent song song từng bị dừng cả ba vì lỗi 429.
-- Mỗi brief cho subagent ghi rõ: mục tiêu, danh sách file được đọc/sửa, cách kiểm tra, định dạng báo cáo.
-- Subagent viết mã phải ghi từng file ra đĩa ngay khi xong và chỉ sửa file được giao. Hai subagent không bao giờ cùng sửa một file.
-- Subagent không tạo nhánh, không commit, không push, không mở PR. Việc git do agent điều phối làm.
-- Báo cáo của subagent là dữ liệu để kiểm, không phải sự thật: agent điều phối đọc lại diff và chạy lại kiểm tra trước khi tin.
-- Subagent bị dừng giữa chừng (vd. 429): kiểm tra đĩa (`git status`, `git diff`) xem nó đã ghi gì, đợi giới hạn reset rồi gọi lại chính subagent đó thay vì tạo mới.
-- Không dùng subagent cho thao tác cần tài khoản của chủ dự án (Supabase dashboard, Vercel). Những bước đó chủ dự án tự làm; agent hướng dẫn từng bước.
+Việc tìm hiểu ngoài phần agent chính cần để quyết định hướng làm thì giao cho worker ở chế độ chỉ đọc.
+
+### Quy tắc khi dùng agent con
+
+- Không quá 3 agent con chạy cùng lúc: 1 `execution-manager` + 2 `worker`. Tài khoản có giới hạn dùng theo cửa sổ 5 giờ; ngày 16/11/2026 ba agent song song từng bị dừng cả ba vì lỗi 429.
+- Mỗi brief ghi rõ: mục tiêu, danh sách file được đọc/sửa, cách kiểm tra, định dạng báo cáo.
+- Worker ghi từng file ra đĩa ngay khi xong và chỉ sửa file được giao. Hai worker không bao giờ cùng sửa một file.
+- Chỉ `execution-manager` làm git. Worker không tạo nhánh, không commit, không push, không mở PR. Agent chính không làm thao tác git ghi.
+- Báo cáo của agent con là dữ liệu để kiểm, không phải sự thật: `execution-manager` đọc lại diff và chạy lại kiểm tra trước khi tin; agent chính lại tự đọc diff ở bước review cuối.
+- Agent con bị dừng giữa chừng (vd. 429): kiểm tra đĩa (`git status`, `git diff`) xem nó đã ghi gì, đợi giới hạn reset rồi gọi lại chính agent đó (`SendMessage`) thay vì tạo mới.
+- Không dùng agent con cho thao tác cần tài khoản của chủ dự án (Supabase dashboard, Vercel). Những bước đó chủ dự án tự làm; agent hướng dẫn từng bước.
+- Bốn agent cũ (`implementer`, `db-guardian`, `contract-reviewer`, `ui-qa`) không còn trong luồng mặc định. Worker đọc file của chúng làm checklist chuyên môn khi việc chạm tới lĩnh vực đó: `db-guardian` cho `supabase/`, `contract-reviewer` cho giao diện so với RPC, `ui-qa` cho kiểm trực quan ở 360–414px theo `TESTING.md` mục B.
 
 ### Khi mở phiên mà chủ dự án chưa giao việc
 
-1. Kiểm hiện trạng: `git status`, nhánh hiện tại, `git fetch` rồi so với `origin/main`, PR đang mở (`gh pr list`), issue đang mở (`gh issue list`).
+1. Kiểm hiện trạng (agent chính chỉ đọc, hoặc giao `execution-manager`): `git status`, nhánh hiện tại, `git fetch` rồi so với `origin/main`, PR đang mở (`gh pr list`), issue đang mở (`gh issue list`).
 2. Chọn việc kế tiếp theo thứ tự: PR đang mở của chính agent cần sửa theo review → issue đang mở có nhãn ưu tiên → mục "NEXT STEPS" trong `PROJECT_HANDOFF.md`.
-3. Báo chủ dự án trong 3–5 dòng: hiện trạng và việc định làm. Việc nằm trong danh sách trên và không thuộc nhóm "phải hỏi trước" thì bắt đầu luôn, không chờ.
-4. Phải hỏi trước khi làm: đổi quy tắc nghiệp vụ; đổi schema hoặc quyền trên Supabase thật; xóa dữ liệu; merge PR; mọi việc không hoàn tác được.
+3. Báo chủ dự án trong 3–5 dòng: hiện trạng và việc định làm. Việc nằm trong danh sách trên và không thuộc nhóm "không tự quyết" ở mục 6 thì bắt đầu luôn, không chờ.
+4. Không tự quyết: đổi quy tắc nghiệp vụ; đổi schema hoặc quyền trên Supabase thật; xóa dữ liệu; mọi việc không hoàn tác được. Gặp nhóm này thì ghi lại và chuyển sang việc kế tiếp (chi tiết ở mục 6). Merge PR không còn thuộc nhóm này.
 5. Deploy web lên Vercel không cần hỏi trước. Bước cần đăng nhập hay cấu hình trên tài khoản của chủ dự án (Vercel dashboard, biến môi trường, tên miền) vẫn do chủ dự án tự làm theo hướng dẫn. Bật hay deploy Edge Function vẫn theo mục 16.
 
 ---
@@ -178,10 +186,11 @@ Quy tắc:
 Mọi thay đổi vào repo đi qua:
 
 ```text
-branch -> pull request -> review -> merge
+branch -> pull request -> review cuối của agent chính -> tự merge
 ```
 
-- Không commit trực tiếp và không push trực tiếp lên `main`.
+- Không commit trực tiếp và không push trực tiếp lên `main`. Mọi thay đổi vào `main` đi qua PR, để có lịch sử, chỗ ghi kết quả review và bản xem trước.
+- Người thao tác git là `execution-manager`. Agent chính không commit, push hay merge; worker không đụng git (mục 5).
 - Mỗi task dùng một nhánh ngắn hạn, tạo từ `main` đã cập nhật.
 - Tên nhánh:
 
@@ -207,11 +216,41 @@ ai/*
 
 - Không force-push `main`.
 - Xóa nhánh task sau khi merge.
-- Không merge khi review hoặc kiểm tra liên quan chưa xong.
+- Chỉ merge khi đủ các cổng ở phần "Cổng để tự merge" bên dưới.
 
 Hiện trạng cần biết: lịch sử trước khi có `AGENTS.md` (14 commit, từ `chore: khởi tạo repo` đến `chore: bỏ qua cấu hình MCP cục bộ`) đều commit thẳng `main`, chưa có pull request nào, và `main` chưa bật branch protection. Đó là quá khứ của giai đoạn một người làm, không phải tiền lệ. Từ khi có file này, quy trình trên là bắt buộc dù GitHub chưa chặn kỹ thuật.
 
 Hai nhánh `add-claude-github-actions-*` trên remote do GitHub tạo khi cài workflow Claude, không phải mẫu đặt tên cho nhánh task.
+
+### Cổng để tự merge
+
+Chủ dự án đã cho phép agent tự push nhánh task và tự merge PR vào `main` mà không chờ duyệt, để Claude Code chạy xuyên suốt. Quyền này đi kèm các cổng dưới đây. Cổng không đạt thì không merge: đó là chặn kỹ thuật, không phải xin duyệt, nên cứ làm việc khác.
+
+Chỉ merge khi đủ **tất cả**:
+
+1. Kiểm tra liên quan trong ma trận mục 25 đã chạy trên đúng commit cuối của nhánh và đạt.
+2. `execution-manager` đã tự rà diff cuối (mục 29), nhánh đã cập nhật theo `main` và không xung đột.
+3. Agent chính đã review cuối và kết luận `APPROVE`; kết luận đó nằm trong PR dưới dạng bình luận.
+4. PR không thuộc nhóm "không tự quyết" bên dưới.
+5. Mã web trong PR không phụ thuộc migration chưa áp lên Supabase thật. Merge vào `main` là deploy production ngay; web gọi RPC hay cột chưa có sẽ vỡ ngay. Gặp trường hợp này, tách PR: phần migration kèm test (merge được; chủ dự án mới là người dán SQL lên Supabase) và phần mã web để ở PR draft, ghi "chờ chủ dự án dán migration"; rồi làm việc kế tiếp.
+
+### Cách merge
+
+- Merge bằng `gh pr merge <số> --squash --delete-branch`. Tiêu đề commit squash theo mục 8 (có tiền tố).
+- Sau merge: `git fetch`, xác nhận `origin/main` đã có commit, xóa nhánh cục bộ, báo kết quả.
+
+### Khi merge xong mà hỏng
+
+Không force-push. Mở PR `revert` bằng `git revert` (không dùng `git reset`), merge khi `tsc` và `build` đạt, sau đó mới tìm nguyên nhân. PR revert vẫn do `execution-manager` làm và agent chính review nhanh.
+
+### Việc không tự quyết
+
+Không merge và không tự làm các việc sau. Ghi lại (PR draft hoặc issue, nêu rõ cần chủ dự án quyết gì) rồi chuyển sang việc kế tiếp, không dừng cả phiên:
+
+- đổi quy tắc nghiệp vụ (mục 10);
+- đổi schema hoặc quyền trên Supabase thật (agent không áp lên Supabase; chủ dự án dán SQL), xóa dữ liệu, sửa `0001_init.sql` (mục 12);
+- mọi chỗ khác trong file này ghi là cần chủ dự án duyệt: mở rộng phạm vi công khai của dữ liệu cá nhân, CORS và header bảo mật, dịch vụ bên thứ ba mới, phụ thuộc mới (mục 13–17);
+- mọi việc không hoàn tác được.
 
 ---
 
@@ -845,13 +884,16 @@ Task xong khi:
 - diff cuối đã tự rà;
 - tài liệu và hợp đồng cần cập nhật đã cập nhật;
 - phần chưa kiểm được nêu trung thực trong PR;
-- PR ngắn gọn, sẵn sàng cho người review.
+- PR ngắn gọn, đủ rõ để agent chính review cuối và để chủ dự án đọc lại sau;
+- đã merge theo mục 6, hoặc ghi rõ cổng nào chưa đạt.
 
 Không báo xong khi kiểm tra liên quan chưa chạy. Không khẳng định "không hồi quy" khi không có bằng chứng.
 
 ### Hành động bị cấm
 
 - push hoặc commit thẳng lên `main`;
+- merge PR khi chưa đủ các cổng ở mục 6;
+- agent chính tự viết mã, sửa file hay chạy test thay cho `execution-manager` và `worker` (mục 5);
 - force-push `main`;
 - sửa `supabase/migrations/0001_init.sql` đã áp lên Supabase thật;
 - tắt, bỏ qua hoặc nới test để cho qua;

@@ -2,7 +2,7 @@
 
 @AGENTS.md
 
-`AGENTS.md` (nạp ở dòng trên) là quy tắc chung của repo cho mọi coding agent: quy trình git/PR, quy trình 3 subagent, bất biến nghiệp vụ, bảo mật, giao diện. File này chỉ giữ ghi chú riêng cho Claude Code; nếu hai file mâu thuẫn, `AGENTS.md` thắng.
+`AGENTS.md` (nạp ở dòng trên) là quy tắc chung của repo cho mọi coding agent: quy trình git/PR, quy trình agent (chính, manager, 2 worker), bất biến nghiệp vụ, bảo mật, giao diện. File này chỉ giữ ghi chú riêng cho Claude Code; nếu hai file mâu thuẫn, `AGENTS.md` thắng.
 
 Web app kết nối ca làm ngắn hạn giữa cơ sở dịch vụ nhỏ ở Vũng Tàu và học sinh (từ 15 tuổi) / sinh viên.
 Bối cảnh đầy đủ, lịch sử và các quyết định: đọc `PROJECT_HANDOFF.md` trước khi làm bất cứ việc gì.
@@ -37,7 +37,7 @@ Hiện trạng (quyết định 17/11/2026): app là **bản mô phỏng**, ch�
 - Không chạy `next dev` và `next build` cùng lúc (chung thư mục `.next`).
 
 ## Subagent
-Xem `AGENTS.md`, mục "Quy trình agent mặc định (3 subagent)". Phiên chính chạy agent `safeshift-lead` (bật trong `.claude/settings.json`); 4 subagent `implementer`, `db-guardian`, `contract-reviewer`, `ui-qa` chạy Sonnet 5.5, effort `high`.
+Xem `AGENTS.md`, mục 5 ("Quy trình agent mặc định"). Phiên chính chạy agent `safeshift-lead` (bật trong `.claude/settings.json`), chỉ điều phối, thiết kế và review cuối, không viết mã hay chạy test. Việc chạy qua `execution-manager` và tối đa 2 `worker`, cả hai chạy Sonnet 5.5, effort `high`. Agent tự push nhánh và merge PR khi đủ các cổng ở mục 6, không chờ duyệt.
 
 ## Lệnh
 ```bash
