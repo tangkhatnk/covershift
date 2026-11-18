@@ -92,6 +92,7 @@ function useBaseMap(lazy: boolean) {
     let dead = false;
     let loaded = false;
     let map: MapLibreMap | undefined;
+    let ro: ResizeObserver | undefined;
     import('maplibre-gl')
       .then((lib) => {
         if (dead || !box.current) return;
@@ -109,6 +110,9 @@ function useBaseMap(lazy: boolean) {
           },
         });
         map = m;
+        // Khung bản đồ đổi cỡ (vd. nằm trong <details> vừa mở) thì bản đồ dựng lại cho đúng kích thước.
+        ro = new ResizeObserver(() => m.resize());
+        ro.observe(box.current);
         m.touchZoomRotate.disableRotation();
         m.addControl(new lib.NavigationControl({ showCompass: false }), 'top-right');
         m.addControl(new lib.AttributionControl({ compact: false }), 'bottom-right');
@@ -118,7 +122,7 @@ function useBaseMap(lazy: boolean) {
         m.once('load', () => { loaded = true; if (!dead) setCtx({ map: m, lib }); });
       })
       .catch(() => { if (!dead) setFailed(true); });
-    return () => { dead = true; map?.remove(); };
+    return () => { dead = true; ro?.disconnect(); map?.remove(); };
   }, [near]);
 
   return { frame, box, ctx, status: ctx ? 'ready' : failed ? 'error' : 'loading' } as const;
@@ -160,17 +164,29 @@ const PIN: Record<MapTone, { bg: string; fg: string; bd: string }> = {
 };
 const PIN_ON = { bg: 'bg-wall', fg: 'text-ink', bd: 'border-shutter-deep' };
 
+// Chữ rút gọn cho pin chồng nhau: giờ "18:00" -> "18h"; nhiều từ -> từ cuối ("Quán Demo 2" -> "2"); còn lại cắt 3 ký tự.
+// Tên đầy đủ vẫn ở aria-label, và hiện lại khi pin được chọn.
+function shortText(t: string) {
+  const h = /^(\d{1,2}):\d{2}$/.exec(t);
+  if (h) return `${h[1]}h`;
+  const w = t.trim().split(/\s+/);
+  return (w.length > 1 ? w[w.length - 1] : t).slice(0, 3);
+}
+const PIN_W = 63; // min-w-[3.5rem] ở cỡ chữ gốc 18px
+const PIN_H = 46; // cao pin + đuôi, phía trên điểm
+
 // Biển giờ chữ nhật. Vùng chạm mở rộng bằng ::after để đủ 48px mà biển vẫn gọn.
-function Pin({ p, selected, lit, onPick }: { p: MapPoint; selected: boolean; lit: boolean; onPick: () => void }) {
+function Pin({ p, selected, lit, crowded, onPick }: { p: MapPoint; selected: boolean; lit: boolean; crowded: boolean; onPick: () => void }) {
   const on = selected || lit;
+  const compact = crowded && !on;
   const c = on ? PIN_ON : PIN[p.tone];
   return (
     <div className={`flex flex-col items-center ${on ? '-translate-y-1' : ''}`}>
       <button type="button" aria-label={p.label} aria-pressed={selected} onClick={onPick}
-        className={`relative z-10 min-w-[3.5rem] rounded-ui px-2 py-1 font-num text-lg font-bold leading-6 tabular after:absolute after:-inset-x-1 after:-inset-y-2 after:content-[''] ${c.bg} ${c.fg} ${c.bd} ${
+        className={`relative z-10 ${compact ? 'min-w-[2.5rem]' : 'min-w-[3.5rem]'} rounded-ui px-2 py-1 font-num text-lg font-bold leading-6 tabular after:absolute after:-inset-x-1 after:-inset-y-2 after:content-[''] ${c.bg} ${c.fg} ${c.bd} ${
           on ? 'border-[3px] shadow-lg' : 'border-2 shadow-md'
         }`}>
-        {p.text}
+        {compact ? shortText(p.text) : p.text}
       </button>
       <span aria-hidden="true" className={`-mt-1.5 h-3 w-3 rotate-45 border-b-2 border-r-2 ${c.bg} ${c.bd}`} />
     </div>
@@ -187,12 +203,14 @@ export function ShiftMap({ points, selectedId, onSelect, highlightId, className 
   const { ctx } = base;
   const [inner, setInner] = useState<string | null>(null);
   const [els, setEls] = useState<Record<string, HTMLElement>>({});
+  const [crowded, setCrowded] = useState('');
   const markers = useRef(new Map<string, MapLibreMarker>());
   const moved = useRef(false);
   // onSelect('') = bỏ chọn (bấm lại pin đang chọn, hoặc Esc).
   const sel = onSelect ? selectedId ?? null : inner;
   const pick = (id: string) => (onSelect ? onSelect(id) : setInner(id || null));
   const selected = points.find((p) => p.id === sel) ?? null;
+  const crowdedSet = new Set(crowded ? crowded.split('|') : []);
   const sig = points.map((p) => `${p.id}@${p.lat},${p.lng}`).join('|');
 
   // Đồng bộ marker theo danh sách điểm: giữ marker cũ, chỉ thêm/bớt/dời.
@@ -202,7 +220,7 @@ export function ShiftMap({ points, selectedId, onSelect, highlightId, className 
     let changed = false;
     const ids = new Set(points.map((p) => p.id));
     for (const [id, m] of markers.current) if (!ids.has(id)) { m.remove(); markers.current.delete(id); changed = true; }
-    // Nhiều ca cùng một quán (cùng tọa độ): xếp pin chồng dọc, cách nhau 52px (dưới 48px vùng chạm + đuôi), ca đầu ở trên cùng.
+    // Nhiều ca cùng một quán (cùng tọa độ): xếp pin chồng dọc, cách nhau 60px (đủ vùng chạm 48px và đuôi không đè pin kế), ca đầu ở trên cùng.
     // Offset tính bằng pixel nên không đổi khi zoom; pin dưới cùng vẫn chỉ đúng điểm.
     const group = new Map<string, MapPoint[]>();
     for (const p of points) {
@@ -211,7 +229,7 @@ export function ShiftMap({ points, selectedId, onSelect, highlightId, className 
     }
     for (const g of group.values()) {
       g.forEach((p, i) => {
-        const offset: [number, number] = [0, -(g.length - 1 - i) * 52];
+        const offset: [number, number] = [0, -(g.length - 1 - i) * 60];
         const m = markers.current.get(p.id);
         if (m) m.setLngLat([p.lng, p.lat]).setOffset(offset);
         else {
@@ -226,6 +244,27 @@ export function ShiftMap({ points, selectedId, onSelect, highlightId, className 
   useEffect(() => {
     markers.current.forEach((m, id) => { m.getElement().style.zIndex = id === sel || id === highlightId ? '2' : ''; });
   }, [sel, highlightId, els]);
+
+  // Pin của các quán khác nhau mà chồng nhau trên màn hình (đo khi bản đồ dừng zoom/di chuyển): rút gọn chữ cho tới khi được chọn hoặc zoom đủ gần.
+  useEffect(() => {
+    if (!ctx) return;
+    const { map } = ctx;
+    const measure = () => {
+      const at = points.map((p) => ({ p, ...map.project([p.lng, p.lat]) }));
+      const ids = new Set<string>();
+      for (let i = 0; i < at.length; i++) for (let j = i + 1; j < at.length; j++) {
+        const a = at[i], b = at[j];
+        if (a.p.lat === b.p.lat && a.p.lng === b.p.lng) continue; // cùng quán: đã xếp dọc
+        const wa = Math.max(PIN_W, a.p.text.length * 11 + 20), wb = Math.max(PIN_W, b.p.text.length * 11 + 20);
+        if (Math.abs(a.x - b.x) < (wa + wb) / 2 && Math.abs(a.y - b.y) < PIN_H) { ids.add(a.p.id); ids.add(b.p.id); }
+      }
+      setCrowded([...ids].sort().join('|'));
+    };
+    measure();
+    map.on('moveend', measure);
+    map.on('zoomend', measure);
+    return () => { map.off('moveend', measure); map.off('zoomend', measure); };
+  }, [ctx, sig]);
 
   // Khung nhìn: ôm các điểm; người dùng đã tự kéo/phóng thì không giật lại.
   useEffect(() => {
@@ -271,7 +310,7 @@ export function ShiftMap({ points, selectedId, onSelect, highlightId, className 
         {points.map((p) => {
           const el = els[p.id];
           return el ? createPortal(
-            <Pin key={p.id} p={p} selected={p.id === sel} lit={p.id === highlightId}
+            <Pin key={p.id} p={p} selected={p.id === sel} lit={p.id === highlightId} crowded={crowdedSet.has(p.id)}
               onPick={() => pick(p.id === sel ? '' : p.id)} />, el, p.id) : null;
         })}
       </MapFrame>
