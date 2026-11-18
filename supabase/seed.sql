@@ -125,7 +125,7 @@ insert into public.facilities (id, owner_id, name, type, address, area, maps_url
   ('f0000000-0000-4000-a000-000000000002', 'e0000000-0000-4000-a000-000000000002', 'Quán Demo 2', 'restaurant',  '45 Thùy Vân, Phường 2, Vũng Tàu',         'bai_sau',   'https://maps.google.com/?q=45+Thuy+Van+Vung+Tau',    true, true,  'active', 10.3318, 107.089),
   ('f0000000-0000-4000-a000-000000000003', 'e0000000-0000-4000-a000-000000000003', 'Quán Demo 3', 'homestay',    '8 Hoàng Hoa Thám, Thắng Tam, Vũng Tàu',   'thang_tam', 'https://maps.google.com/?q=8+Hoang+Hoa+Tham+Vung+Tau', true, true,  'active', 10.338, 107.0853),
   ('f0000000-0000-4000-a000-000000000004', 'e0000000-0000-4000-a000-000000000004', 'Quán Demo 4', 'small_hotel', '101 Lê Hồng Phong, Phường 7, Vũng Tàu',   'trung_tam', 'https://maps.google.com/?q=101+Le+Hong+Phong+Vung+Tau', true, true,  'active', 10.3524, 107.0881),
-  ('f0000000-0000-4000-a000-000000000005', 'e0000000-0000-4000-a000-000000000005', 'Quán Demo 5', 'cafe',        '230 Đường 30/4, Rạch Dừa, Vũng Tàu',      'rach_dua',  null,                                                 true, false, 'pending', 10.3745, 107.0897);
+  ('f0000000-0000-4000-a000-000000000005', 'e0000000-0000-4000-a000-000000000005', 'Quán Demo 5', 'cafe',        '230 Đường 30/4, Rạch Dừa, Vũng Tàu',      'rach_dua',  null,                                                 true, false, 'pending', 10.3964, 107.1081);
 
 insert into public.facility_verifications (facility_id, address_ok, contact_ok, has_business_license, verified_on, verified_by, verifier_name, note)
 select id, true, true, id <> 'f0000000-0000-4000-a000-000000000003', current_date - 7,
