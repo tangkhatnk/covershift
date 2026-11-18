@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { reviewWorker, setAccountStatus } from '@/app/actions';
 import { ActionForm, SubmitButton } from '@/components/client';
@@ -10,7 +11,24 @@ import type { AdminWorker } from '@/lib/types';
 
 export const metadata = { title: 'Duyệt người làm' };
 
-const summaryCls = 'cursor-pointer py-2 text-base font-semibold text-slate-700';
+const summaryCls =
+  'flex min-h-[3rem] cursor-pointer items-center justify-between gap-2 rounded-ui px-2 text-base font-semibold text-shutter hover:bg-shutter-tint';
+const th = 'px-4 py-2 text-left text-base font-semibold text-ink';
+const td = 'px-4 py-4 align-top text-base text-ink';
+
+/** Phần mở rộng (<details>): chạy bằng bàn phím, mũi tên xoay khi mở. */
+function Disclosure({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <details className="group">
+      <summary className={summaryCls}>
+        {label}
+        <ChevronDown className="h-5 w-5 shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
+      </summary>
+      {children}
+    </details>
+  );
+}
+
 const APPROVAL_TONE = { pending: 'amber', approved: 'green', rejected: 'gray' } as const;
 const FILTERS = ['cho-duyet', 'da-duyet', 'tat-ca'] as const;
 type Filter = (typeof FILTERS)[number];
@@ -18,14 +36,14 @@ const FILTER_LABEL: Record<Filter, string> = { 'cho-duyet': 'Chờ duyệt', 'da
 
 function ReviewForm({ w }: { w: AdminWorker }) {
   return (
-    <ActionForm action={reviewWorker} className="space-y-3">
+    <ActionForm action={reviewWorker} className="space-y-4">
       <input type="hidden" name="worker_id" value={w.user_id} />
       {/* textarea, không dùng input: nhấn Enter trong input sẽ bấm nút submit đầu tiên ("Duyệt").
           Để trống: ghi chú cũ (vd. lý do từ chối) đã hiện ở trên, không tự thành ghi chú của lần quyết định mới. */}
       <Field label="Ghi chú">
         <textarea name="note" rows={2} maxLength={300} className={inputCls} />
       </Field>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         <SubmitButton name="decision" value="approve">Duyệt</SubmitButton>
         <SubmitButton name="decision" value="reject" variant="danger"
           confirm={`Từ chối ${w.full_name}? Các ca sắp tới của người này sẽ bị hủy. Đã ghi lý do vào ô Ghi chú chưa? (người làm sẽ thấy lý do trong hồ sơ)`}>
@@ -36,47 +54,68 @@ function ReviewForm({ w }: { w: AdminWorker }) {
   );
 }
 
-function WorkerCard({ w }: { w: AdminWorker }) {
-  const minor = w.age < 18;
-  const locked = w.status === 'locked';
-  const c = w.consent;
+function Badges({ w }: { w: AdminWorker }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Badge tone={APPROVAL_TONE[w.approval]}>{APPROVAL_LABEL[w.approval]}</Badge>
+      {w.age < 18 ? <Badge tone="amber">Dưới 18</Badge> : null}
+      {w.status === 'locked' ? <Badge tone="red">Đã khóa</Badge> : null}
+    </div>
+  );
+}
+
+function Identity({ w }: { w: AdminWorker }) {
+  return (
+    <>
+      <p className="break-words text-xl font-bold text-ink">{w.full_name}</p>
+      <p className="text-base text-ink">
+        {w.age} tuổi · sinh {fmtPlainDate(w.date_of_birth)}
+      </p>
+      <p className="break-words text-base text-ink">
+        {w.school}{w.class_name ? ` · ${w.class_name}` : ''}
+      </p>
+    </>
+  );
+}
+
+function Contact({ w }: { w: AdminWorker }) {
   const slots = (w.availability ?? []).map((a) => AVAILABILITY_LABEL[a as keyof typeof AVAILABILITY_LABEL] ?? a);
   return (
-    <Card className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone={APPROVAL_TONE[w.approval]}>{APPROVAL_LABEL[w.approval]}</Badge>
-        {minor ? <Badge tone="amber">Dưới 18</Badge> : null}
-        {locked ? <Badge tone="red">Đã khóa</Badge> : null}
-      </div>
-      <div>
-        <p className="text-xl font-bold text-slate-900">{w.full_name}</p>
-        <p className="text-base text-slate-700">
-          {w.age} tuổi · sinh {fmtPlainDate(w.date_of_birth)}
-        </p>
-        <p className="text-base text-slate-700">
-          {w.school}{w.class_name ? ` · ${w.class_name}` : ''}
-        </p>
-        <p className="text-base text-slate-700">Khu vực: {AREA_LABEL[w.area]}</p>
-        <p className="text-base text-slate-700">Rảnh: {slots.length ? slots.join('; ') : '(chưa chọn)'}</p>
-        <p className="text-base text-slate-700">Điện thoại: <Tel phone={w.phone} /></p>
-        {w.review_note ? <p className="break-words text-base text-slate-700">Ghi chú duyệt: {w.review_note}</p> : null}
-      </div>
+    <div className="space-y-1 text-base text-ink">
+      <p>Điện thoại: <Tel phone={w.phone} /></p>
+      <p>Khu vực: {AREA_LABEL[w.area]}</p>
+      <p>Rảnh: {slots.length ? slots.join('; ') : '(chưa chọn)'}</p>
+      {w.review_note ? <p className="break-words">Ghi chú duyệt: {w.review_note}</p> : null}
+    </div>
+  );
+}
 
-      <dl className="grid grid-cols-3 gap-2 text-center">
-        {([
-          ['Ca đã xác nhận', w.confirmed, false],
-          ['Hủy sát giờ', w.late_cancels, w.late_cancels > 0],
-          ['Không đến', w.no_shows, w.no_shows > 0],
-        ] as const).map(([label, n, bad]) => (
-          <div key={label} className={`rounded-xl p-2 ${bad ? 'bg-red-50' : 'bg-slate-50'}`}>
-            <dd className={`text-xl font-bold ${bad ? 'text-red-800' : 'text-slate-900'}`}>{n}</dd>
-            <dt className="text-sm text-slate-600">{label}</dt>
-          </div>
-        ))}
-      </dl>
+function Stats({ w }: { w: AdminWorker }) {
+  return (
+    <dl className="grid grid-cols-3 gap-2 text-center lg:grid-cols-1 lg:text-left">
+      {([
+        ['Ca đã xác nhận', w.confirmed, false],
+        ['Hủy sát giờ', w.late_cancels, w.late_cancels > 0],
+        ['Không đến', w.no_shows, w.no_shows > 0],
+      ] as const).map(([label, n, bad]) => (
+        <div key={label} className={`rounded-ui p-2 lg:flex lg:items-baseline lg:gap-2 lg:p-0 ${bad ? 'bg-roof-tint lg:bg-transparent' : 'bg-chalk lg:bg-transparent'}`}>
+          <dd className={`tabular text-xl font-bold lg:order-2 ${bad ? 'text-roof' : 'text-ink'}`}>{n}</dd>
+          <dt className="text-base text-ink-soft lg:order-1">{label}</dt>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
+/** Phiếu phụ huynh và cảnh báo thiếu phiếu (chỉ có khi có dữ liệu). */
+function Consent({ w }: { w: AdminWorker }) {
+  const c = w.consent;
+  const minor = w.age < 18;
+  if (!c && !minor) return null;
+  return (
+    <div className="space-y-2">
       {c ? (
-        <div className="rounded-xl bg-slate-50 p-3 text-base text-slate-800">
+        <div className="text-base text-ink">
           <p className="font-bold">Phiếu phụ huynh</p>
           <p>{CONSENT_LABEL[c.status]}</p>
           {c.parent_name ? <p>Phụ huynh: {c.parent_name}</p> : null}
@@ -87,19 +126,25 @@ function WorkerCard({ w }: { w: AdminWorker }) {
       {minor && (!c || c.status === 'pending') ? (
         <Alert tone="amber">Chưa duyệt được: phụ huynh chưa gửi phiếu đồng ý.</Alert>
       ) : null}
+    </div>
+  );
+}
 
-      {w.approval === 'approved' ? (
-        <details>
-          <summary className={summaryCls}>Đổi quyết định</summary>
-          <div className="pt-1"><ReviewForm w={w} /></div>
-        </details>
-      ) : (
-        <ReviewForm w={w} />
-      )}
-
-      <details>
-        <summary className={summaryCls}>Khóa / mở tài khoản</summary>
-        <ActionForm action={setAccountStatus} className="space-y-3 pt-1">
+function Actions({ w }: { w: AdminWorker }) {
+  const locked = w.status === 'locked';
+  return (
+    <div className="grid gap-4 lg:grid-cols-2 lg:items-start lg:gap-8">
+      <div>
+        {w.approval === 'approved' ? (
+          <Disclosure label="Đổi quyết định">
+            <div className="px-2 pb-2 pt-2"><ReviewForm w={w} /></div>
+          </Disclosure>
+        ) : (
+          <div className="px-2"><ReviewForm w={w} /></div>
+        )}
+      </div>
+      <Disclosure label="Khóa / mở tài khoản">
+        <ActionForm action={setAccountStatus} className="space-y-4 px-2 pb-2 pt-2">
           <input type="hidden" name="user_id" value={w.user_id} />
           <input type="hidden" name="status" value={locked ? 'active' : 'locked'} />
           <Field label={locked ? 'Lý do mở khóa' : 'Lý do khóa'}
@@ -114,8 +159,8 @@ function WorkerCard({ w }: { w: AdminWorker }) {
             </SubmitButton>
           )}
         </ActionForm>
-      </details>
-    </Card>
+      </Disclosure>
+    </div>
   );
 }
 
@@ -146,20 +191,72 @@ export default async function WorkersPage({ searchParams }: { searchParams: Prom
     : all;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <PageTitle>Duyệt người làm</PageTitle>
       <nav className="flex flex-wrap gap-2" aria-label="Bộ lọc">
         {FILTERS.map((f) => (
           <Link key={f} href={f === 'tat-ca' ? '/admin/nguoi-lam' : `/admin/nguoi-lam?loc=${f}`}
             aria-current={f === filter ? 'page' : undefined}
-            className={`rounded-full px-4 py-2 text-base font-semibold ${
-              f === filter ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-800 hover:bg-brand-100'
+            className={`inline-flex min-h-[3rem] items-center rounded-ui border-2 px-4 text-base font-semibold ${
+              f === filter
+                ? 'border-shutter bg-shutter text-white'
+                : 'border-rule-strong bg-white text-ink hover:bg-shutter-tint'
             }`}>
             {FILTER_LABEL[f]} ({count[f]})
           </Link>
         ))}
       </nav>
-      {list.length === 0 ? <Empty>Không có người làm nào trong nhóm này</Empty> : list.map((w) => <WorkerCard key={w.user_id} w={w} />)}
+      {list.length === 0 ? (
+        <Empty>Không có người làm nào trong nhóm này</Empty>
+      ) : (
+        <>
+          {/* Điện thoại: mỗi người một thẻ. */}
+          <div className="space-y-4 lg:hidden">
+            {list.map((w) => (
+              <Card key={w.user_id} tab={<Badges w={w} />}>
+                <div className="space-y-4">
+                  <div><Identity w={w} /></div>
+                  <Contact w={w} />
+                  <Stats w={w} />
+                  <Consent w={w} />
+                  <div className="border-t border-rule pt-2"><Actions w={w} /></div>
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* Từ 1024px: bảng. Mỗi người hai hàng (thông tin, rồi phiếu phụ huynh và thao tác trải hết bề ngang). */}
+          <div className="hidden overflow-hidden rounded-ui border border-rule bg-white lg:block">
+            <table className="w-full border-collapse">
+              <caption className="sr-only">Danh sách người làm và thao tác duyệt</caption>
+              <thead className="bg-wall-tint">
+                <tr>
+                  <th scope="col" className={th}>Người làm</th>
+                  <th scope="col" className={th}>Trạng thái</th>
+                  <th scope="col" className={th}>Liên hệ</th>
+                  <th scope="col" className={th}>Ca làm</th>
+                </tr>
+              </thead>
+              {list.map((w) => (
+                <tbody key={w.user_id} className="border-t border-rule">
+                  <tr>
+                    <th scope="row" className={`${td} text-left font-normal`}><Identity w={w} /></th>
+                    <td className={td}><Badges w={w} /></td>
+                    <td className={td}><Contact w={w} /></td>
+                    <td className={td}><Stats w={w} /></td>
+                  </tr>
+                  <tr>
+                    <td colSpan={4} className="space-y-4 px-4 pb-4">
+                      <Consent w={w} />
+                      <Actions w={w} />
+                    </td>
+                  </tr>
+                </tbody>
+              ))}
+            </table>
+          </div>
+        </>
+      )}
     </div>
   );
 }

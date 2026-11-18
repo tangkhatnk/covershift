@@ -1,3 +1,4 @@
+import { Download } from 'lucide-react';
 import { setConfig } from '@/app/actions';
 import { ActionForm, SubmitButton } from '@/components/client';
 import { Alert, Card, Field, PageTitle, btn, inputCls } from '@/components/ui';
@@ -32,51 +33,63 @@ export default async function KpiPage() {
   const cfg = new Map<string, unknown>(((cfgRes.data ?? []) as { key: string; value: unknown }[]).map((r) => [r.key, r.value]));
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageTitle sub={`Tính đến ${fmtDateTime(new Date().toISOString())}`}>KPI</PageTitle>
 
-      {kpiRes.error || !kpis ? (
-        <Alert tone="red">{kpiRes.error ? friendlyError(kpiRes.error) : 'Không tải được KPI.'}</Alert>
-      ) : (
-        <>
-          <Card className="!p-0">
-            <table className="w-full text-base">
-              <thead className="sr-only">
-                <tr><th>Chỉ số</th><th>Giá trị</th></tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {KPI_LABELS.map(([key, label, unit]) => (
-                  <tr key={key}>
-                    <th scope="row" className="px-4 py-3 text-left font-normal text-slate-700">{label}</th>
-                    <td className="whitespace-nowrap px-4 py-3 text-right text-lg font-bold text-slate-900">{show(kpis[key], unit)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
-          <a href="/admin/kpi/export" download className={btn('secondary')}>Tải CSV</a>
-        </>
-      )}
+      {/* Từ 1024px: bảng chỉ số bên trái, cấu hình bên phải. */}
+      <div className="grid gap-8 lg:grid-cols-[3fr_2fr] lg:items-start">
+        <div className="space-y-4">
+          {kpiRes.error || !kpis ? (
+            <Alert tone="red">{kpiRes.error ? friendlyError(kpiRes.error) : 'Không tải được KPI.'}</Alert>
+          ) : (
+            <>
+              <div className="overflow-hidden rounded-ui border border-rule bg-white">
+                <table className="w-full border-collapse text-base">
+                  <caption className="sr-only">Chỉ số vận hành</caption>
+                  <thead className="bg-wall-tint">
+                    <tr>
+                      <th scope="col" className="px-4 py-2 text-left font-semibold text-ink">Chỉ số</th>
+                      <th scope="col" className="px-4 py-2 text-right font-semibold text-ink">Giá trị</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-rule">
+                    {KPI_LABELS.map(([key, label, unit]) => (
+                      <tr key={key}>
+                        <th scope="row" className="px-4 py-4 text-left font-normal text-ink">{label}</th>
+                        <td className="tabular whitespace-nowrap px-4 py-4 text-right text-lg font-bold text-ink">{show(kpis[key], unit)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <a href="/admin/kpi/export" download className={`${btn('secondary')} lg:w-auto`}>
+                <Download className="h-5 w-5" aria-hidden="true" />
+                Tải CSV
+              </a>
+            </>
+          )}
+        </div>
 
-      <Card className="space-y-5">
-        <h2 className="text-xl font-bold text-slate-900">Cấu hình</h2>
-        {cfgRes.error ? <Alert tone="red">{friendlyError(cfgRes.error)}</Alert> : null}
-        {CONFIG.map((c) => {
-          const cur = cfg.get(c.key);
-          return (
-            <ActionForm key={c.key} action={setConfig} className="space-y-3">
-              <input type="hidden" name="key" value={c.key} />
-              <Field label={c.label}>
-                <input name="value" type="number" inputMode="numeric" min={1} step={1} required
-                  defaultValue={typeof cur === 'number' || typeof cur === 'string' ? String(cur) : ''} className={inputCls} />
-              </Field>
-              <SubmitButton variant="secondary" confirm={`Lưu "${c.label}"? Giá trị mới áp dụng ngay cho các ca đăng sau.`}>
-                Lưu
-              </SubmitButton>
-            </ActionForm>
-          );
-        })}
-      </Card>
+        <Card className="space-y-6">
+          <h2 className="text-xl font-bold text-ink">Cấu hình</h2>
+          {cfgRes.error ? <Alert tone="red">{friendlyError(cfgRes.error)}</Alert> : null}
+          {CONFIG.map((c) => {
+            const cur = cfg.get(c.key);
+            return (
+              <ActionForm key={c.key} action={setConfig} className="space-y-4">
+                <input type="hidden" name="key" value={c.key} />
+                <Field label={c.label}>
+                  <input name="value" type="number" inputMode="numeric" min={1} step={1} required
+                    defaultValue={typeof cur === 'number' || typeof cur === 'string' ? String(cur) : ''} className={inputCls} />
+                </Field>
+                <SubmitButton variant="secondary" confirm={`Lưu "${c.label}"? Giá trị mới áp dụng ngay cho các ca đăng sau.`}>
+                  Lưu
+                </SubmitButton>
+              </ActionForm>
+            );
+          })}
+        </Card>
+      </div>
     </div>
   );
 }

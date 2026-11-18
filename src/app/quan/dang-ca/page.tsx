@@ -28,7 +28,7 @@ export default async function NewShiftPage({ searchParams }: { searchParams: Pro
             ? 'Cơ sở của anh/chị đã bị gỡ khỏi SafeShift nên không đăng ca được.'
             : 'Cơ sở đang chờ nhóm vận hành đến xác minh. Sau khi xác minh anh/chị mới đăng ca được.'}
         </Alert>
-        <Link href="/quan" className={btn('secondary')}>Về trang ca của quán</Link>
+        <Link href="/quan" className={`${btn('secondary')} sm:w-auto`}>Về trang ca của quán</Link>
       </div>
     );
   }
@@ -50,7 +50,7 @@ export default async function NewShiftPage({ searchParams }: { searchParams: Pro
   const tomorrow = vnDateInput(new Date(Date.now() + 24 * 3_600_000));
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageTitle sub="Điền xong bấm Đăng ca. Chỉ mất khoảng 1 phút.">Đăng ca mới</PageTitle>
 
       {src ? (
@@ -64,17 +64,17 @@ export default async function NewShiftPage({ searchParams }: { searchParams: Pro
 
       {!from && recent.length ? (
         <Card>
-          <h2 className="text-lg font-bold text-slate-900">Nhân bản ca cũ</h2>
-          <p className="text-base text-slate-600">Bấm vào một ca để dùng lại, chỉ cần chọn ngày mới.</p>
-          <ul className="mt-2 divide-y divide-slate-200">
+          <h2 className="text-lg font-bold text-ink">Nhân bản ca cũ</h2>
+          <p className="text-base text-ink-soft">Bấm vào một ca để dùng lại, chỉ cần chọn ngày mới.</p>
+          <ul className="mt-2 divide-y divide-rule">
             {recent.map((s) => (
               <li key={s.id}>
-                <Link href={`/quan/dang-ca?from=${s.id}`} className="flex min-h-[3rem] items-center justify-between gap-3 py-2 text-base">
+                <Link href={`/quan/dang-ca?from=${s.id}`} className="flex min-h-[3rem] items-center justify-between gap-4 py-2 text-base">
                   <span>
                     <b>{JOB_LABEL[s.job_type]}</b> · {fmtTime(s.starts_at)}–{fmtTime(s.ends_at)} · {fmtMoney(s.hourly_wage)}/giờ
-                    <span className="block text-sm text-slate-500">Ca ngày {fmtDate(s.starts_at)}</span>
+                    <span className="block text-sm text-ink-soft">Ca ngày {fmtDate(s.starts_at)}</span>
                   </span>
-                  <span className="shrink-0 font-semibold text-brand-700 underline underline-offset-4">Dùng lại</span>
+                  <span className="shrink-0 font-semibold text-shutter underline underline-offset-4">Dùng lại</span>
                 </Link>
               </li>
             ))}
@@ -83,57 +83,73 @@ export default async function NewShiftPage({ searchParams }: { searchParams: Pro
       ) : null}
 
       <ActionForm action={createShift}>
-        <Field label="Ngày làm">
-          <input type="date" name="date" required min={today} defaultValue={tomorrow} className={inputCls} />
-        </Field>
+        {/* Điện thoại: một cột (giờ bắt đầu / kết thúc đứng cạnh nhau). Từ 640px: ba ô mỗi hàng. */}
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-6">
+          <div className="col-span-2">
+            <Field label="Ngày làm">
+              <input type="date" name="date" required min={today} defaultValue={tomorrow} className={inputCls} />
+            </Field>
+          </div>
+          <div className="sm:col-span-2">
+            <Field label="Giờ bắt đầu">
+              <input type="time" name="start" required defaultValue={src ? fmtTime(src.starts_at) : ''} className={inputCls} />
+            </Field>
+          </div>
+          <div className="sm:col-span-2">
+            <Field label="Giờ kết thúc">
+              <input type="time" name="end" required defaultValue={src ? fmtTime(src.ends_at) : ''} className={inputCls} />
+            </Field>
+          </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Giờ bắt đầu">
-            <input type="time" name="start" required defaultValue={src ? fmtTime(src.starts_at) : ''} className={inputCls} />
-          </Field>
-          <Field label="Giờ kết thúc">
-            <input type="time" name="end" required defaultValue={src ? fmtTime(src.ends_at) : ''} className={inputCls} />
-          </Field>
+          <div className="col-span-2">
+            <Field label="Loại việc" hint="Chỉ có 7 loại việc này.">
+              <select name="job_type" required defaultValue={src?.job_type ?? ''} className={inputCls}>
+                <option value="" disabled>-- Chọn loại việc --</option>
+                {(Object.keys(JOB_LABEL) as JobType[]).map((k) => (
+                  <option key={k} value={k}>{JOB_LABEL[k]}</option>
+                ))}
+              </select>
+            </Field>
+          </div>
+          <div className="col-span-2">
+            <Field label="Số người cần" hint="Mỗi ca có thêm 1 người dự phòng.">
+              <select name="headcount" required defaultValue={String(src?.headcount ?? 1)} className={inputCls}>
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <option key={n} value={n}>{n} người</option>
+                ))}
+              </select>
+            </Field>
+          </div>
+          <div className="col-span-2">
+            <Field label="Lương mỗi giờ (đồng)" hint={`Thấp nhất ${fmtMoney(minWage)}/giờ. Ví dụ: 30000`}>
+              <input type="number" name="wage" inputMode="numeric" required min={minWage} step={1}
+                defaultValue={src ? String(src.hourly_wage) : ''} placeholder={String(minWage)} className={inputCls} />
+            </Field>
+          </div>
+
+          <div className="col-span-full">
+            <Field label="Mô tả công việc (không bắt buộc)" hint="Ví dụ: bưng bê, dọn bàn; mặc áo tối màu.">
+              <textarea name="description" rows={3} maxLength={500} defaultValue={src?.description ?? ''} className={inputCls} />
+            </Field>
+          </div>
         </div>
 
-        <Field label="Loại việc" hint="Chỉ có 7 loại việc này.">
-          <select name="job_type" required defaultValue={src?.job_type ?? ''} className={inputCls}>
-            <option value="" disabled>-- Chọn loại việc --</option>
-            {(Object.keys(JOB_LABEL) as JobType[]).map((k) => (
-              <option key={k} value={k}>{JOB_LABEL[k]}</option>
-            ))}
-          </select>
-        </Field>
+        <div className="space-y-4">
+          <Check name="urgent" defaultChecked={src?.urgent}>
+            <b>Ca gấp</b> — cần người ngay, ca sẽ được đánh dấu GẤP.
+          </Check>
+          <Check name="allow_minor" defaultChecked={src?.allow_minor}>
+            <b>Nhận người dưới 18 tuổi</b>
+            <span className="block text-base text-ink-soft">Chỉ áp dụng cho ca trong 06:00–22:00, dài tối đa 8 giờ.</span>
+          </Check>
+          <Check name="commit" required>
+            Tôi cam kết: không thu phí, không đặt cọc, không giữ giấy tờ của người làm.
+          </Check>
+        </div>
 
-        <Field label="Số người cần" hint="Mỗi ca có thêm 1 người dự phòng.">
-          <select name="headcount" required defaultValue={String(src?.headcount ?? 1)} className={inputCls}>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <option key={n} value={n}>{n} người</option>
-            ))}
-          </select>
-        </Field>
-
-        <Field label="Lương mỗi giờ (đồng)" hint={`Thấp nhất ${fmtMoney(minWage)}/giờ. Ví dụ: 30000`}>
-          <input type="number" name="wage" inputMode="numeric" required min={minWage} step={1}
-            defaultValue={src ? String(src.hourly_wage) : ''} placeholder={String(minWage)} className={inputCls} />
-        </Field>
-
-        <Field label="Mô tả công việc (không bắt buộc)" hint="Ví dụ: bưng bê, dọn bàn; mặc áo tối màu.">
-          <textarea name="description" rows={3} maxLength={500} defaultValue={src?.description ?? ''} className={inputCls} />
-        </Field>
-
-        <Check name="urgent" defaultChecked={src?.urgent}>
-          <b>Ca gấp</b> — cần người ngay, ca sẽ được đánh dấu GẤP.
-        </Check>
-        <Check name="allow_minor" defaultChecked={src?.allow_minor}>
-          <b>Nhận người dưới 18 tuổi</b>
-          <span className="block text-base text-slate-600">Chỉ áp dụng cho ca trong 06:00–22:00, dài tối đa 8 giờ.</span>
-        </Check>
-        <Check name="commit" required>
-          Tôi cam kết: không thu phí, không đặt cọc, không giữ giấy tờ của người làm.
-        </Check>
-
-        <SubmitButton>Đăng ca</SubmitButton>
+        <div className="sm:max-w-xs">
+          <SubmitButton>Đăng ca</SubmitButton>
+        </div>
       </ActionForm>
     </div>
   );
