@@ -9,7 +9,7 @@ import type { AddLayerObject, Map as MapLibreMap, Marker as MapLibreMarker } fro
 import { JOB_LABEL } from '@/lib/constants';
 import { fmtTime } from '@/lib/format';
 import type { Shift } from '@/lib/types';
-import { Alert, btn, Field, ShiftCard, inputCls } from './ui';
+import { Alert, Badge, btn, Field, ShiftCard, inputCls } from './ui';
 
 // Bản đồ: MapLibre (nạp động, chỉ trang có bản đồ mới tải) + nền OpenFreeMap. Không lưu hay gửi vị trí người dùng đi đâu.
 // Tile và chữ bản đồ tải từ tiles.openfreemap.org (kết nối ngoài đã được chủ dự án duyệt).
@@ -141,11 +141,14 @@ function MapFrame({ base, className, label, failText, children }: {
   );
 }
 
+// Lề an toàn: tránh nút +/- ở góc trên phải (rộng ~58px kể cả lề) và attribution ở góc dưới phải (cao ~50px); pin rộng ~80px, cao ~46px phía trên điểm.
+const FIT_PAD = { top: 64, bottom: 64, left: 56, right: 100 };
+
 /** Điểm (lng, lat) còn nằm trọn trong khung nhìn (chừa lề cho pin)? */
 function inView(map: MapLibreMap, lng: number, lat: number) {
   const { x, y } = map.project([lng, lat]);
   const el = map.getContainer();
-  return x > 40 && x < el.clientWidth - 40 && y > 64 && y < el.clientHeight - 24;
+  return x > FIT_PAD.left && x < el.clientWidth - FIT_PAD.right && y > FIT_PAD.top && y < el.clientHeight - FIT_PAD.bottom;
 }
 
 const PIN: Record<MapTone, { bg: string; fg: string; bd: string }> = {
@@ -237,7 +240,7 @@ export function ShiftMap({ points, selectedId, onSelect, highlightId, className 
     const { map, lib } = ctx;
     const b = new lib.LngLatBounds();
     points.forEach((p) => b.extend([p.lng, p.lat]));
-    map.fitBounds(b, { padding: { top: 64, bottom: 32, left: 40, right: 40 }, maxZoom: 15, animate: !reduced() });
+    map.fitBounds(b, { padding: FIT_PAD, maxZoom: 15, animate: !reduced() });
   }, [ctx, sig]);
 
   // Chọn từ ngoài: pin sáng lên và, nếu ngoài khung nhìn, bản đồ dời tới.
@@ -324,7 +327,12 @@ export function ShiftExplorer({ shifts }: { shifts: Shift[] }) {
               onMouseEnter={() => setHover(s.id)} onMouseLeave={() => setHover(null)}
               onFocusCapture={() => setHover(s.id)} onBlurCapture={() => setHover(null)}>
               <div className={`rounded-ui ${s.id === sel ? 'ring-2 ring-shutter-deep ring-offset-2 ring-offset-chalk' : ''}`}>
-                <ShiftCard shift={s} href={`/ca/${s.id}`} />
+                <ShiftCard shift={s} href={`/ca/${s.id}`}
+                  extra={s.my_role ? (
+                    <Badge tone={s.my_role === 'primary' ? 'green' : 'amber'}>
+                      Bạn là {s.my_role === 'primary' ? 'người chính' : 'người dự phòng'}
+                    </Badge>
+                  ) : undefined} />
               </div>
               {mapped.has(s.id) ? (
                 <button type="button" onClick={() => { setSel(s.id); setTab('map'); }} className={`${btn('ghost', false)} mt-1`}>
@@ -336,7 +344,7 @@ export function ShiftExplorer({ shifts }: { shifts: Shift[] }) {
         </ul>
         {hasMap ? (
           <div className={`${tab === 'list' ? 'hidden lg:block' : ''} lg:sticky lg:top-8`}>
-            <ShiftMap points={points} selectedId={sel} highlightId={hover} caption="Bản đồ các ca, dữ liệu mẫu"
+            <ShiftMap points={points} selectedId={sel} highlightId={hover} caption="Bản đồ các ca"
               onSelect={(id) => setSel(id || null)}
               className="h-[min(32rem,calc(100dvh_-_var(--chrome-top)_-_var(--chrome-bottom)_-_10rem))] lg:h-[calc(100dvh_-_12rem)]" />
           </div>
