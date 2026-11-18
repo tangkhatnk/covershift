@@ -1,80 +1,46 @@
 import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
+import { Barlow_Condensed, Be_Vietnam_Pro } from 'next/font/google';
 import './globals.css';
+import { AppShell } from '@/components/client';
 import { APP_NAME, DISCLAIMER, NO_FEE } from '@/lib/constants';
 import { getContext, homeFor } from '@/lib/auth';
-import type { Role } from '@/lib/types';
+
+// Font tự host qua next/font (tải lúc build, không gọi CDN khi người dùng mở trang).
+const sans = Be_Vietnam_Pro({ subsets: ['latin', 'vietnamese'], weight: ['400', '500', '600', '700'], variable: '--font-sans', display: 'swap' });
+// Be Vietnam Pro không có chữ số tabular; giờ ca dùng Barlow Condensed (có tnum) để các giờ thẳng cột.
+const num = Barlow_Condensed({ subsets: ['latin', 'vietnamese'], weight: ['600', '700'], variable: '--font-num', display: 'swap' });
 
 export const metadata: Metadata = {
   title: { default: `${APP_NAME} – Ca làm ngắn hạn an toàn ở Vũng Tàu`, template: `%s · ${APP_NAME}` },
   description: 'Kết nối ca làm ngắn hạn giữa quán cà phê, nhà hàng, homestay, khách sạn nhỏ ở Vũng Tàu và học sinh, sinh viên.',
 };
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#047857' };
-
-const NAV: Record<Role, { href: string; label: string }[]> = {
-  worker: [
-    { href: '/ca', label: 'Tìm ca' },
-    { href: '/ca-cua-toi', label: 'Ca của tôi' },
-    { href: '/ho-so', label: 'Hồ sơ' },
-  ],
-  employer: [
-    { href: '/quan', label: 'Ca của quán' },
-    { href: '/quan/dang-ca', label: 'Đăng ca' },
-    { href: '/tai-khoan', label: 'Tài khoản' },
-  ],
-  admin: [
-    { href: '/admin', label: 'Điều phối' },
-    { href: '/admin/co-so', label: 'Cơ sở' },
-    { href: '/admin/nguoi-lam', label: 'Người làm' },
-    { href: '/admin/bao-cao', label: 'Báo cáo' },
-    { href: '/admin/kpi', label: 'KPI' },
-    { href: '/admin/nhat-ky', label: 'Nhật ký' },
-  ],
-};
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#153F30' };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { user, profile } = await getContext();
-  const links = profile && profile.status === 'active' ? NAV[profile.role] : [];
+  const role = profile && profile.status === 'active' ? profile.role : null;
   return (
-    <html lang="vi">
-      <body className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
-          <div className="mx-auto flex max-w-xl items-center justify-between px-4 py-3">
-            <Link href={profile ? homeFor(profile.role) : '/'} className="text-xl font-extrabold text-brand-700">
-              {APP_NAME}
-            </Link>
-            {user ? (
-              <Link href="/tai-khoan" className="text-base font-semibold text-slate-700 underline underline-offset-4">
-                {profile?.full_name.split(' ').slice(-1)[0] ?? 'Tài khoản'}
-              </Link>
-            ) : (
-              <Link href="/dang-nhap" className="text-base font-semibold text-brand-700 underline underline-offset-4">
-                Đăng nhập
-              </Link>
-            )}
-          </div>
-          {links.length ? (
-            <nav className="mx-auto flex max-w-xl gap-1 overflow-x-auto px-2 pb-2">
-              {links.map((l) => (
-                <Link key={l.href} href={l.href}
-                  className="whitespace-nowrap rounded-full bg-slate-100 px-4 py-2 text-base font-semibold text-slate-800 hover:bg-brand-100">
-                  {l.label}
-                </Link>
-              ))}
-            </nav>
-          ) : null}
-        </header>
-        <main className="mx-auto w-full max-w-xl flex-1 px-4 py-5">{children}</main>
-        <footer className="border-t border-slate-200 bg-white">
-          <div className="mx-auto max-w-xl space-y-2 px-4 py-5 text-sm text-slate-600">
-            <p className="text-base font-bold text-brand-700">{NO_FEE}</p>
-            <p>{DISCLAIMER}</p>
-            <p className="flex flex-wrap gap-x-4 gap-y-1">
-              <Link href="/dieu-khoan" className="underline underline-offset-4">Điều khoản</Link>
-              <Link href="/chinh-sach-du-lieu" className="underline underline-offset-4">Chính sách dữ liệu</Link>
-            </p>
-          </div>
-        </footer>
+    <html lang="vi" className={`${sans.variable} ${num.variable}`}>
+      <body className="font-sans">
+        <AppShell
+          role={role}
+          signedIn={!!user}
+          userName={profile?.full_name.split(' ').slice(-1)[0] ?? null}
+          homeHref={profile ? homeFor(profile.role) : '/'}
+          footer={
+            <div className="mx-auto max-w-6xl space-y-2 px-4 py-6 lg:px-8">
+              <p className="text-lg font-bold text-wall">{NO_FEE}</p>
+              <p className="text-base text-shutter-tint">{DISCLAIMER}</p>
+              <p className="flex flex-wrap gap-x-6 text-base font-semibold">
+                <Link href="/dieu-khoan" className="inline-flex min-h-[3rem] items-center underline">Điều khoản</Link>
+                <Link href="/chinh-sach-du-lieu" className="inline-flex min-h-[3rem] items-center underline">Chính sách dữ liệu</Link>
+              </p>
+            </div>
+          }
+        >
+          {children}
+        </AppShell>
       </body>
     </html>
   );

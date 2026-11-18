@@ -77,14 +77,14 @@ Dùng ranh giới sở hữu sẵn có trước khi tạo ranh giới mới. Đ�
 
 - `src/app/`
   - các route và trang (`admin/`, `quan/`, `ca/`, `dang-ky/`, `dang-nhap/`, `auth/`...);
-  - `globals.css`, `layout.tsx`.
+  - `globals.css` (biến `--chrome-top`/`--chrome-bottom`, vòng focus, `@media print`), `layout.tsx` (font `next/font`, `AppShell`), `error.tsx`, `not-found.tsx`.
 - `src/app/actions.ts`
   - mọi server action; một action tương ứng một RPC, ngoại lệ duy nhất là `demoLogin` (mục 15).
 - `src/lib/`
   - `constants.ts`, `types.ts`, `format.ts`, `errors.ts`, `auth.ts`;
   - `supabase/` (client, server, middleware).
 - `src/components/`
-  - `ui.tsx` (thành phần trình bày), `client.tsx` (thành phần client: `ActionForm`, `SubmitButton`...).
+  - `ui.tsx` (thành phần trình bày), `client.tsx` (thành phần client: `AppShell`, `ActionForm`, `SubmitButton`...).
 - `middleware.ts`
   - làm mới phiên đăng nhập qua `src/lib/supabase/middleware.ts`; matcher bỏ qua file tĩnh và các trang token công khai.
 
@@ -110,6 +110,8 @@ Repo là một package Next.js ở thư mục gốc, không phải npm workspace
 - Next.js 15.5.29 (App Router), React 19;
 - TypeScript 5.9.3, Tailwind CSS 3.4.19;
 - `@supabase/ssr` 0.12.7, `@supabase/supabase-js` 2.119.0;
+- `lucide-react` 1.74.0 (icon, giấy phép ISC); font Be Vietnam Pro (chữ) và Barlow Condensed (số giờ ca) qua `next/font/google`, tự host lúc build;
+- `tailwind.config.ts` giữ bảng màu và font của giao diện (mục 19);
 - `db-test/`: `embedded-postgres` và `pg`.
 
 Lệnh có thật trong `package.json`:
@@ -124,7 +126,7 @@ npm run test:db       # tự chạy npm install trong db-test, rồi node run.mj
 Quy tắc:
 
 - không đổi package manager nếu không có task riêng;
-- không nâng phiên bản thư viện như việc phụ; phiên bản `@supabase/*`, `next`, `tailwindcss`, `typescript` đang ghim chính xác, giữ nguyên;
+- không nâng phiên bản thư viện như việc phụ; phiên bản `@supabase/*`, `next`, `tailwindcss`, `typescript`, `lucide-react` đang ghim chính xác, giữ nguyên;
 - thay đổi phụ thuộc phải kèm lockfile tương ứng và chỉ khi task cần;
 - không thêm bộ định dạng toàn repo (Prettier, ESLint...) chỉ vì repo chưa có; không chạy công cụ định dạng trên file không liên quan;
 - không commit `.env*` (trừ `.env.example`), `.next/`, `db-test/.pgdata`, `tsconfig.tsbuildinfo`, `node_modules/`.
@@ -576,8 +578,8 @@ Repo `tangkhatnk/covershift` là **PUBLIC**. Mọi thứ đã commit, kể cả 
 
 ## 17. Chính sách phụ thuộc
 
-- Ưu tiên cái đã có (Next.js, React, `@supabase/ssr`, `@supabase/supabase-js`, Tailwind) và API của nền tảng. Không thêm thư viện chỉ để tránh viết vài dòng rõ ràng.
-- Phiên bản đang được ghim có chủ đích để ổn định (Next `15.5.29`, Tailwind `3.4.19`, TypeScript `5.9.3`, `@supabase/ssr` `0.12.7`, `@supabase/supabase-js` `2.119.0`, Node `24.x`). Không nâng cấp, nhất là nâng major, kèm một việc khác. Nâng cấp là task riêng, phải chạy `npx tsc --noEmit` và `next build`.
+- Ưu tiên cái đã có (Next.js, React, `@supabase/ssr`, `@supabase/supabase-js`, Tailwind, `lucide-react` cho icon, `next/font` cho font) và API của nền tảng. Không thêm thư viện chỉ để tránh viết vài dòng rõ ràng.
+- Phiên bản đang được ghim có chủ đích để ổn định (Next `15.5.29`, Tailwind `3.4.19`, TypeScript `5.9.3`, `@supabase/ssr` `0.12.7`, `@supabase/supabase-js` `2.119.0`, `lucide-react` `1.74.0`, Node `24.x`). Không nâng cấp, nhất là nâng major, kèm một việc khác. Nâng cấp là task riêng, phải chạy `npx tsc --noEmit` và `next build`.
 - Thay đổi dependency phải kèm lockfile tương ứng (`package-lock.json` ở gốc, hoặc `db-test/package-lock.json`). Không để lockfile đổi vặt: nếu `npm run test:db` làm đổi `db-test/package-lock.json` mà task không đụng dependency thì không commit phần đó.
 - Không thêm Supabase admin SDK, service-role client hay thư viện gửi dữ liệu ra ngoài vào mã web.
 - `db-test/` có cây phụ thuộc riêng (`embedded-postgres`, `pg`, `package.json` và lockfile riêng). Không gộp vào `package.json` gốc, không import từ `src/`, và không để mã web phụ thuộc vào nó.
@@ -604,16 +606,16 @@ Quyền và điều hướng:
 Quy ước Next 15 của repo:
 
 - `params` và `searchParams` là `Promise`: khai kiểu `Promise<...>` và `await` (xem `src/app/xac-nhan/[token]/page.tsx`, `src/app/ca/page.tsx`).
-- `'use client'` chỉ khi cần trạng thái, hiệu ứng hoặc API trình duyệt. Hiện chỉ có hai file: `src/components/client.tsx` và `src/app/xac-nhan/[token]/confirm-form.tsx`. Trang `/dang-nhap` là Server Component, ba nút demo là form gọi server action `demoLogin`. Client Component nhỏ, đặt ở lá cây; trang bao ngoài vẫn là Server Component. Không dùng `createClient()` từ `@/lib/supabase/client` để đọc hay ghi dữ liệu nghiệp vụ.
+- `'use client'` chỉ khi cần trạng thái, hiệu ứng hoặc API trình duyệt. Hiện có ba file: `src/components/client.tsx` (có `AppShell`, dùng `usePathname`), `src/app/xac-nhan/[token]/confirm-form.tsx` và `src/app/error.tsx` (Next bắt buộc error boundary là Client Component). `src/app/not-found.tsx` là Server Component. Trang `/dang-nhap` là Server Component, ba nút demo là form gọi server action `demoLogin`. Client Component nhỏ, đặt ở lá cây; trang bao ngoài vẫn là Server Component. Không dùng `createClient()` từ `@/lib/supabase/client` để đọc hay ghi dữ liệu nghiệp vụ.
 - Trang chứa token hoặc dữ liệu riêng (`/xac-nhan`, `/dong-y`, `/h`, `/admin`) đặt `robots: { index: false, follow: false }`. Trang mới cùng loại làm tương tự.
 - Server chạy UTC. Mọi giờ và ngày hiển thị qua `src/lib/format.ts` (`fmtDate`, `fmtTime`, `fmtRange`, `fmtDateTime`, `fmtPlainDate`, `vnDateInput`, `fmtMoney`, `hoursBetween`, `shiftState`). Không gọi `toLocaleString`, `Date#getHours` hay tự ghép giờ trong component. Giá trị điền vào `<input type="time">` cũng lấy từ đó (có chủ đích dùng `hourCycle: 'h23'`).
 - Không chạy `next dev` và `next build` cùng lúc (chung thư mục `.next`).
 
 Dùng lại trước khi tạo mới:
 
-- `src/components/ui.tsx` (Server Component dùng được): `btn(variant, full)`, `inputCls`, `PageTitle`, `Card`, `Badge`, `Alert`, `Field`, `Check`, `Empty`, `Tel`, `Stars`, `ShiftCard`, kiểu `BtnVariant` và `Tone`.
-- `src/components/client.tsx`: `ActionForm`, `SubmitButton`, `Flash`, `CopyButton`, `PrintButton`.
-- Nhãn hiển thị nằm ở `src/lib/constants.ts` (`JOB_LABEL`, `AREA_LABEL`, ...) và `src/lib/format.ts` (`SHIFT_STATE_LABEL`, `SHIFT_STATE_TONE`). Thêm giá trị enum mới thì thêm nhãn ở đó, không viết chuỗi rời trong trang.
+- `src/components/ui.tsx` (Server Component dùng được): `btn(variant, full)`, `inputCls`, `PageTitle`, `Card` (prop `tab`), `Badge` (prop `icon`), `StateBadge`, `Alert`, `Field`, `Check`, `Empty`, `Tel`, `Stars`, `SlotStrip`, `ShiftCard`, `Doc`/`DocSection`/`DocList` (tờ đọc điều khoản và chính sách), kiểu `BtnVariant` và `Tone`.
+- `src/components/client.tsx`: `AppShell` (khung trang, mục 19), `ActionForm`, `SubmitButton`, `Flash`, `CopyButton`, `PrintButton`.
+- Nhãn hiển thị nằm ở `src/lib/constants.ts` (`JOB_LABEL`, `AREA_LABEL`, ...) và `src/lib/format.ts` (`SHIFT_STATE_LABEL`, `SHIFT_STATE_TONE`); icon của từng trạng thái ca nằm trong `StateBadge` (`ui.tsx`). Thêm giá trị enum mới thì thêm nhãn (và icon) ở đó, không viết chuỗi rời trong trang.
 - Chỉ tạo thành phần mới khi mẫu đó đã lặp thật sự (từ hai chỗ trở lên) hoặc thành phần chung không đáp ứng được. Không thêm prop, biến thể hay lớp bọc "để dành" cho nhu cầu chưa có. Thành phần chỉ dùng một trang thì để ngay trong trang đó.
 - `ActionForm` đã lo việc điền lại ô sau khi gửi lỗi (React 19 tự xóa form), cuộn tới thông báo và gắn `role="alert"` / `role="status"`. Không tự viết lại logic này trong form mới.
 
@@ -621,44 +623,81 @@ Dùng lại trước khi tạo mới:
 
 ## 19. Thiết kế cho người dùng thật
 
-Bề mặt chính là điện thoại 360 đến 414px, thường mở từ Zalo hoặc Facebook. Chủ quán là nhóm có nhiều người lớn tuổi. Thiết kế cho họ trước, desktop chỉ cần không vỡ.
+Bề mặt chính là điện thoại 360 đến 414px, thường mở từ Zalo hoặc Facebook. Chủ quán là nhóm có nhiều người lớn tuổi. Thiết kế cho họ trước. Desktop cũng phải đẹp, không chỉ "không vỡ": buổi demo 26/11 trình bày cho ban giám khảo trên laptop hoặc máy chiếu.
 
-- Khung trang là một cột `max-w-xl` căn giữa (`src/app/layout.tsx`), kể cả trên desktop và trang admin. Không dựng bố cục nhiều cột, bảng rộng hay sidebar nếu không được giao rõ.
-- Chữ gốc là 18px (`html { font-size: 18px }` trong `src/app/globals.css`), nên mọi đơn vị `rem` của Tailwind lớn hơn mặc định 12,5%: `text-base` = 18px, `text-lg` ≈ 20px, `text-sm` ≈ 16px. Không hạ cỡ chữ gốc. Hiện không có `text-xs` hay `text-[...]` ở đâu; đừng thêm. Nội dung người dùng cần đọc không dưới `text-base`; `text-sm` chỉ cho gợi ý phụ, nhãn Badge và chân trang.
+Hướng giao diện (nội bộ gọi là "Phố cửa chớp": tường vàng, cửa chớp xanh, nền vôi) ghi ở `PRODUCT.md`; bảng màu và token ở `tailwind.config.ts`.
+
+### Khung trang
+
+Khung do `AppShell` (`src/components/client.tsx`) dựng, `layout.tsx` chỉ truyền vai trò, tên và chân trang vào.
+
+- Điện thoại: thanh trên dính cao `3.5rem` (`--chrome-top`) và, khi đã đăng nhập có vai trò, thanh điều hướng dưới cao `4.5rem` cộng vùng an toàn (`--chrome-bottom`). Hai biến này nằm ở `globals.css` và được dùng cho `scroll-padding` của `<html>` lẫn padding đáy của chân trang; đổi chiều cao thanh thì đổi biến, không đổi từng chỗ.
+- Từ `lg` (1024px): rail trái cố định rộng `15rem` thay cho thanh trên và thanh dưới; nội dung lùi `lg:pl-60`.
+- Người làm và chủ quán có 3 mục nav. Nhóm vận hành có 4 tab (Điều phối, Cơ sở, Người làm, Báo cáo) và nút "Thêm" (KPI, Nhật ký, Tài khoản) mở bằng `<details>`; rail desktop hiện đủ các mục. Mục `NAV` nằm ở `client.tsx`; thêm trang vào nav là sửa ở đó.
+- Không có nav chính ở trang token và hồ sơ công khai (`/xac-nhan`, `/dong-y`, `/h`), và khi chưa đăng nhập, chưa đăng ký hoặc bị khóa. Những trang đó chỉ có thanh trên.
+- Bề rộng nội dung do hàm `contentWidth(pathname)` trong `src/components/client.tsx` (qua `AppShell`) đặt: trang chủ `/` tự dựng bố cục; `max-w-6xl` cho `/dang-nhap`, `/dieu-khoan`, `/chinh-sach-du-lieu`, `/ca`, `/ca-cua-toi`, `/quan`, `/admin` và mọi `/admin/*` (đúng đường dẫn, không gồm `/ca/[id]`, `/quan/ca/...`, `/quan/dang-ca`); mọi trang còn lại `max-w-3xl`. Trang mới cần rộng hơn thì sửa `contentWidth`, không tự đặt `max-w-*` bao ngoài.
+- Trang rộng được dùng nhiều cột và bảng thật; trang `max-w-3xl` không dựng bố cục nhiều cột hay bảng rộng nếu không được giao rõ. Cột chữ của trang đọc vẫn tự giới hạn: điều khoản và chính sách dùng `Doc` (bề rộng đọc `40rem`, mục lục dính bên phải ở desktop).
+
+### Chữ, vùng chạm, khoảng cách
+
+- Chữ gốc là 18px (`html { font-size: 18px }` trong `src/app/globals.css`), nên mọi đơn vị `rem` của Tailwind lớn hơn mặc định 12,5%: `text-base` = 18px, `text-lg` ≈ 20px, `text-sm` ≈ 15,8px. Không hạ cỡ chữ gốc. Không dùng `text-xs` hay `text-[...]`. Nội dung người dùng cần đọc không dưới `text-base`; `text-sm` chỉ cho gợi ý phụ, nhãn Badge, nhãn thanh điều hướng dưới và chân trang.
+- Font chữ là Be Vietnam Pro (`font-sans`, đặt ở `<body>`). Số giờ ca dùng `font-num tabular` (Barlow Condensed, có chữ số bảng cố định để các giờ thẳng cột; Be Vietnam Pro không có).
 - Dùng `rem` hoặc lớp Tailwind, không dùng px cứng cho cỡ chữ và kích thước chạm.
 - Nút và ô nhập cao tối thiểu `3rem` (= 54px ở cỡ gốc, vượt mức 48px); lấy từ `btn()` và `inputCls`, không tự viết lại. Việc quan trọng nhất của trang có thể to hơn (ví dụ `!min-h-[3.75rem] !text-xl` ở nút "Xác nhận ngay" trong `src/app/quan/ca/[id]/page.tsx`). Ô tick dùng `Check` (ô 1.5rem, cả hàng bấm được). Khoảng cách giữa hai vùng chạm đủ để không bấm nhầm.
+- Mọi khoảng cách (padding, margin, gap) là bội của `0.5rem` (lớp Tailwind `1`, `2`, `4`, `6`, `8`...). Không dùng giá trị lẻ.
 - Mỗi việc không quá 3 bước, chỉ một hành động chính nổi bật mỗi màn hình. Nút chính dùng `btn('primary')`; hành động hủy hoặc xóa dùng `danger` và có bước xác nhận (xem mục 22).
-- Không có cuộn ngang. `nav` trong header là ngoại lệ có chủ đích (`overflow-x-auto`). Chuỗi dài (tên người, tên quán, địa chỉ) phải xuống dòng được; không cắt (`truncate`) thông tin người dùng cần đọc.
+- Không có cuộn ngang. Chuỗi dài (tên người, tên quán, địa chỉ) phải xuống dòng được; không cắt (`truncate`) thông tin người dùng cần đọc.
 - Mọi màn hình có dữ liệu động phải có đủ trạng thái: rỗng (`Empty`), lỗi (`Alert tone="red"`, nói rõ làm gì tiếp), đang gửi (`SubmitButton` tự đổi nhãn "Đang gửi…" và khóa), thành công (thông báo của `ActionForm` hoặc `Flash`), bị khóa hoặc chưa đủ điều kiện (nói lý do và bước kế tiếp).
-- Tránh "card soup". `Card` dùng cho một nhóm nội dung có ranh giới thật; không bọc từng dòng, không lồng thẻ trong thẻ.
-- Giữ một hệ thống hình ảnh: màu thương hiệu là `brand` trong `tailwind.config.ts` (50, 100, 600, 700, 800; chính là xanh lục `#047857`), nền `slate`, trạng thái qua `Tone` (green, amber, red, gray, blue). Không đưa vào bảng màu, font, bo góc hay đổ bóng thứ hai. Cần sắc độ `brand` mới thì thêm vào `tailwind.config.ts`, đừng viết mã hex trong trang (ngoại lệ hiện có: `#047857` ở `globals.css` và `themeColor`).
-- App chỉ có giao diện sáng: không có `dark:` hay `prefers-color-scheme` nào. Không thêm chế độ tối nếu không được giao.
+
+### Hệ hình ảnh
+
+- Một bảng màu, khai ở `tailwind.config.ts`; chỉ dùng tên token, không viết mã hex trong trang (ngoại lệ hiện có: các mã trong `globals.css` cho `::selection`, `caret-color`, thanh cuộn, vòng focus, và `themeColor` ở `layout.tsx`):
+  - `chalk` `#F6F4E8`: nền vôi của cả app.
+  - `ink` `#17231D` (chữ chính) và `ink-soft` `#46524B` (chữ phụ).
+  - `shutter` `#1F5C45`, `shutter-deep` `#153F30`, `shutter-tint` `#DDEBE3`: xanh cửa chớp, dùng cho khung (thanh trên, rail, chân trang), nút chính, thành công.
+  - `wall` `#F2C94C`, `wall-tint` `#FBF0C4`: tường vàng, dùng cho băng tiêu đề trang, mục đang chọn, dải đầu mô-đun, cảnh báo nhẹ.
+  - `roof` `#B0391F`, `roof-tint` `#F8DDD5`: lỗi và hành động nguy hiểm.
+  - `sea` `#1C5F8A`, `sea-tint` `#D6E6EF`: thông tin.
+  - `rule` `#CFCAB2` (viền hairline) và `rule-strong` `#7C8479` (viền ô nhập, ô tick).
+  - Trạng thái qua `Tone`: `green` = shutter, `amber` = wall, `red` = roof, `blue` = sea, `gray` = chalk có viền `rule`.
+  - Màu `brand` chỉ còn là bí danh tạm trỏ về `shutter` để các trang chưa làm lại vẫn có màu; không dùng `brand` trong mã mới.
+- Bo góc duy nhất là `rounded-ui` (6px). Không đổ bóng, không gradient, không kính mờ (glass), không viền trái màu; ngoại lệ duy nhất dự kiến là pin của bản đồ (PR sau). Không đưa vào bảng màu, font, bo góc hay đổ bóng thứ hai. Cần sắc độ mới thì thêm vào `tailwind.config.ts`.
+- Bố cục nội dung là các mô-đun chữ nhật viền hairline (`Card`, `ShiftCard`). Dải đầu của mô-đun (`Card tab`, đầu `ShiftCard`) chứa dữ liệu thật (loại việc, trạng thái, nhãn "GẤP"), không phải nhãn trang trí. Không dùng nhãn kicker hoặc eyebrow (dòng chữ nhỏ viết hoa phía trên tiêu đề). Không bọc từng dòng trong thẻ, không lồng thẻ trong thẻ.
+- Dãy cửa chớp (`SlotStrip`) là hình đặc trưng của sản phẩm: mỗi người chính là một ô cửa (đóng = đã có người, trống = còn chỗ), có một ô dự phòng nét đứt tách bằng một trụ. Hình chỉ là minh họa (`aria-hidden`); luôn kèm câu chữ đọc được ("2/3 người chính · chưa có dự phòng") và chữ "Dự phòng" đầy đủ, không rút gọn, không chỉ dựa vào hình và màu.
+- Từ điển trạng thái ca đóng (`StateBadge`): mỗi trạng thái đúng một icon, một nhãn, một tông. Không tự ghép Badge trạng thái ca ở trang khác.
+- App chỉ có giao diện sáng: không có `dark:` hay `prefers-color-scheme` nào. Không thêm chế độ tối nếu không được giao. Vùng nền xanh đậm (thanh trên, rail, nav dưới, chân trang) mang lớp `surface-dark` để vòng focus đổi sang vàng (mục 22); đó là bề mặt của khung, không phải chế độ tối.
 - Không dùng trang trí không có chức năng (gradient, ảnh minh họa lớn, hiệu ứng). Ảnh hưởng đến tải trang trên 4G yếu.
+
+### Tồn đọng, làm lại ở PR sau
+
+Các trang chưa làm lại (`/admin/*`, `/quan/*`, `/ca/*`, `/ca-cua-toi`, `/ho-so`, `/tai-khoan`, `/dang-ky/*`, `/h/[slug]`, `/xac-nhan`, `/dong-y`) vẫn dùng lớp cũ: `slate-*`, `emerald-*`, `sky-*`, `brand-*`, `shadow-sm`, `rounded-xl`/`rounded-2xl`. `/h/[slug]` còn nhãn viết hoa `uppercase tracking-widest` cỡ `text-sm` (khoảng 15,8px) phía trên tiêu đề, và `/quan/ca/[id]` còn tiêu đề viết hoa. Đây là nợ của hệ cũ, không phải mẫu để lặp lại; khi sửa các trang đó thì chuyển sang token ở trên.
 
 ---
 
 ## 20. Icon
 
-Hiện trạng đã kiểm: repo không có thư viện icon nào trong `package.json`, không có file SVG, không có `<svg>` và không có `next/image`. Giao diện dựa vào chữ, màu và `Badge`.
+Icon dùng `lucide-react` (ghim `1.74.0`, giấy phép ISC): khung điều hướng, `StateBadge`, `Alert`, `SubmitButton`, `CopyButton`, `PrintButton`, `Stars`. Một giao diện chỉ dùng một bộ icon.
 
-- Không dùng ký tự Unicode hay emoji làm icon thay thế, và không thêm ký tự mới kiểu đó. Các ký tự hiện có (`★` trong `Stars` và nút chấm sao, `✓` trong `Choice` và `CopyButton`, `←` ở link quay lại) là tồn đọng, không phải khuôn mẫu để lặp lại.
+- Import từng icon theo tên (`import { Search } from 'lucide-react'`), không import cả bộ, không tải từ CDN. Kích thước dùng lớp Tailwind (`h-5 w-5` trong nút, `h-6 w-6` trong nav và `Alert`, `h-4 w-4` trong `Badge`).
+- Icon trang trí phải ẩn khỏi trình đọc màn hình (`aria-hidden="true"`). Nút chỉ có icon phải có tên truy cập được (`aria-label` hoặc chữ ẩn bằng `sr-only`). Nút to tối thiểu `3rem` vẫn áp dụng cho nút chỉ có icon. Hiện các icon đều đi kèm chữ.
 - Trạng thái quan trọng phải có chữ (ví dụ "Đã sao chép", "Đã làm"), không chỉ dựa vào icon hay màu.
-- Chưa cần icon thì đừng thêm. Khi một tác vụ thật sự cần (ví dụ biểu tượng gọi điện, sao chép), chọn một thư viện được duy trì tốt (như Lucide hoặc Phosphor), import từng icon, không tải từ CDN, kiểm tra giấy phép và dung lượng bundle. Một giao diện chỉ dùng một bộ icon. Thêm thư viện là thay đổi dependency, cần nêu trong PR (mục 21).
-- Icon trang trí phải ẩn khỏi trình đọc màn hình (`aria-hidden="true"`). Nút chỉ có icon phải có tên truy cập được (`aria-label` hoặc chữ ẩn bằng `sr-only`). Nút to tối thiểu `3rem` vẫn áp dụng cho nút chỉ có icon.
-- `Stars` (`src/components/ui.tsx`) vẽ sao bằng ký tự `★` lặp lại, tô màu `amber-500` cho sao đầy và `slate-300` cho sao rỗng. Nó đặt `aria-label` trên một `<span>` không có `role`; trình đọc màn hình không đảm bảo đọc nhãn đó. Nút chấm sao trong `confirm-form.tsx` thì khác: là `<button>` có `aria-label="{n} sao"`, nên ký tự bên trong không bị đọc thừa. Sửa `Stars` chỉ khi được giao việc (khi sửa: `role="img"` kèm `aria-label`, hoặc chữ `sr-only` và ẩn phần ký tự).
-- Custom SVG chỉ dành cho logo hay hình minh họa riêng của SafeShift, không dùng để tự vẽ lại bộ icon.
+- Không dùng ký tự Unicode hay emoji làm icon, và không thêm ký tự mới kiểu đó.
+- Tồn đọng, thay ở PR sau: `✓` và `★` trong `src/app/xac-nhan/[token]/confirm-form.tsx` (nhãn `Choice` và nút chấm sao), `←` ở link "Về danh sách" trong `src/app/quan/ca/[id]/page.tsx`. Không phải khuôn mẫu để lặp lại.
+- `Stars` (`src/components/ui.tsx`) vẽ năm icon `Star` của Lucide: sao đầy tô `wall` viền `shutter-deep`, sao rỗng chỉ có viền `rule-strong`; bao ngoài là `<span role="img" aria-label="… trên 5 sao">`, các icon bên trong `aria-hidden`. Nút chấm sao trong `confirm-form.tsx` là `<button>` có `aria-label="{n} sao"`, nên ký tự bên trong không bị đọc thừa.
+- Thêm thư viện icon thứ hai là thay đổi dependency, cần nêu trong PR (mục 21).
+- Custom SVG chỉ dành cho logo hay hình minh họa riêng của SafeShift, không dùng để tự vẽ lại bộ icon. Ô cửa chớp trong `SlotStrip` là hình minh họa riêng của sản phẩm nên được vẽ bằng SVG.
 
 ---
 
 ## 21. Thư viện frontend
 
-Dependency hiện tại rất nhỏ: `next`, `react`, `react-dom`, `@supabase/ssr`, `@supabase/supabase-js`; Tailwind 3.4.19, PostCSS, Autoprefixer. Bằng đó là đủ cho một giao diện đơn giản.
+Dependency hiện tại nhỏ: `next`, `react`, `react-dom`, `@supabase/ssr`, `@supabase/supabase-js`, `lucide-react`; Tailwind 3.4.19, PostCSS, Autoprefixer. Font đi qua `next/font`, không phải gói riêng. Bằng đó là đủ cho một giao diện đơn giản.
 
 - Không thêm UI framework hay hệ thiết kế lớn (MUI, Ant Design, Chakra, Bootstrap, shadcn cho cả repo) để làm đẹp một màn hình. Đề xuất riêng và nêu đánh đổi trước khi coi là được phép.
-- Không nâng Tailwind 3 lên 4 như việc phụ. Đổi cách cấu hình (`tailwind.config.ts`, `@tailwind` trong `globals.css`) là việc riêng, cần issue và kiểm lại toàn bộ giao diện.
+- Không nâng Tailwind 3 lên 4 như việc phụ. Bảng màu, font và `rounded-ui` khai trong `tailwind.config.ts`; thêm màu hoặc cỡ mới ở đó. Đổi cách cấu hình (`tailwind.config.ts`, `@tailwind` trong `globals.css`) là việc riêng, cần issue và kiểm lại toàn bộ giao diện.
 - Không thêm thư viện để tránh viết vài dòng rõ ràng. Với ngày giờ, tiền, số điện thoại: dùng `Intl` và `src/lib/format.ts`, không thêm `date-fns`, `dayjs`, `moment`.
 - Mỗi dependency mới phải trả lời được: giải quyết vấn đề thật nào, dung lượng gửi xuống trình duyệt (chủ quán dùng điện thoại và mạng di động), tree shaking, còn duy trì không, giấy phép, có trùng với thứ đã có không. Có kèm lockfile (`package-lock.json`).
-- Không thêm font từ CDN hay web font nặng. Hiện app dùng font hệ thống của Tailwind và hỗ trợ tiếng Việt có dấu; đổi font là quyết định thiết kế, không phải việc phụ.
+- Không thêm font từ CDN hay web font nặng. Font duy nhất là Be Vietnam Pro (400–700, chữ) và Barlow Condensed (600–700, chỉ cho số giờ ca), nạp bằng `next/font/google` trong `layout.tsx` với `subsets: ['latin', 'vietnamese']`. `next/font` tải file lúc build rồi tự host cùng domain, nên người dùng không gọi Google Fonts khi mở trang; đổi lại `next build` cần có mạng để tải font. Đổi font hay thêm độ đậm là quyết định thiết kế, không phải việc phụ.
 - Không đưa khóa bí mật vào biến `NEXT_PUBLIC_*`. Web chỉ dùng anon key.
 
 ---
@@ -666,15 +705,16 @@ Dependency hiện tại rất nhỏ: `next`, `react`, `react-dom`, `@supabase/ss
 ## 22. Tương tác và khả năng truy cập
 
 - HTML ngữ nghĩa trước, ARIA bổ sung sau. Dùng `button` cho hành động, `a` / `Link` cho điều hướng, `label` gắn với ô nhập (`Field`, `Check`), `fieldset` + `legend` cho nhóm lựa chọn. Không dùng `div` hay `span` có `onClick`; hiện không có chỗ nào như vậy.
-- Giữ viền focus. `globals.css` có `:focus-visible { outline: 3px solid #047857; outline-offset: 2px }`. Không xóa nó. Lưu ý `inputCls` có `focus:outline-none` và chỉ đổi màu viền sang `brand-600`; selector của lớp tiện ích có độ ưu tiên cao hơn `:focus-visible` toàn cục, nên ô nhập nhiều khả năng không hiện outline 3px. Đừng nhân rộng mẫu này sang thành phần khác; muốn đổi thì làm trong một việc riêng và xem trên trình duyệt. `Choice` ở `confirm-form.tsx` dùng `focus-within:ring-4`, là cách làm đúng cho radio ẩn bằng `sr-only`.
+- Giữ viền focus. `globals.css` có `:focus-visible { outline: 3px solid #153F30; outline-offset: 2px }` (xanh đậm trên nền sáng) và `.surface-dark :focus-visible { outline-color: #F2C94C }` (vàng trên nền xanh đậm: thanh trên, rail, nav dưới, chân trang). Không xóa chúng, không thêm `outline-none` hay `focus:outline-none` vào thành phần nào. `inputCls` đã bỏ `focus:outline-none`, ô nhập hiện cả vòng 3px lẫn viền `shutter`. Khung nền xanh đậm mới thì thêm lớp `surface-dark`. `Choice` ở `confirm-form.tsx` dùng `focus-within:ring-4`, là cách làm đúng cho radio ẩn bằng `sr-only`.
 - Không có thao tác chỉ-hover. `hover:` chỉ là phụ (màu nền); mọi việc phải làm được bằng chạm và bàn phím.
 - Trạng thái đủ bộ: bình thường, hover, active, focus, disabled. `btn()` đã có `disabled:cursor-not-allowed disabled:opacity-50`. Nút gửi form dùng `SubmitButton`: nó đọc `useFormStatus()`, tự khóa và đổi nhãn khi đang gửi để chống bấm hai lần. Không tự viết nút gửi khác trong form dùng `ActionForm`. Nút bấm ngoài form (hiện chưa có) phải tự khóa khi `busy`.
-- Thông báo: lỗi dùng `role="alert"`, thành công dùng `role="status"` (`ActionForm` làm sẵn). `Alert` luôn gắn `role="status"` cho mọi tông, kể cả tông đỏ; lỗi chặn người dùng nên được đọc ngay, hãy cân nhắc khi dùng `Alert tone="red"`.
+- Thông báo: lỗi dùng `role="alert"`, thành công dùng `role="status"`. `Alert` tự chọn: tông đỏ là `alert`, các tông còn lại là `status` (truyền `role` để đổi); `ActionForm` truyền rõ theo lỗi hay thành công. Mỗi tông có icon riêng kèm chữ, không chỉ dựa vào màu.
 - Câu hỏi xác nhận trước việc không hoàn tác: `SubmitButton confirm="..."` dùng `window.confirm`. Dùng được ở trang cần đăng nhập (`/ca/[id]`, `/tai-khoan`, `/admin/*`, `/ho-so`). Không dùng `confirm` ở trang chủ quán hoặc phụ huynh mở thẳng từ Zalo hoặc Facebook (`/xac-nhan`, `/dong-y`): trình duyệt nhúng có thể bỏ qua hộp thoại và trả về "không" ngay, nút sẽ như bị liệt. Ở đó dùng câu nhắc cố định ngay trên nút, như `confirm-form.tsx` đang làm ("Kiểm tra lại các lựa chọn. Sau khi gửi sẽ không sửa lại được."). Lý do này được ghi bằng comment ở `client.tsx` và `confirm-form.tsx`; giữ các comment đó.
 - Cũng vì trình duyệt nhúng: trang token không phụ thuộc vào `alert`, `prompt`, cửa sổ mới hay bước đăng nhập. Đăng nhập demo là form thường nên chạy được trong trình duyệt nhúng; không thêm lại luồng đăng nhập cần cửa sổ ngoài.
+- Menu "Thêm" của nhóm vận hành dùng `<details>`/`<summary>` (chạy bằng bàn phím và trong trình duyệt nhúng, đóng bằng Esc hoặc chạm ra ngoài); không thay bằng menu thả cần JS phức tạp. Nav có `aria-label="Điều hướng chính"` và mục đang chọn mang `aria-current="page"`.
 - Nhóm lựa chọn dùng input radio/checkbox thật khi có thể. Bộ chấm sao trong `confirm-form.tsx` dùng `role="radiogroup"` với các `button role="radio"` và chưa có điều khiển bằng phím mũi tên. Nếu viết lại kiểu này, hoặc dùng input radio thật, hoặc bổ sung đủ hành vi bàn phím của radiogroup.
-- Chuyển động: hiện chỉ có `transition` màu. Nếu thêm animation, bọc bằng `motion-reduce:` hoặc `@media (prefers-reduced-motion: reduce)`, và chỉ dùng cho phản hồi trạng thái. Không dùng animation che việc thiếu trạng thái đang tải hay lỗi. Cuộn mượt (`scrollIntoView({ behavior: 'smooth' })` ở `ActionForm`, `Flash`) hiện chưa tôn trọng `prefers-reduced-motion`; thêm cuộn kiểu này thì kiểm điều kiện đó.
-- Tương phản: chữ trên nền sáng dùng `slate-600` trở lên đậm; không hạ xuống `slate-400` cho nội dung (chỉ `placeholder` dùng `slate-400`). Không chỉ dùng màu để phân biệt trạng thái: luôn kèm chữ như `Badge` đang làm.
+- Chuyển động: hiện chỉ có `transition` màu và vòng quay đang gửi; `globals.css` đã rút mọi `animation`/`transition` về gần 0 khi `prefers-reduced-motion: reduce`. Nếu thêm animation, bọc bằng `motion-reduce:` hoặc `@media (prefers-reduced-motion: reduce)`, và chỉ dùng cho phản hồi trạng thái. Không dùng animation che việc thiếu trạng thái đang tải hay lỗi. Cuộn tới thông báo (`ActionForm`, `Flash`) dùng `scrollIntoView({ block: 'center' })`, mượt trừ khi người dùng chọn giảm chuyển động (`scrollBehavior()` trong `client.tsx`); thêm cuộn kiểu này thì kiểm điều kiện đó. Thông báo mang `scroll-my-4` và `<html>` có `scroll-padding` theo `--chrome-top`/`--chrome-bottom`, để thông báo hay mục neo không nằm dưới thanh dính. Vòng quay của `SubmitButton` dùng `motion-safe:animate-spin`.
+- Tương phản đạt WCAG AA: chữ nội dung dùng `ink` hoặc `ink-soft` trên `chalk`/trắng, chữ trên nền `shutter-deep` là trắng hoặc `wall`; không tự pha màu chữ nhạt hơn `ink-soft` cho nội dung (chỉ `placeholder` dùng `ink-soft/80`). Cặp màu mới phải tự tính tỉ lệ tương phản (4,5:1 cho chữ thường). Không chỉ dùng màu để phân biệt trạng thái: luôn kèm chữ như `Badge` đang làm.
 
 ---
 
@@ -682,11 +722,11 @@ Dependency hiện tại rất nhỏ: `next`, `react`, `react-dom`, `@supabase/ss
 
 `tsc` và `next build` sạch không có nghĩa giao diện đúng. Thay đổi giao diện phải được xem thật trước khi báo xong.
 
-- Kiểm ở 360px, 390px và 414px (điện thoại), cộng một lần ở desktop khoảng 1280px. Tablet không phải ưu tiên; nên xem 768px nếu thay đổi bố cục.
-- Ở mỗi bề rộng, kiểm: không cuộn ngang, nút và ô nhập đủ to, chữ đọc được không cần phóng, không bị che bởi header dính (`sticky top-0`).
+- Kiểm ở 360px, 390px và 414px (điện thoại), cộng desktop 1280px và 1440px (rail trái, nội dung `max-w-3xl`/`max-w-6xl`). Desktop phải đẹp, không chỉ không vỡ: có thể bị trình chiếu cho ban giám khảo. Kiểm thêm ở 1024px (ngưỡng đổi giữa nav dưới và rail). Tablet không phải ưu tiên; nên xem 768px nếu thay đổi bố cục.
+- Ở mỗi bề rộng, kiểm: không cuộn ngang, nút và ô nhập đủ to, chữ đọc được không cần phóng, không bị che bởi thanh trên dính (`sticky top-0`) hay thanh điều hướng dưới dính (đặc biệt thông báo vừa cuộn tới và nút cuối trang).
 - Kiểm các trạng thái liên quan đến thay đổi: rỗng, có dữ liệu, đang gửi (nút khóa), lỗi từ server, thành công, disabled, hết hạn/không hợp lệ (trang token), chưa duyệt hoặc bị khóa.
 - Dùng chuỗi tiếng Việt dài và có dấu: tên người dài, tên quán dài, địa chỉ dài, mô tả ca nhiều dòng, thông báo lỗi dài từ database. Kiểm xuống dòng, không tràn khung, không cắt mất thông tin.
-- Trang `/h/[slug]` có bản in (`@media print` trong `globals.css`; lớp `print:`). Khi sửa trang này hoặc `globals.css`, mở xem trước bản in (Cmd/Ctrl+P): header, footer, nút bị ẩn; nội dung không bị cắt giữa một nhận xét; nền trắng. Thay đổi `main` hay `max-w-xl` có thể ảnh hưởng bản in.
+- Trang `/h/[slug]` có bản in (`@media print` trong `globals.css`; lớp `print:`). Khung trang (thanh trên, rail, nav dưới, chân trang) mang thuộc tính `data-chrome` và bị ẩn khi in; `main` mất padding và giới hạn bề rộng. Khi sửa trang này, `AppShell` hay `globals.css`, mở xem trước bản in (Cmd/Ctrl+P): khung và nút bị ẩn; nội dung không bị cắt giữa một nhận xét; nền trắng. Thêm phần khung mới thì gắn `data-chrome`.
 - Trang chủ quán và phụ huynh mở từ Zalo: nếu có thể, thử trong trình duyệt nhúng thật, hoặc ít nhất xem ở bề rộng điện thoại và ghi rõ chưa thử trong Zalo.
 - Chạy `npm run dev` cần `.env.local` trỏ tới Supabase thật. Trang cần đăng nhập thì agent tự bấm nút demo ở `/dang-nhap` (người làm, chủ quán hoặc nhóm vận hành); không dùng tài khoản thật của chủ dự án.
 - Không tuyên bố "đã kiểm trực quan" nếu chưa mở trang thật. Nếu không kiểm được (không có trình duyệt, không có Supabase), ghi rõ trong PR: chưa xem ở bề rộng nào, trạng thái nào. Dữ liệu dùng để chụp ảnh phải là dữ liệu mẫu, không dùng tên hay số điện thoại thật.

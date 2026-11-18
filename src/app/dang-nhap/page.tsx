@@ -10,7 +10,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   if (user) redirect('/');
   const sp = await searchParams;
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <PageTitle sub="Đây là bản mô phỏng, chỉ có dữ liệu mẫu. Chọn một vai trò để vào xem.">Đăng nhập</PageTitle>
       {sp.loi ? <Alert tone="red">Link đăng nhập cũ không còn dùng được. Bản mô phỏng chỉ đăng nhập bằng ba nút bên dưới.</Alert> : null}
       <LoginForm />

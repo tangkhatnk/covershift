@@ -2,24 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Chiều cao khung dính, dùng chung cho scroll-padding và padding đáy của nội dung. */
+  --chrome-top: 3.5rem; /* thanh trên (điện thoại) */
+  --chrome-bottom: calc(4.5rem + env(safe-area-inset-bottom)); /* thanh điều hướng dưới + vùng an toàn */
+}
+
 /* Chữ gốc 18px: dễ đọc cho chủ quán lớn tuổi trên điện thoại 360–414px. */
 html {
   font-size: 18px;
   -webkit-text-size-adjust: 100%;
+  /* Cuộn tới thông báo / mục lục không bị thanh dính che. */
+  scroll-padding-top: calc(var(--chrome-top) + 1rem);
+  scroll-padding-bottom: calc(var(--chrome-bottom) + 1rem);
 }
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-chalk text-ink antialiased;
 }
 /* Tránh iOS tự phóng to khi chạm ô nhập */
 input, select, textarea {
   font-size: 1rem;
 }
+
+/* Phần trình duyệt tự vẽ cũng mang bảng màu của giao diện. */
+::selection {
+  background: #F2C94C;
+  color: #17231D;
+}
+input, textarea {
+  caret-color: #1F5C45;
+}
+* {
+  scrollbar-color: #7C8479 #F6F4E8;
+}
+a {
+  text-underline-offset: 4px;
+}
+
+/* Vòng focus tối trên nền sáng, vàng trên nền xanh đậm (thanh điều hướng, rail, chân trang). */
 :focus-visible {
-  outline: 3px solid #047857;
+  outline: 3px solid #153F30;
   outline-offset: 2px;
 }
+.surface-dark :focus-visible {
+  outline-color: #F2C94C;
+}
+
+/* Giờ ca và số liệu: chữ số bảng cố định để các giờ thẳng cột. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* <details> dùng làm menu "Thêm": bỏ mũi tên mặc định của trình duyệt. */
+summary { list-style: none; }
+summary::-webkit-details-marker { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @media print {
   body { background: #fff; }
-  header, footer, nav, .print\:hidden { display: none !important; }
+  [data-chrome], .print\:hidden { display: none !important; }
+  .shell-pad { padding-left: 0 !important; }
   main { padding: 0 !important; max-width: none !important; }
 }
