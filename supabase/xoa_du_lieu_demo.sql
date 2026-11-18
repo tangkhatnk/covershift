@@ -2,7 +2,7 @@
 -- SafeShift — XÓA SẠCH dữ liệu demo/test, KHÔNG đụng dữ liệu thật.
 -- Dán nguyên file vào SQL Editor (không bôi đen một phần) và chạy. Chạy lại nhiều lần không lỗi.
 -- Chỉ xóa: user có email @demo.safeshift.test (và 2 user test cố định b0000000-...14/15), cơ sở/ca/suất/token/kết quả
--- của họ (xóa theo), ca test cố định, báo cáo + nhật ký admin gắn với họ.
+-- và tin tuyển dụng/đơn ứng tuyển của họ (xóa theo; đơn của người thật nộp vào tin của quán demo cũng mất theo tin), ca test cố định, báo cáo + nhật ký admin gắn với họ.
 -- Dữ liệu của người thật được giữ: tài khoản, hồ sơ, cơ sở, ca, suất, nhật ký admin thật, app_config.
 -- Báo cáo của người thật về ca demo vẫn còn (shift_id tự về null).
 --
@@ -63,11 +63,13 @@ select nhom, ten, so_dong, ky_vong from (
          (select count(*) from public.reports where shift_id::text like '50000000-0000-4000-a000-0000000%'), '0'
   union all select 7, 'CÒN LẠI DEMO', 'báo cáo mồ côi (không trỏ tới ai/ca nào; nếu > 0 thì xem lại trước khi xóa tay)',
          (select count(*) from public.reports where reporter_id is null and subject_id is null and shift_id is null), '0'
+  union all select 8, 'CÒN LẠI DEMO', 'tin tuyển dụng demo (id c0000000-...)',
+         (select count(*) from public.job_posts where id::text like 'c0000000-0000-4000-a000-0000000000__'), '0'
   union all select 8, 'CÒN LẠI DEMO', 'phiếu phụ huynh / token demo (demo-%)',
          (select count(*) from public.parental_consents where token like 'demo-%') + (select count(*) from public.shift_confirmation_tokens where token like 'demo-%'), '0'
   union all select 9, 'SỐ DÒNG (dữ liệu thật còn lại)', t.tablename::text,
          (xpath('/row/c/text()', query_to_xml(format('select count(*) as c from public.%I', t.tablename), false, true, '')))[1]::text::bigint,
-         case when t.tablename = 'app_config' then '2' else 'tùy dữ liệu thật' end
+         case when t.tablename = 'app_config' then '3' else 'tùy dữ liệu thật' end
     from pg_tables t where t.schemaname = 'public'
   union all select 10, 'SỐ DÒNG (dữ liệu thật còn lại)', 'auth.users (tất cả tài khoản còn lại)', (select count(*) from auth.users), 'chỉ còn tài khoản thật'
 ) x order by o, ten;

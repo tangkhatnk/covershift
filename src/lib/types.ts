@@ -202,3 +202,82 @@ export type Kpis = {
   avg_rating: number | null;
   paid_full_rate_pct: number | null;
 };
+
+// ---------- tuyển dụng lâu dài (migration 0003) ----------
+export type EmploymentType = 'full_time' | 'part_time';
+export type WageType = 'monthly' | 'hourly';
+export type ApplicationStatus = 'applied' | 'shortlisted' | 'rejected' | 'hired' | 'withdrawn';
+
+/** Kết quả của _job_json(): feed_job_posts, job_post_detail, my_applications (trường job), employer_job_posts, job_applicants (trường job). Không có SĐT. */
+export type JobPost = {
+  id: string;
+  facility_id: string;
+  title: string;
+  job_type: JobType;
+  employment: EmploymentType;
+  wage_type: WageType;
+  wage_min: number;
+  wage_max: number | null;
+  hours_per_week: number;
+  schedule_note: string | null;
+  description: string | null;
+  openings: number;
+  status: 'open' | 'closed';
+  expires_at: string;
+  /** status = 'open' nhưng đã quá expires_at. */
+  expired: boolean;
+  created_at: string;
+  closed_at: string | null;
+  facility_name: string;
+  facility_type: FacilityType;
+  area: Area;
+  address: string;
+  maps_url: string | null;
+  lat: number | null;
+  lng: number | null;
+  hired_count: number;
+  /** Đơn gần nhất của người gọi trên tin này. */
+  my_application: { id: string; status: ApplicationStatus } | null;
+};
+
+/** job_post_detail(p_job) */
+export type JobPostDetail = JobPost & { is_owner: boolean };
+
+/** employer_job_posts(): chủ quán thấy tin cơ sở mình; nhóm vận hành thấy mọi tin. */
+export type EmployerJobPost = JobPost & { applied_count: number; shortlisted_count: number };
+
+/** my_applications() */
+export type MyApplication = {
+  id: string;
+  status: ApplicationStatus;
+  note: string | null;
+  created_at: string;
+  status_changed_at: string;
+  job: JobPost;
+};
+
+/** Thống kê hồ sơ ca làm (cùng nội dung hồ sơ công khai, không có share_enabled). */
+export type WorkerStats = Omit<NonNullable<PublicProfile>, 'share_enabled'>;
+
+/** job_applicants(p_job): không có SĐT, ngày sinh, trường, lớp, phụ huynh. */
+export type JobApplicants = {
+  job: JobPost;
+  applicants: {
+    id: string;
+    name: string;
+    note: string | null;
+    status: ApplicationStatus;
+    created_at: string;
+    status_changed_at: string;
+    profile: WorkerStats;
+  }[];
+};
+
+/** get_job_contacts(p_application): chỉ khi đơn shortlisted/hired; ném lỗi nếu chưa đủ điều kiện. */
+export type JobContacts = {
+  status: 'shortlisted' | 'hired';
+  /** Có khi người gọi là người nộp đơn hoặc admin. */
+  facility: { facility_name: string; contact_name: string; phone: string } | null;
+  /** Có khi người gọi là chủ quán hoặc admin. */
+  worker: { name: string; phone: string } | null;
+};

@@ -2,7 +2,7 @@
 
 Có hai tầng:
 
-- **A. Test tự động ở tầng database** — 104 test + kiểm quyền + tái chạy + chạy đua + dọn dữ liệu demo, không cần Supabase. Đây là nơi mọi quy tắc nghiệp vụ được chặn.
+- **A. Test tự động ở tầng database** — 229 test + kiểm quyền + tái chạy + chạy đua + dọn dữ liệu demo, không cần Supabase. Đây là nơi mọi quy tắc nghiệp vụ được chặn.
 - **B. Test tay trên giao diện** — chạy trên bản deploy (hoặc local) nối với Supabase thật, sau khi đã chạy `seed.sql`.
 
 ---
@@ -13,7 +13,7 @@ Có hai tầng:
 npm run test:db
 ```
 
-Lệnh này dựng một Postgres nhúng, giả lập môi trường Supabase (role `anon` / `authenticated`, `auth.uid()`), chạy `0001_init.sql` → `0002_toa_do_co_so.sql` → `seed.sql` → `supabase/tests/edge_cases.sql`, rồi `supabase/tests/privileges_check.sql` (quyền bảng/hàm của `anon`/`authenticated`), rồi vòng tái chạy seed → edge_cases → seed, rồi chạy đua thật trên nhiều kết nối, rồi thử `supabase/xoa_du_lieu_demo.sql` với người dùng thật giả lập. Kỳ vọng: `104/104 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM`, `tái chạy … ĐẠT`, 5 dòng `✔ chạy đua`, `dọn dữ liệu demo … ĐẠT`.
+Lệnh này dựng một Postgres nhúng, giả lập môi trường Supabase (role `anon` / `authenticated`, `auth.uid()`), chạy `0001_init.sql` → `0002_toa_do_co_so.sql` → `0003_viec_lam_dai_han.sql` → `seed.sql` → `supabase/tests/edge_cases.sql`, rồi `supabase/tests/privileges_check.sql` (quyền bảng/hàm của `anon`/`authenticated`), rồi vòng tái chạy seed → edge_cases → seed, rồi chạy đua thật trên nhiều kết nối, rồi thử `supabase/xoa_du_lieu_demo.sql` với người dùng thật giả lập. Kỳ vọng: `229/229 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM`, `tái chạy … ĐẠT`, 5 dòng `✔ chạy đua`, `dọn dữ liệu demo … ĐẠT`.
 
 Lưu ý: Postgres nhúng chạy bằng superuser nên **không bắt được lỗi quyền riêng của Supabase** (role `postgres` ở Supabase không phải superuser). Vì vậy trên Supabase thật chạy thêm `check_before_migration.sql` trước khi dán migration và `privileges_check.sql` sau đó (README mục 2).
 

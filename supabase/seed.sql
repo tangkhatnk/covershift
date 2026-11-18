@@ -1,6 +1,7 @@
 -- =====================================================================
 -- SafeShift — seed demo. Chạy lại bao nhiêu lần cũng được (tự xóa dữ liệu demo cũ).
--- 1 admin, 5 chủ quán ("Quán Demo 1…5"), 10 người làm (3 người dưới 18), 12 ca đủ trạng thái.
+-- 1 admin, 5 chủ quán ("Quán Demo 1…5"), 10 người làm (3 người dưới 18), 12 ca đủ trạng thái,
+-- 6 tin tuyển dụng lâu dài và 7 đơn ứng tuyển (cần migration 0003: chạy 0003 trước seed).
 -- Mọi tài khoản demo có email @demo.safeshift.test và dùng chung mật khẩu công khai `safeshift-demo`
 -- (lưu bằng crypt + gen_salt('bf')), cho nút đăng nhập demo ở /dang-nhap. App chỉ là bản mô phỏng, không có dữ liệu thật.
 -- Chạy lại seed để khôi phục dữ liệu mẫu. Không xóa user demo bằng tay (lỗi khóa ngoại 23503);
@@ -10,7 +11,7 @@ begin;
 set local app.seed_mode = 'on';   -- bỏ qua trigger kiểm tra thời gian để tạo được ca trong quá khứ
 
 -- Đưa cấu hình về mặc định của migration (bản mô phỏng: ai cũng vào được tài khoản admin demo và đổi được).
-insert into public.app_config (key, value) values ('min_hourly_wage', '25500'), ('weekly_hours_cap', '40')
+insert into public.app_config (key, value) values ('min_hourly_wage', '25500'), ('min_monthly_wage', '5310000'), ('weekly_hours_cap', '40')
 on conflict (key) do update set value = excluded.value;
 
 -- Dọn báo cáo / nhật ký của dữ liệu demo TRƯỚC khi xóa user demo.
@@ -212,5 +213,32 @@ insert into public.reports (kind, status, shift_id, reporter_id, subject_id, bod
   ('user_report',  'resolved', '50000000-0000-4000-a000-000000000008', 'e0000000-0000-4000-a000-000000000003', null,                                   'Demo-11b: chủ quán gửi báo cáo về ca của mình.'),
   ('user_report',  'resolved', '50000000-0000-4000-a000-000000000012', 'e0000000-0000-4000-a000-000000000003', 'a0000000-0000-4000-a000-000000000005', 'Demo-11b: chủ quán báo người làm vắng mặt.'),
   ('primary_busy', 'resolved', '50000000-0000-4000-a000-000000000012', '00000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000005', 'Demo-11b: admin ghi sự cố người chính báo bận.');
+
+-- ---------- tuyển dụng lâu dài (migration 0003) ----------
+-- Tin 04 (Quán Demo 4) đang mở; test 10j gỡ cơ sở này nên tin tự đóng (trigger). Tin 05 hết hạn, tin 06 đã đóng.
+insert into public.job_posts (id, facility_id, title, job_type, employment, wage_type, wage_min, wage_max, hours_per_week,
+                              schedule_note, description, openings, status, expires_at, commitment_ack, created_at, closed_at) values
+  ('c0000000-0000-4000-a000-000000000001', 'f0000000-0000-4000-a000-000000000001', 'Nhân viên pha chế toàn thời gian', 'pha_che', 'full_time', 'monthly', 7000000, 9000000, 48,
+   'Sáng 7h–15h hoặc chiều 14h–22h, nghỉ một ngày giữa tuần.', 'Pha chế cà phê, trà và nước ép, có người hướng dẫn tuần đầu. Ưu tiên bạn đã làm quán.', 2, 'open', now() + interval '25 days', true, now(), null),
+  ('c0000000-0000-4000-a000-000000000002', 'f0000000-0000-4000-a000-000000000002', 'Phục vụ bàn bán thời gian', 'phuc_vu', 'part_time', 'hourly', 28000, 32000, 24,
+   'Tối thứ Sáu đến Chủ nhật, 17h–22h.', 'Phục vụ khách buổi tối, bê món, dọn bàn. Có ăn nhẹ giữa ca.', 3, 'open', now() + interval '20 days', true, now(), null),
+  ('c0000000-0000-4000-a000-000000000003', 'f0000000-0000-4000-a000-000000000003', 'Lễ tân homestay', 'le_tan', 'full_time', 'monthly', 6500000, null, 44,
+   'Ca sáng hoặc ca tối luân phiên theo tuần.', 'Đón khách nhận và trả phòng, trả lời tin nhắn đặt phòng, giữ quầy gọn gàng.', 1, 'open', now() + interval '15 days', true, now(), null),
+  ('c0000000-0000-4000-a000-000000000004', 'f0000000-0000-4000-a000-000000000004', 'Dọn phòng khách sạn (bán thời gian)', 'don_phong', 'part_time', 'hourly', 27000, null, 20,
+   'Sáng 8h–12h, 5 buổi mỗi tuần.', 'Dọn và thay đồ vải cho khoảng 8 phòng mỗi buổi.', 1, 'open', now() + interval '18 days', true, now(), null),
+  ('c0000000-0000-4000-a000-000000000005', 'f0000000-0000-4000-a000-000000000001', 'Phụ bếp (tin cũ, đã hết hạn)', 'phu_bep_nhe', 'part_time', 'hourly', 26000, null, 16,
+   null, 'Tin này đã hết hạn nhận đơn.', 1, 'open', now() - interval '10 days', true, now() - interval '40 days', null),
+  ('c0000000-0000-4000-a000-000000000006', 'f0000000-0000-4000-a000-000000000002', 'Thu ngân cuối tuần (đã đóng)', 'thu_ngan', 'part_time', 'hourly', 29000, null, 12,
+   'Thứ Bảy, Chủ nhật 10h–18h.', 'Chủ quán đã tuyển đủ người nên đóng tin.', 1, 'closed', now() + interval '10 days', true, now() - interval '20 days', now() - interval '5 days');
+
+-- Đơn mẫu: đủ các trạng thái (applied, shortlisted, hired, withdrawn, rejected).
+insert into public.job_applications (id, job_id, worker_id, note, status, created_at, status_changed_at) values
+  ('d0000000-0000-4000-a000-000000000001', 'c0000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000001', 'Em đã làm phục vụ ở quán cà phê gần trường một năm, muốn học thêm pha chế.', 'applied',     now() - interval '2 days', now() - interval '2 days'),
+  ('d0000000-0000-4000-a000-000000000002', 'c0000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000002', 'Em rảnh sáng các ngày trong tuần.',                                              'shortlisted', now() - interval '3 days', now() - interval '1 day'),
+  ('d0000000-0000-4000-a000-000000000003', 'c0000000-0000-4000-a000-000000000002', 'a0000000-0000-4000-a000-000000000005', null,                                                                          'hired',       now() - interval '6 days', now() - interval '4 days'),
+  ('d0000000-0000-4000-a000-000000000004', 'c0000000-0000-4000-a000-000000000002', 'a0000000-0000-4000-a000-000000000006', 'Em xin rút vì trùng lịch học.',                                                'withdrawn',   now() - interval '5 days', now() - interval '3 days'),
+  ('d0000000-0000-4000-a000-000000000005', 'c0000000-0000-4000-a000-000000000003', 'a0000000-0000-4000-a000-000000000003', 'Em biết tiếng Anh giao tiếp cơ bản.',                                           'applied',     now() - interval '1 day',  now() - interval '1 day'),
+  ('d0000000-0000-4000-a000-000000000006', 'c0000000-0000-4000-a000-000000000004', 'a0000000-0000-4000-a000-000000000001', null,                                                                          'hired',       now() - interval '8 days', now() - interval '6 days'),
+  ('d0000000-0000-4000-a000-000000000007', 'c0000000-0000-4000-a000-000000000006', 'a0000000-0000-4000-a000-000000000004', null,                                                                          'rejected',    now() - interval '15 days', now() - interval '12 days');
 
 commit;
