@@ -1,6 +1,7 @@
 import { ChevronDown, MapPin } from 'lucide-react';
-import { setAccountStatus, setFacilityStatus, verifyFacility } from '@/app/actions';
+import { setAccountStatus, setFacilityLocation, setFacilityStatus, verifyFacility } from '@/app/actions';
 import { ActionForm, SubmitButton } from '@/components/client';
+import { LocationPicker, ShiftMap, type MapPoint } from '@/components/map';
 import { Alert, Badge, Card, Check, Empty, Field, PageTitle, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
@@ -109,6 +110,16 @@ function Actions({ f, today, verifier }: { f: AdminFacility; today: string; veri
         </ActionForm>
       </Disclosure>
 
+      {f.status !== 'removed' ? (
+        <Disclosure label="Vị trí trên bản đồ">
+          <ActionForm action={setFacilityLocation} className="space-y-4 px-2 pb-2 pt-2">
+            <input type="hidden" name="facility_id" value={f.id} />
+            <LocationPicker lat={f.lat} lng={f.lng} />
+            <SubmitButton variant="secondary">Lưu vị trí</SubmitButton>
+          </ActionForm>
+        </Disclosure>
+      ) : null}
+
       <Disclosure label="Gỡ cơ sở / khóa chủ quán">
         <div className="space-y-6 px-2 pb-2 pt-2">
           {f.status !== 'removed' ? (
@@ -154,6 +165,13 @@ export default async function FacilitiesPage() {
   }
   const list = (data ?? []) as AdminFacility[];
   const waiting = list.filter((f) => f.status === 'pending').length;
+  const points: MapPoint[] = list.flatMap((f) => f.lat == null || f.lng == null ? [] : [{
+    id: f.id, lat: f.lat, lng: f.lng,
+    text: f.name.length > 14 ? `${f.name.slice(0, 13)}…` : f.name,
+    label: `${f.name}, ${f.status === 'active' && f.verified ? 'đã xác minh' : FACILITY_STATUS_LABEL[f.status].toLowerCase()}`,
+    tone: f.status === 'removed' ? 'removed' as const : f.status === 'active' && f.verified ? 'open' as const : 'pending' as const,
+  }]);
+  const noPin = list.length - points.length;
   const today = vnDateInput();
   const verifier = profile.full_name;
   return (
@@ -163,6 +181,16 @@ export default async function FacilitiesPage() {
         <Empty>Chưa có cơ sở nào đăng ký</Empty>
       ) : (
         <>
+          {points.length > 0 ? (
+            <ShiftMap
+              points={points}
+              className="h-72 lg:h-96"
+              caption={noPin > 0 ? `${noPin} cơ sở chưa có ghim vị trí.` : undefined}
+            />
+          ) : (
+            <Alert tone="amber">Chưa cơ sở nào có ghim vị trí.</Alert>
+          )}
+
           {/* Điện thoại: mỗi cơ sở một thẻ. */}
           <div className="space-y-4 lg:hidden">
             {list.map((f) => (

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ShieldCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { ShiftMap, type MapPoint } from '@/components/map';
 import { Alert, ShiftCard, SlotStrip, btn } from '@/components/ui';
 import { getContext, homeFor } from '@/lib/auth';
 import { APP_NAME, NO_FEE } from '@/lib/constants';
@@ -16,9 +17,18 @@ function sampleShift(): Shift {
     starts_at: `${day}T08:00:00+07:00`, ends_at: `${day}T12:00:00+07:00`,
     headcount: 3, hourly_wage: 27000, description: null, urgent: false, allow_minor: false, status: 'open',
     created_at: `${day}T00:00:00+07:00`, facility_name: 'Quán Demo 1', facility_type: 'cafe', area: 'bai_truoc',
-    address: '', maps_url: null, primary_count: 2, backup_count: 0, my_role: null,
+    address: '', maps_url: null, lat: null, lng: null, primary_count: 2, backup_count: 0, my_role: null,
   };
 }
+
+/** Ghim minh họa: tọa độ năm quán demo trong supabase/seed.sql. Không phải dữ liệu thật. */
+const DEMO_PINS: MapPoint[] = [
+  { id: 'd1', lat: 10.3441, lng: 107.0749, text: 'Demo 1', label: 'Quán Demo 1, quán cà phê', tone: 'open' },
+  { id: 'd2', lat: 10.3318, lng: 107.089, text: 'Demo 2', label: 'Quán Demo 2, nhà hàng', tone: 'open' },
+  { id: 'd3', lat: 10.338, lng: 107.0853, text: 'Demo 3', label: 'Quán Demo 3, homestay', tone: 'open' },
+  { id: 'd4', lat: 10.3524, lng: 107.0881, text: 'Demo 4', label: 'Quán Demo 4, khách sạn nhỏ', tone: 'open' },
+  { id: 'd5', lat: 10.3964, lng: 107.1081, text: 'Demo 5', label: 'Quán Demo 5, quán cà phê đang chờ xác minh', tone: 'pending' },
+];
 
 function Point({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -66,6 +76,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <p className="text-base text-ink">Ví dụ minh họa: ca mẫu, không phải ca thật.</p>
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl space-y-4 px-4 py-8 lg:px-8 lg:py-16">
+        <h2 className="text-3xl font-bold text-ink">Ca nằm ở đâu trên bản đồ</h2>
+        <p className="text-base text-ink">Người làm xem quán nào gần nhà trước khi nhận ca. Chủ quán tự ghim vị trí quán.</p>
+        <ShiftMap points={DEMO_PINS} className="h-72 lg:h-96" caption="Bản đồ minh họa, dữ liệu mẫu" />
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-8 lg:px-8 lg:py-16">
