@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { GraduationCap, Store } from 'lucide-react';
 import { Alert, PageTitle, btn } from '@/components/ui';
 import { getContext, homeFor } from '@/lib/auth';
 import { NO_FEE } from '@/lib/constants';
@@ -13,12 +14,16 @@ export default async function RegisterPage() {
   return (
     <div className="space-y-4">
       <PageTitle sub="Chọn đúng một trong hai. Sau này muốn đổi thì liên hệ nhóm vận hành.">Bạn là ai?</PageTitle>
-      <Link href="/dang-ky/nguoi-lam" className={`${btn('primary')} min-h-[5rem] text-center text-xl`}>
-        Tôi tìm việc (học sinh, sinh viên)
-      </Link>
-      <Link href="/dang-ky/chu-quan" className={`${btn('secondary')} min-h-[5rem] text-center text-xl`}>
-        Tôi là chủ quán / cơ sở
-      </Link>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Link href="/dang-ky/nguoi-lam" className={`${btn('primary')} min-h-[5rem] gap-4 text-center text-xl`}>
+          <GraduationCap className="h-8 w-8 shrink-0" aria-hidden="true" />
+          Tôi tìm việc (học sinh, sinh viên)
+        </Link>
+        <Link href="/dang-ky/chu-quan" className={`${btn('secondary')} min-h-[5rem] gap-4 text-center text-xl`}>
+          <Store className="h-8 w-8 shrink-0" aria-hidden="true" />
+          Tôi là chủ quán / cơ sở
+        </Link>
+      </div>
       <Alert tone="green">
         Đăng ký và sử dụng hoàn toàn miễn phí. {NO_FEE} Không đặt cọc, không giữ giấy tờ.
       </Alert>

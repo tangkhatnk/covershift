@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { LogOut } from 'lucide-react';
 import { deleteAccount } from '@/app/actions';
 import { ActionForm, SubmitButton } from '@/components/client';
 import { Alert, Badge, Card, Check, PageTitle, btn } from '@/components/ui';
@@ -32,18 +33,18 @@ export default async function AccountPage() {
       ) : null}
 
       <Card>
-        <dl className="space-y-2 text-lg">
+        <dl className="space-y-4 text-lg">
           {profile ? (
-            <div><dt className="text-base text-slate-600">Họ tên</dt><dd className="font-semibold">{profile.full_name}</dd></div>
+            <div><dt className="text-base text-ink-soft">Họ tên</dt><dd className="font-semibold">{profile.full_name}</dd></div>
           ) : null}
-          <div><dt className="text-base text-slate-600">Email đăng nhập</dt><dd className="break-all font-semibold">{user.email ?? '(không có)'}</dd></div>
+          <div><dt className="text-base text-ink-soft">Email đăng nhập</dt><dd className="break-all font-semibold">{user.email ?? '(không có)'}</dd></div>
           {profile ? (
-            <div><dt className="text-base text-slate-600">Vai trò</dt><dd className="font-semibold">{ROLE_LABEL[profile.role]}</dd></div>
+            <div><dt className="text-base text-ink-soft">Vai trò</dt><dd className="font-semibold">{ROLE_LABEL[profile.role]}</dd></div>
           ) : null}
         </dl>
         {profile && profile.status === 'active' ? (
-          <p className="mt-3 text-base">
-            <Link href={profile.role === 'worker' ? '/ho-so' : homeFor(profile.role)} className="font-semibold text-brand-700 underline underline-offset-4">
+          <p className="mt-2 text-base">
+            <Link href={profile.role === 'worker' ? '/ho-so' : homeFor(profile.role)} className="inline-flex min-h-[3rem] items-center font-semibold text-shutter underline underline-offset-4">
               {profile.role === 'worker' ? 'Xem và sửa hồ sơ' : 'Về trang chính'}
             </Link>
           </p>
@@ -52,16 +53,16 @@ export default async function AccountPage() {
 
       {!profile ? (
         <Card>
-          <p className="mb-3 text-base text-slate-700">Bạn đã đăng nhập nhưng chưa đăng ký xong.</p>
+          <p className="mb-4 text-base text-ink">Bạn đã đăng nhập nhưng chưa đăng ký xong.</p>
           <Link href="/dang-ky" className={btn('primary')}>Đăng ký tiếp</Link>
         </Card>
       ) : null}
 
       {facility ? (
         <Card>
-          <h2 className="text-xl font-bold text-slate-900">Cơ sở của tôi</h2>
+          <h2 className="text-xl font-bold text-ink">Cơ sở của tôi</h2>
           <p className="mt-2 text-lg font-semibold">{facility.name}</p>
-          <p className="text-base text-slate-700">{facility.address}</p>
+          <p className="text-base text-ink">{facility.address}</p>
           <p className="mt-2 flex flex-wrap gap-2">
             <Badge tone={facility.status === 'active' ? 'green' : facility.status === 'removed' ? 'red' : 'amber'}>
               {FACILITY_STATUS_LABEL[facility.status]}
@@ -69,27 +70,30 @@ export default async function AccountPage() {
             <Badge tone={facility.verified ? 'green' : 'gray'}>{facility.verified ? 'Đã xác minh' : 'Chưa xác minh'}</Badge>
           </p>
           {!facility.verified && facility.status === 'pending' ? (
-            <p className="mt-2 text-base text-slate-700">Nhóm vận hành sẽ đến tận nơi xác minh. Xác minh xong anh/chị mới đăng ca được.</p>
+            <p className="mt-2 text-base text-ink">Nhóm vận hành sẽ đến tận nơi xác minh. Xác minh xong anh/chị mới đăng ca được.</p>
           ) : null}
           {facility.status === 'removed' ? (
-            <p className="mt-2 text-base text-red-800">Cơ sở đã bị gỡ nên không đăng ca được. Vui lòng liên hệ nhóm vận hành.</p>
+            <p className="mt-2 text-base text-roof">Cơ sở đã bị gỡ nên không đăng ca được. Vui lòng liên hệ nhóm vận hành.</p>
           ) : null}
         </Card>
       ) : null}
 
       <form action="/auth/dang-xuat" method="post">
-        <button className={btn('secondary')}>Đăng xuất</button>
+        <button className={btn('secondary')}>
+          <LogOut className="h-5 w-5" aria-hidden="true" />
+          Đăng xuất
+        </button>
       </form>
 
       {profile && profile.role !== 'admin' ? (
-        <Card className="border-red-200">
-          <h2 className="text-xl font-bold text-red-800">Xóa tài khoản</h2>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-base text-slate-700">
+        <Card className="!border-roof">
+          <h2 className="text-xl font-bold text-roof">Xóa tài khoản</h2>
+          <ul className="mt-2 list-disc space-y-2 pl-6 text-base text-ink">
             <li>Xóa <b>vĩnh viễn</b> toàn bộ dữ liệu của bạn: hồ sơ, số điện thoại, lịch sử ca, đánh giá.</li>
             <li>Các ca sắp tới của bạn sẽ bị hủy.</li>
             <li>Không khôi phục lại được.</li>
           </ul>
-          <ActionForm action={deleteAccount} className="mt-3 space-y-3">
+          <ActionForm action={deleteAccount} className="mt-4 space-y-4">
             <Check name="confirm" required>Tôi hiểu và muốn xóa vĩnh viễn tài khoản của mình.</Check>
             <SubmitButton variant="danger" confirm="Xóa vĩnh viễn tài khoản và toàn bộ dữ liệu? Không khôi phục lại được.">
               Xóa tài khoản

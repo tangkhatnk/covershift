@@ -34,7 +34,7 @@ export default async function ParentalConsentPage({ params }: { params: Promise<
         {v.state === 'submitted' ? (
           <Alert tone="green">
             <span className="text-lg font-semibold">Phiếu đồng ý đã được gửi. Cảm ơn anh/chị.</span>
-            <span className="mt-1 block">Nhóm vận hành sẽ xem và duyệt hồ sơ của con. Anh/chị không cần làm gì thêm.</span>
+            <span className="mt-2 block">Nhóm vận hành sẽ xem và duyệt hồ sơ của con. Anh/chị không cần làm gì thêm.</span>
           </Alert>
         ) : v.state === 'expired' ? (
           <Alert tone="amber">
@@ -53,14 +53,13 @@ export default async function ParentalConsentPage({ params }: { params: Promise<
   const jobs = Object.values(JOB_LABEL).join(', ').toLowerCase();
 
   return (
-    <div className="space-y-5">
-      <PageTitle sub={<>Con của anh/chị là <b className="text-slate-900">{name}</b> muốn nhận ca làm thêm ngắn hạn qua SafeShift.</>}>
+    <div className="space-y-6">
+      <PageTitle sub={<>Con của anh/chị là <b className="text-ink">{name}</b> muốn nhận ca làm thêm ngắn hạn qua SafeShift.</>}>
         {TITLE}
       </PageTitle>
 
-      <Card>
-        <h2 className="text-lg font-bold text-slate-900">Anh/chị cần biết</h2>
-        <ul className="mt-2 list-disc space-y-2 pl-5 text-base text-slate-800">
+      <Card tab={<h2 className="text-lg font-bold text-ink">Anh/chị cần biết</h2>}>
+        <ul className="list-disc space-y-2 pl-6 text-base text-ink marker:text-shutter">
           <li>{DISCLAIMER}</li>
           <li>Con chỉ nhận được ca <b>trong khung 06:00–22:00</b>, tối đa <b>8 giờ một ca</b> và <b>40 giờ một tuần</b>.</li>
           <li>Chỉ có 7 loại việc nhẹ: {jobs}. Không có việc liên quan đến: {PROHIBITED_TEXT}.</li>
@@ -72,22 +71,27 @@ export default async function ParentalConsentPage({ params }: { params: Promise<
 
       <ActionForm action={submitParentalConsent}>
         <input type="hidden" name="token" value={token} />
-        <Field label="Họ tên phụ huynh">
-          <input name="parent_name" required maxLength={100} autoComplete="name" className={inputCls} />
-        </Field>
-        <Field label="Số điện thoại phụ huynh" hint="Ví dụ: 0901234567">
-          <input name="parent_phone" type="tel" inputMode="tel" required maxLength={15} autoComplete="tel" className={inputCls} />
-        </Field>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Họ tên phụ huynh">
+            <input name="parent_name" required maxLength={100} autoComplete="name" className={inputCls} />
+          </Field>
+          <Field label="Số điện thoại phụ huynh" hint="Ví dụ: 0901234567">
+            <input name="parent_phone" type="tel" inputMode="tel" required maxLength={15} autoComplete="tel" className={inputCls} />
+          </Field>
+        </div>
         <Check name="agree" required>
           Tôi là cha/mẹ/người giám hộ của <b>{name}</b> và đồng ý cho con nhận ca làm qua SafeShift.
         </Check>
-        <SubmitButton>Gửi đồng ý</SubmitButton>
+        {/* Không dùng confirm() ở trang token: trình duyệt nhúng của Zalo/Facebook có thể bỏ qua hộp thoại. Nút to, một việc duy nhất. */}
+        <div className="[&>button]:!min-h-[3.75rem] [&>button]:!text-xl">
+          <SubmitButton>Gửi đồng ý</SubmitButton>
+        </div>
       </ActionForm>
 
-      <p className="text-base text-slate-600">
+      <p className="text-base text-ink-soft">
         Anh/chị có thể đọc thêm{' '}
-        <Link href="/dieu-khoan" className="font-semibold text-brand-700 underline underline-offset-4">Điều khoản sử dụng</Link> và{' '}
-        <Link href="/chinh-sach-du-lieu" className="font-semibold text-brand-700 underline underline-offset-4">Chính sách dữ liệu</Link>.
+        <Link href="/dieu-khoan" className="font-semibold text-shutter underline underline-offset-4">Điều khoản sử dụng</Link> và{' '}
+        <Link href="/chinh-sach-du-lieu" className="font-semibold text-shutter underline underline-offset-4">Chính sách dữ liệu</Link>.
       </p>
     </div>
   );

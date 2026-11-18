@@ -18,12 +18,12 @@ function Group({ title, hint, items, extra }: {
   title: string; hint?: string; items: MyShift[]; extra?: (s: MyShift) => React.ReactNode;
 }) {
   return (
-    <section className="space-y-3">
+    <section className="space-y-4">
       <div>
-        <h2 className="text-xl font-bold text-slate-900">{title} ({items.length})</h2>
-        {hint ? <p className="text-base text-slate-600">{hint}</p> : null}
+        <h2 className="text-xl font-bold text-ink">{title} ({items.length})</h2>
+        {hint ? <p className="text-base text-ink-soft">{hint}</p> : null}
       </div>
-      <ul className="space-y-3">
+      <ul className="grid gap-4 lg:grid-cols-2">
         {items.map((s) => (
           <li key={s.id}>
             <ShiftCard
@@ -66,9 +66,9 @@ export default async function MyShiftsPage() {
       {error ? <Alert tone="red">{friendlyError(error)}</Alert> : null}
 
       {!error && all.length === 0 ? (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <Empty>Bạn chưa nhận ca nào.</Empty>
-          <Link href="/ca" className={btn('primary')}>Tìm ca</Link>
+          <Link href="/ca" className={`${btn('primary', false)} w-full sm:w-auto`}>Tìm ca</Link>
         </div>
       ) : null}
 
@@ -85,10 +85,10 @@ export default async function MyShiftsPage() {
         upcoming.length ? (
           <Group title="Sắp tới" items={upcoming} />
         ) : (
-          <section className="space-y-3">
-            <h2 className="text-xl font-bold text-slate-900">Sắp tới (0)</h2>
+          <section className="space-y-4">
+            <h2 className="text-xl font-bold text-ink">Sắp tới (0)</h2>
             <Empty>Bạn chưa có ca nào sắp tới.</Empty>
-            <Link href="/ca" className={btn('primary')}>Tìm ca</Link>
+            <Link href="/ca" className={`${btn('primary', false)} w-full sm:w-auto`}>Tìm ca</Link>
           </section>
         )
       ) : null}
