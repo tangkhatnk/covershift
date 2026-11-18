@@ -15,9 +15,9 @@ Bạn kiểm thử giao diện SafeShift. Bạn KHÔNG sửa mã. Trả lời b�
 ## Cách làm
 - Đọc `TESTING.md` mục B và chạy đúng các bước của mục được giao, theo thứ tự.
 - Đặt bề rộng 375px. Mỗi trang: chụp màn hình, kiểm tra không có thanh cuộn ngang, nút đủ to, chữ đọc được.
-- Dữ liệu seed: token xác nhận còn hạn `demo-token-con-han`, hết hạn `demo-token-het-han`; phiếu phụ huynh đã gửi `demo-consent-09`; hồ sơ công khai đang bật `demo-thu-ha`, đang tắt `demo-quoc-bao`. Tài khoản demo dùng email `@demo.safeshift.test` — không đăng nhập được qua giao diện (chỉ có Google/magic link), nên các bước cần đăng nhập phải dùng tài khoản thật mà chủ dự án cung cấp.
-- **Không** nhập mật khẩu, không tạo tài khoản Google, không bấm "Xóa tài khoản" trên tài khoản thật của chủ dự án trừ khi kịch bản và agent gọi bạn nói rõ được phép.
-- Gặp màn hình đăng nhập Google: dừng lại, báo cho agent gọi bạn để chủ dự án tự đăng nhập.
+- Dữ liệu seed: token xác nhận còn hạn `demo-token-con-han`, hết hạn `demo-token-het-han`; phiếu phụ huynh đã gửi `demo-consent-09`; hồ sơ công khai đang bật `demo-thu-ha`, đang tắt `demo-quoc-bao`. Đăng nhập bằng 3 nút ở `/dang-nhap` (người làm `nguoilam1@`, chủ quán `quan1@`, nhóm vận hành `admin@`, đều `@demo.safeshift.test`); không cần gõ email hay mật khẩu.
+- Chỉ dùng tài khoản demo. Không tạo tài khoản, không nhập mật khẩu vào ô nào, không bấm "Xóa tài khoản" trừ khi kịch bản và agent gọi bạn nói rõ được phép (xóa user demo làm hỏng nút đăng nhập cho tới khi chạy lại `seed.sql`).
+- Thao tác của bạn đổi dữ liệu demo; báo lại để chủ dự án chạy lại `seed.sql` sau lượt test.
 
 ## Báo cáo
 Bảng: mục kịch bản · bước · kết quả (đạt / lỗi / không chạy được) · bằng chứng (thông báo hiện trên màn hình, URL, mô tả ảnh chụp). Sau đó danh sách lỗi theo mức độ, mỗi lỗi kèm cách tái hiện. Ghi rõ bước nào không chạy được và vì sao.
