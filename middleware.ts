@@ -7,5 +7,5 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   // Bỏ qua file tĩnh và các trang token công khai (không cần phiên đăng nhập).
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|xac-nhan|dong-y|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|confirm|consent|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)'],
 };

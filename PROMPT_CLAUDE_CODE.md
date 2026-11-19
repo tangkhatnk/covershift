@@ -23,10 +23,10 @@ Bạn tiếp quản dự án **SafeShift** với vai trò senior full-stack engi
 Khởi chạy **cùng lúc** 3 subagent, phạm vi không chồng nhau:
 
 - **`contract-reviewer` #1 — chủ quán và trang công khai** (7 file chưa ai đọc lại):
-  `src/app/quan/page.tsx`, `src/app/quan/dang-ca/page.tsx`, `src/app/quan/ca/[id]/page.tsx`, `src/app/xac-nhan/[token]/page.tsx`, `src/app/xac-nhan/[token]/confirm-form.tsx`, `src/app/dong-y/[token]/page.tsx`, `src/app/h/[slug]/page.tsx`.
+  `src/app/employer/page.tsx`, `src/app/employer/new-shift/page.tsx`, `src/app/employer/shifts/[id]/page.tsx`, `src/app/confirm/[token]/page.tsx`, `src/app/confirm/[token]/confirm-form.tsx`, `src/app/consent/[token]/page.tsx`, `src/app/p/[slug]/page.tsx`.
   Nhấn mạnh: tên field trong `confirm-form.tsx` phải khớp action `submitConfirmation`; form nhân bản ca (`?from=`) phải điền đúng giờ theo múi giờ VN.
 - **`contract-reviewer` #2 — người làm, đăng ký, tài khoản, admin:**
-  `src/app/{ca,ca-cua-toi,ho-so,tai-khoan,dang-ky}/**` và `src/app/admin/**`.
+  `src/app/{shifts,my-shifts,profile,account,register}/**` và `src/app/admin/**`.
 - **`db-guardian` — chỉ soát, KHÔNG sửa:** độ tương thích của `supabase/migrations/0001_init.sql` và `supabase/seed.sql` với Supabase thật, theo danh sách "Giả định chưa được kiểm chứng" ở `PROJECT_HANDOFF.md` mục 4. Kết luận từng điểm (ổn / rủi ro / chắc chắn hỏng) kèm nguồn tài liệu.
 
 Trong lúc chờ, bạn không sửa file nào trong phạm vi đang rà. Nếu subagent nào chết giữa chừng (vd. lỗi 429 do giới hạn dùng): kiểm tra đĩa, đợi reset rồi gọi lại chính subagent đó, đừng tạo mới.
@@ -36,8 +36,8 @@ Trong lúc chờ, bạn không sửa file nào trong phạm vi đang rà. Nếu 
 1. Gom báo cáo. **Tự kiểm lại từng lỗi trong mã trước khi sửa** (subagent có thể sai). Lỗi nào bác bỏ thì ghi lý do một dòng.
 2. Sửa theo mức độ: chặn phát hành → nên sửa. Lỗi thẩm mỹ chỉ sửa nếu rẻ.
 3. Hai việc đã biết, làm luôn:
-   - `src/app/ca/[id]/page.tsx`: người làm chưa được duyệt (hoặc dưới 18 chưa có phiếu phụ huynh được duyệt) không thấy nút "Nhận ca này"; thay bằng lời giải thích và link tới `/ho-so`. Database vẫn là chốt chặn chính.
-   - `src/app/quan/ca/[id]/page.tsx`: với admin, mỗi nhận xét trong `results` có nút "Ẩn nhận xét" / "Hiện lại" dùng action `hideComment` (`ShiftDetail.results[]` đã có `id`, `comment_hidden`).
+   - `src/app/shifts/[id]/page.tsx`: người làm chưa được duyệt (hoặc dưới 18 chưa có phiếu phụ huynh được duyệt) không thấy nút "Nhận ca này"; thay bằng lời giải thích và link tới `/profile`. Database vẫn là chốt chặn chính.
+   - `src/app/employer/shifts/[id]/page.tsx`: với admin, mỗi nhận xét trong `results` có nút "Ẩn nhận xét" / "Hiện lại" dùng action `hideComment` (`ShiftDetail.results[]` đã có `id`, `comment_hidden`).
 4. Được phép chia việc sửa cho tối đa 3 subagent cùng lúc, với điều kiện: mỗi subagent một nhóm file riêng không giao nhau, và phải ghi từng file ra đĩa ngay khi sửa xong. Lỗi ở tầng database giao cho `db-guardian` sửa kèm thêm test.
 5. Chạy `npm run test:db`, `npx tsc --noEmit`, `next build`. Commit.
 
@@ -49,12 +49,12 @@ Thứ tự (chi tiết ở `README.md` mục 2–6):
 1. Tôi tạo Supabase project → dán `0001_init.sql` vào SQL Editor → dán `seed.sql` → dán `supabase/tests/edge_cases.sql` và gửi lại bảng kết quả. Mọi dòng `passed = true` mới đi tiếp; dòng sai thì cùng `db-guardian` xử lý (**từ lúc này mọi thay đổi schema là file migration mới**). Xong chạy lại `seed.sql`.
 2. Tạo `.env.local` từ `.env.example` với giá trị tôi đưa (không in lại anon key trong chat).
 3. (Đã bỏ: không còn Google OAuth, magic link hay Redirect URL. Đăng nhập là 3 nút demo, tài khoản do `seed.sql` tạo; xem `README.md` mục 3.)
-4. `npm run dev`; tôi bấm nút demo ở `/dang-nhap` để đăng nhập thử.
+4. `npm run dev`; tôi bấm nút demo ở `/login` để đăng nhập thử.
 5. Deploy Vercel (đã có tại https://safeshift-beta.vercel.app), cập nhật `NEXT_PUBLIC_SITE_URL` nếu đổi domain.
 
 ## Bước 4 — Kiểm thử trên giao diện
 
-- Nếu phiên có công cụ điều khiển trình duyệt: dùng **`ui-qa`** chạy `TESTING.md` mục B theo thứ tự B1 → B6 → B4 → B2 → B3 → còn lại, trên bản local trước, bản Vercel sau. Có thể chạy song song tối đa 3 `ui-qa`, mỗi cái một nhóm mục kịch bản không đụng cùng dữ liệu (vd. không cùng dùng token `demo-token-con-han`). Bước cần đăng nhập thì tự bấm nút demo ở `/dang-nhap`.
+- Nếu phiên có công cụ điều khiển trình duyệt: dùng **`ui-qa`** chạy `TESTING.md` mục B theo thứ tự B1 → B6 → B4 → B2 → B3 → còn lại, trên bản local trước, bản Vercel sau. Có thể chạy song song tối đa 3 `ui-qa`, mỗi cái một nhóm mục kịch bản không đụng cùng dữ liệu (vd. không cùng dùng token `demo-token-con-han`). Bước cần đăng nhập thì tự bấm nút demo ở `/login`.
 - Nếu không có công cụ trình duyệt: đưa tôi danh sách kiểm tra ngắn theo đúng thứ tự trên để tôi tự bấm, rồi ghi lại kết quả tôi báo.
 - Lỗi tìm được → quay lại Bước 2. Commit sau mỗi đợt sửa.
 

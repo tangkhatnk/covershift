@@ -71,7 +71,7 @@ export async function registerWorker(_: ActionState, fd: FormData): Promise<Acti
     p_area: str(fd, 'area'),
     p_availability: fd.getAll('availability').map(String),
     p_consent: bool(fd, 'consent'),
-  }, { redirectTo: '/ho-so?moi=1' });
+  }, { redirectTo: '/profile?moi=1' });
 }
 
 /** Form: full_name, phone, facility_name, type, address, area, maps_url, not_prohibited, consent */
@@ -86,7 +86,7 @@ export async function registerEmployer(_: ActionState, fd: FormData): Promise<Ac
     p_maps_url: strOrNull(fd, 'maps_url'),
     p_not_prohibited: bool(fd, 'not_prohibited'),
     p_consent: bool(fd, 'consent'),
-  }, { redirectTo: '/quan' });
+  }, { redirectTo: '/employer' });
 }
 
 /** Form: school, class_name, phone, area, availability[] */
@@ -97,7 +97,7 @@ export async function updateWorkerProfile(_: ActionState, fd: FormData): Promise
     p_phone: normalizePhone(str(fd, 'phone')),
     p_area: str(fd, 'area'),
     p_availability: fd.getAll('availability').map(String),
-  }, { ok: 'Đã lưu hồ sơ.', revalidate: ['/ho-so'] });
+  }, { ok: 'Đã lưu hồ sơ.', revalidate: ['/profile'] });
 }
 
 /** Form: enabled ("true" | "false") */
@@ -105,12 +105,12 @@ export async function setSharing(_: ActionState, fd: FormData): Promise<ActionSt
   const enabled = str(fd, 'enabled') === 'true';
   return call('set_profile_sharing', { p_enabled: enabled }, {
     ok: enabled ? 'Đã bật chia sẻ hồ sơ ca làm.' : 'Đã tắt chia sẻ.',
-    revalidate: ['/ho-so'],
+    revalidate: ['/profile'],
   });
 }
 
 export async function regenerateConsent(_: ActionState, _fd: FormData): Promise<ActionState> {
-  return call('regenerate_consent_link', {}, { ok: 'Đã tạo link mới.', revalidate: ['/ho-so'] });
+  return call('regenerate_consent_link', {}, { ok: 'Đã tạo link mới.', revalidate: ['/profile'] });
 }
 
 /** Form: confirm (checkbox). Xóa tài khoản + toàn bộ dữ liệu, rồi đăng xuất. */
@@ -133,7 +133,7 @@ export async function submitParentalConsent(_: ActionState, fd: FormData): Promi
     p_parent_name: str(fd, 'parent_name'),
     p_parent_phone: normalizePhone(str(fd, 'parent_phone')),
     p_agree: bool(fd, 'agree'),
-  }, { ok: 'Đã ghi nhận. Cảm ơn anh/chị!', revalidate: [`/dong-y/${token}`] });
+  }, { ok: 'Đã ghi nhận. Cảm ơn anh/chị!', revalidate: [`/consent/${token}`] });
 }
 
 // ---------------------------------------------------------------- ca làm
@@ -154,14 +154,14 @@ export async function createShift(_: ActionState, fd: FormData): Promise<ActionS
     p_commit: bool(fd, 'commit'),
   });
   if (error) return { error: friendly(error) };
-  revalidatePath('/quan');
-  redirect(`/quan/ca/${data}?moi=1`);
+  revalidatePath('/employer');
+  redirect(`/employer/shifts/${data}?moi=1`);
 }
 
 /** Form: shift_id. Chủ quán (hoặc admin) hủy ca. */
 export async function cancelShift(_: ActionState, fd: FormData): Promise<ActionState> {
   const id = str(fd, 'shift_id');
-  return call('cancel_shift', { p_shift: id }, { ok: 'Đã hủy ca.', revalidate: ['/quan', `/quan/ca/${id}`, '/admin'] });
+  return call('cancel_shift', { p_shift: id }, { ok: 'Đã hủy ca.', revalidate: ['/employer', `/employer/shifts/${id}`, '/admin'] });
 }
 
 /** Form: shift_id. Người làm nhận ca. */
@@ -170,9 +170,9 @@ export async function claimShift(_: ActionState, fd: FormData): Promise<ActionSt
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('claim_shift', { p_shift: id });
   if (error) return { error: friendly(error) };
-  revalidatePath('/ca');
-  revalidatePath(`/ca/${id}`);
-  revalidatePath('/ca-cua-toi');
+  revalidatePath('/shifts');
+  revalidatePath(`/shifts/${id}`);
+  revalidatePath('/my-shifts');
   return {
     ok: data === 'primary'
       ? 'Nhận ca thành công! Bạn là NGƯỜI CHÍNH. Số điện thoại của quán hiện ở bên dưới.'
@@ -186,9 +186,9 @@ export async function cancelClaim(_: ActionState, fd: FormData): Promise<ActionS
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('cancel_claim', { p_shift: id });
   if (error) return { error: friendly(error) };
-  revalidatePath('/ca');
-  revalidatePath(`/ca/${id}`);
-  revalidatePath('/ca-cua-toi');
+  revalidatePath('/shifts');
+  revalidatePath(`/shifts/${id}`);
+  revalidatePath('/my-shifts');
   return {
     ok: data === 'late_cancel'
       ? 'Đã hủy. Vì hủy khi còn dưới 2 tiếng nên lần này được ghi vào lịch sử là "hủy sát giờ".'
@@ -200,7 +200,7 @@ export async function cancelClaim(_: ActionState, fd: FormData): Promise<ActionS
 export async function swapRoles(_: ActionState, fd: FormData): Promise<ActionState> {
   const id = str(fd, 'shift_id');
   return call('swap_roles', { p_shift: id, p_primary_worker: str(fd, 'worker_id') }, {
-    ok: 'Đã đổi thứ tự.', revalidate: [`/quan/ca/${id}`, '/admin'],
+    ok: 'Đã đổi thứ tự.', revalidate: [`/employer/shifts/${id}`, '/admin'],
   });
 }
 
@@ -210,7 +210,7 @@ export async function submitPayment(_: ActionState, fd: FormData): Promise<Actio
   const answer = str(fd, 'answer');
   return call('submit_payment_feedback', { p_shift: id, p_answer: answer }, {
     ok: answer === 'full' ? 'Cảm ơn bạn đã trả lời.' : 'Đã ghi nhận và báo cho nhóm vận hành. Chúng tôi sẽ liên hệ bạn.',
-    revalidate: [`/ca/${id}`, '/ca-cua-toi'],
+    revalidate: [`/shifts/${id}`, '/my-shifts'],
   });
 }
 
@@ -241,7 +241,7 @@ export async function submitConfirmation(_: ActionState, fd: FormData): Promise<
     };
   });
   return call('submit_confirmation', { p_token: token, p_results: results }, {
-    ok: 'Đã xác nhận. Cảm ơn anh/chị!', revalidate: [`/xac-nhan/${token}`],
+    ok: 'Đã xác nhận. Cảm ơn anh/chị!', revalidate: [`/confirm/${token}`],
   });
 }
 
@@ -257,14 +257,14 @@ export async function verifyFacility(_: ActionState, fd: FormData): Promise<Acti
     p_verified_on: strOrNull(fd, 'verified_on'),
     p_verifier_name: str(fd, 'verifier_name'),
     p_note: strOrNull(fd, 'note'),
-  }, { ok: 'Đã xác minh cơ sở. Cơ sở này đăng ca được rồi.', revalidate: ['/admin/co-so'] });
+  }, { ok: 'Đã xác minh cơ sở. Cơ sở này đăng ca được rồi.', revalidate: ['/admin/facilities'] });
 }
 
 /** Form: facility_id, status (removed | pending), reason */
 export async function setFacilityStatus(_: ActionState, fd: FormData): Promise<ActionState> {
   return call('admin_set_facility_status', {
     p_facility: str(fd, 'facility_id'), p_status: str(fd, 'status'), p_reason: strOrNull(fd, 'reason'),
-  }, { ok: 'Đã cập nhật cơ sở.', revalidate: ['/admin/co-so', '/admin'] });
+  }, { ok: 'Đã cập nhật cơ sở.', revalidate: ['/admin/facilities', '/admin'] });
 }
 
 /** Form: facility_id, lat, lng (hai ô rỗng = xóa ghim). Chủ cơ sở hoặc nhóm vận hành; RPC kiểm quyền và vùng Vũng Tàu. */
@@ -280,7 +280,7 @@ export async function setFacilityLocation(_: ActionState, fd: FormData): Promise
   }
   return call('set_facility_location', { p_facility: str(fd, 'facility_id'), p_lat: lat, p_lng: lng }, {
     ok: lat === null ? 'Đã xóa ghim vị trí.' : 'Đã lưu vị trí quán.',
-    revalidate: ['/quan', '/ca', '/admin', '/admin/co-so'],
+    revalidate: ['/employer', '/shifts', '/admin', '/admin/facilities'],
   });
 }
 
@@ -289,7 +289,7 @@ export async function reviewWorker(_: ActionState, fd: FormData): Promise<Action
   const approve = str(fd, 'decision') === 'approve';
   return call('admin_review_worker', {
     p_worker: str(fd, 'worker_id'), p_approve: approve, p_note: strOrNull(fd, 'note'),
-  }, { ok: approve ? 'Đã duyệt người làm.' : 'Đã từ chối.', revalidate: ['/admin/nguoi-lam'] });
+  }, { ok: approve ? 'Đã duyệt người làm.' : 'Đã từ chối.', revalidate: ['/admin/workers'] });
 }
 
 /** Form: user_id, status (locked | active), reason */
@@ -297,7 +297,7 @@ export async function setAccountStatus(_: ActionState, fd: FormData): Promise<Ac
   const status = str(fd, 'status');
   return call('admin_set_account_status', {
     p_user: str(fd, 'user_id'), p_status: status, p_reason: strOrNull(fd, 'reason'),
-  }, { ok: status === 'locked' ? 'Đã khóa tài khoản.' : 'Đã mở khóa.', revalidate: ['/admin/nguoi-lam', '/admin/co-so', '/admin'] });
+  }, { ok: status === 'locked' ? 'Đã khóa tài khoản.' : 'Đã mở khóa.', revalidate: ['/admin/workers', '/admin/facilities', '/admin'] });
 }
 
 /** Form: shift_id, worker_id (người chính báo bận), note */
@@ -308,7 +308,7 @@ export async function primaryBusy(_: ActionState, fd: FormData): Promise<ActionS
   });
   if (error) return { error: friendly(error) };
   revalidatePath('/admin');
-  revalidatePath('/admin/bao-cao');
+  revalidatePath('/admin/reports');
   // Form nằm trong dòng của người chính; dòng đó biến mất sau khi tải lại nên báo kết quả ở đầu trang /admin.
   redirect(`/admin?bao-ban=${data ? 'da-thay' : 'khong-du-phong'}`);
 }
@@ -316,7 +316,7 @@ export async function primaryBusy(_: ActionState, fd: FormData): Promise<ActionS
 /** Form: report_id, note */
 export async function resolveReport(_: ActionState, fd: FormData): Promise<ActionState> {
   return call('admin_resolve_report', { p_report: str(fd, 'report_id'), p_note: strOrNull(fd, 'note') }, {
-    ok: 'Đã đánh dấu xử lý xong.', revalidate: ['/admin/bao-cao'],
+    ok: 'Đã đánh dấu xử lý xong.', revalidate: ['/admin/reports'],
   });
 }
 
@@ -325,7 +325,7 @@ export async function hideComment(_: ActionState, fd: FormData): Promise<ActionS
   const shiftId = str(fd, 'shift_id');
   return call('admin_hide_comment', { p_result: str(fd, 'result_id'), p_hidden: str(fd, 'hidden') === 'true' }, {
     ok: 'Đã cập nhật nhận xét.',
-    revalidate: shiftId ? [`/quan/ca/${shiftId}`] : [],
+    revalidate: shiftId ? [`/employer/shifts/${shiftId}`] : [],
   });
 }
 

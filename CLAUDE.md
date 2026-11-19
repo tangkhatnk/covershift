@@ -10,7 +10,7 @@ Bối cảnh đầy đủ, lịch sử và các quyết định: đọc `PROJECT
 ## Hạn chót
 Deploy ổn định trước **20/11/2026** · chạy **21–22/11** · demo **26/11**. Ổn định quan trọng hơn tính năng mới.
 
-Hiện trạng (quyết định 17/11/2026): app là **bản mô phỏng**, chỉ dùng dữ liệu mẫu, không người thật. Đã deploy production ở https://safeshift-beta.vercel.app (Vercel project `safeshift`; merge vào `main` là tự deploy). Đăng nhập chỉ bằng 3 nút demo ở `/dang-nhap` qua server action `demoLogin` (mật khẩu chung công khai, đặt bởi `seed.sql`); đã bỏ Google OAuth và magic link. Không đưa dữ liệu thật vào project này.
+Hiện trạng (quyết định 17/11/2026): app là **bản mô phỏng**, chỉ dùng dữ liệu mẫu, không người thật. Đã deploy production ở https://safeshift-beta.vercel.app (Vercel project `safeshift`; merge vào `main` là tự deploy). Đăng nhập chỉ bằng 3 nút demo ở `/login` qua server action `demoLogin` (mật khẩu chung công khai, đặt bởi `seed.sql`); đã bỏ Google OAuth và magic link. Không đưa dữ liệu thật vào project này.
 
 ## Luật không được phá
 - Quy tắc nghiệp vụ chặn ở **database** (trigger, constraint, RLS, RPC), không chỉ ở giao diện.
@@ -33,7 +33,7 @@ Hiện trạng (quyết định 17/11/2026): app là **bản mô phỏng**, ch�
 - Thông báo lỗi nghiệp vụ là tiếng Việt trong `raise exception`; `edge_cases.sql` khớp theo chuỗi này → sửa câu chữ thì sửa cả test.
 - Test SQL: hành động và kiểm tra phải là hai câu lệnh riêng (`pg_temp.t_do`), vì một câu không thấy dữ liệu hàm volatile vừa ghi.
 - Server chạy UTC: mọi hiển thị giờ đi qua `src/lib/format.ts`.
-- `'use client'` chỉ còn bốn file: `src/components/client.tsx` (có `AppShell`), `src/components/map.tsx` (bản đồ MapLibre, cần trình duyệt), `src/app/xac-nhan/[token]/confirm-form.tsx`, `src/app/error.tsx` (error boundary của Next bắt buộc là Client Component). `/dang-nhap` là Server Component, không có client Supabase cho đăng nhập.
+- `'use client'` chỉ còn bốn file: `src/components/client.tsx` (có `AppShell`), `src/components/map.tsx` (bản đồ MapLibre, cần trình duyệt), `src/app/confirm/[token]/confirm-form.tsx`, `src/app/error.tsx` (error boundary của Next bắt buộc là Client Component). `/login` là Server Component, không có client Supabase cho đăng nhập.
 - Next 15: `params` / `searchParams` là `Promise`.
 - Không chạy `next dev` và `next build` cùng lúc (chung thư mục `.next`).
 

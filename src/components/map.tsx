@@ -340,7 +340,7 @@ function toPoint(s: Shift): MapPoint | null {
   const full = s.primary_count >= s.headcount;
   const time = fmtTime(s.starts_at);
   return {
-    id: s.id, lat: s.lat, lng: s.lng, text: time, href: `/ca/${s.id}`,
+    id: s.id, lat: s.lat, lng: s.lng, text: time, href: `/shifts/${s.id}`,
     label: `${JOB_LABEL[s.job_type]} ${time} ${s.facility_name}`,
     tone: full ? 'full' : s.urgent && s.status === 'open' ? 'urgent' : 'open',
   };
@@ -376,7 +376,7 @@ export function ShiftExplorer({ shifts }: { shifts: Shift[] }) {
               onMouseEnter={() => setHover(s.id)} onMouseLeave={() => setHover(null)}
               onFocusCapture={() => setHover(s.id)} onBlurCapture={() => setHover(null)}>
               <div className={`rounded-ui ${s.id === sel ? 'ring-2 ring-shutter-deep ring-offset-2 ring-offset-chalk' : ''}`}>
-                <ShiftCard shift={s} href={`/ca/${s.id}`}
+                <ShiftCard shift={s} href={`/shifts/${s.id}`}
                   extra={s.my_role ? (
                     <Badge tone={s.my_role === 'primary' ? 'green' : 'amber'}>
                       Bạn là {s.my_role === 'primary' ? 'người chính' : 'người dự phòng'}

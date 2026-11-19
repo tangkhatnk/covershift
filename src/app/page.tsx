@@ -49,8 +49,8 @@ function Step({ caption, headcount, primary, backup }: { caption: string; headco
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ 'da-xoa'?: string }> }) {
   const { user, profile } = await getContext();
-  if (user && profile) redirect(profile.status === 'locked' ? '/tai-khoan' : homeFor(profile.role));
-  if (user) redirect('/dang-ky');
+  if (user && profile) redirect(profile.status === 'locked' ? '/account' : homeFor(profile.role));
+  if (user) redirect('/register');
   const sp = await searchParams;
   return (
     <div>
@@ -67,7 +67,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               {NO_FEE}
             </p>
             <div className="sm:max-w-xs">
-              <Link href="/dang-nhap" className={btn('primary')}>Bắt đầu</Link>
+              <Link href="/login" className={btn('primary')}>Bắt đầu</Link>
             </div>
           </div>
           <div className="space-y-2">
@@ -140,7 +140,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between lg:px-8">
           <p className="text-lg font-semibold text-ink">Đây là bản mô phỏng, chỉ có dữ liệu mẫu.</p>
           <div className="sm:w-64">
-            <Link href="/dang-nhap" className={btn('primary')}>Vào xem bản mô phỏng</Link>
+            <Link href="/login" className={btn('primary')}>Vào xem bản mô phỏng</Link>
           </div>
         </div>
       </section>

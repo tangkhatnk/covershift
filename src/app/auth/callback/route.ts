@@ -17,6 +17,6 @@ export async function GET(request: NextRequest) {
   } else if (tokenHash && type) {
     ok = !(await supabase.auth.verifyOtp({ token_hash: tokenHash, type })).error;
   }
-  // Trang chủ tự điều hướng theo vai trò (hoặc sang /dang-ky nếu là lần đầu).
-  return NextResponse.redirect(ok ? `${origin}/` : `${origin}/dang-nhap?loi=1`);
+  // Trang chủ tự điều hướng theo vai trò (hoặc sang /register nếu là lần đầu).
+  return NextResponse.redirect(ok ? `${origin}/` : `${origin}/login?loi=1`);
 }
