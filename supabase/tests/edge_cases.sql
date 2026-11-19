@@ -603,9 +603,9 @@ select pg_temp.t_true('13bg. Đơn shortlisted: người nộp thấy SĐT quán
 select pg_temp.t_true('13bh. Đơn hired: chủ quán thấy SĐT người làm', 'e0000000-0000-4000-a000-000000000002',
   $$select j -> 'worker' ->> 'phone' = '0900000205' from get_job_contacts('d0000000-0000-4000-a000-000000000003') j$$ );
 select pg_temp.t_true('13bi. Đơn hired: người làm thấy SĐT quán', 'a0000000-0000-4000-a000-000000000005',
-  $$select j -> 'facility' ->> 'phone' = '0900000102' from get_job_contacts('d0000000-0000-4000-a000-000000000003') j$$ );
+  $$select j -> 'facility' ->> 'phone' = (select phone from private_contacts where user_id = 'e0000000-0000-4000-a000-000000000002') from get_job_contacts('d0000000-0000-4000-a000-000000000003') j$$ );
 select pg_temp.t_true('13bj. Đơn hired: nhóm vận hành thấy cả hai phía', '00000000-0000-4000-a000-000000000001',
-  $$select j -> 'worker' ->> 'phone' = '0900000205' and j -> 'facility' ->> 'phone' = '0900000102' from get_job_contacts('d0000000-0000-4000-a000-000000000003') j$$ );
+  $$select j -> 'worker' ->> 'phone' = '0900000205' and j -> 'facility' ->> 'phone' = (select phone from private_contacts where user_id = 'e0000000-0000-4000-a000-000000000002') from get_job_contacts('d0000000-0000-4000-a000-000000000003') j$$ );
 select pg_temp.t_err('13bk. Quán đã bị gỡ: dù đơn hired, chủ quán và người làm không xem được SĐT', 'e0000000-0000-4000-a000-000000000004',
   $$select get_job_contacts('d0000000-0000-4000-a000-000000000006')$$, '%không hoạt động%');
 select pg_temp.t_err('13bl. Quán đã bị gỡ: người làm cũng không xem được SĐT quán', 'a0000000-0000-4000-a000-000000000001',
@@ -747,6 +747,436 @@ select pg_temp.t_do('13ds. Tắt verified của cơ sở số 2 (Phê La Vũng T
 update facilities set verified = true where id = 'f0000000-0000-4000-a000-000000000002';
 select pg_temp.t_true('13dt. Đã khôi phục cơ sở số 2; tin đã đóng không tự mở lại', null,
   $$select (select verified from facilities where id = 'f0000000-0000-4000-a000-000000000002') and (select status = 'closed' from job_posts where id = 'c0000000-0000-4000-a000-000000000002')$$ );
+
+-- ---------------------------------------------------------------
+-- 14. Thông báo, trang quán công khai, đánh giá quán, chia sẻ ca, SĐT chủ quán (migration 0004)
+-- ---------------------------------------------------------------
+-- Dữ liệu dựng thêm (chế độ seed để tạo ca trong quá khứ): chủ quán b…19 + Quán Test 19 (mã công khai do default sinh),
+-- worker b…18 chỉ có tài khoản đăng nhập (tự đăng ký bằng RPC bên dưới); ca 150–158 như ghi chú.
+do $$
+begin
+  perform set_config('app.seed_mode', 'on', true);
+  insert into auth.users (id, email) values
+    ('b0000000-0000-4000-a000-000000000018', 'test18@demo.safeshift.test'), ('b0000000-0000-4000-a000-000000000019', 'test19@demo.safeshift.test');
+  insert into profiles (id, role, full_name, consent_at) values ('b0000000-0000-4000-a000-000000000019', 'employer', 'Chủ Test Mười Chín', now());
+  insert into private_contacts (user_id, phone) values ('b0000000-0000-4000-a000-000000000019', '0900000819');
+  insert into facilities (id, owner_id, name, type, address, area, not_prohibited_ack, verified, status)
+  values ('f0000000-0000-4000-a000-000000000019', 'b0000000-0000-4000-a000-000000000019', 'Quán Test 19', 'cafe', '19 Đường Test, Vũng Tàu', 'khac', true, false, 'pending');
+  insert into shifts (id, facility_id, job_type, starts_at, ends_at, hourly_wage, commitment_ack, status) values
+    -- 150: SOHO Coffee, đã xác nhận, người 1 đã làm. 151: đã xác nhận nhưng người 2 KHÔNG đến. 152: SOHO Coffee, chưa xác nhận.
+    ('50000000-0000-4000-a000-000000000150', 'f0000000-0000-4000-a000-000000000001', 'phuc_vu', now() - interval '5 days', now() - interval '5 days' + interval '4 hours', 27000, true, 'completed'),
+    ('50000000-0000-4000-a000-000000000151', 'f0000000-0000-4000-a000-000000000001', 'phuc_vu', now() - interval '5 days', now() - interval '5 days' + interval '4 hours', 27000, true, 'completed'),
+    ('50000000-0000-4000-a000-000000000152', 'f0000000-0000-4000-a000-000000000001', 'phuc_vu', now() - interval '4 days', now() - interval '4 days' + interval '4 hours', 27000, true, 'open'),
+    -- 153, 154: Phê La Vũng Tàu, đã xác nhận, người 1 đã làm. 155: Quán Test 19.
+    ('50000000-0000-4000-a000-000000000153', 'f0000000-0000-4000-a000-000000000002', 'phuc_vu', now() - interval '5 days', now() - interval '5 days' + interval '4 hours', 27000, true, 'completed'),
+    ('50000000-0000-4000-a000-000000000154', 'f0000000-0000-4000-a000-000000000002', 'phuc_vu', now() - interval '6 days', now() - interval '6 days' + interval '4 hours', 27000, true, 'completed'),
+    ('50000000-0000-4000-a000-000000000155', 'f0000000-0000-4000-a000-000000000019', 'phuc_vu', now() - interval '5 days', now() - interval '5 days' + interval '4 hours', 27000, true, 'completed'),
+    -- 156: bắt đầu đúng lúc này (không còn là "tương lai"). 157: bắt đầu sau 1 giây. 158: ca tương lai chưa ai nhận.
+    ('50000000-0000-4000-a000-000000000156', 'f0000000-0000-4000-a000-000000000001', 'phuc_vu', now(), now() + interval '4 hours', 27000, true, 'open'),
+    ('50000000-0000-4000-a000-000000000157', 'f0000000-0000-4000-a000-000000000001', 'phuc_vu', now() + interval '1 second', now() + interval '4 hours', 27000, true, 'open'),
+    ('50000000-0000-4000-a000-000000000158', 'f0000000-0000-4000-a000-000000000001', 'phuc_vu', now() + interval '3 days', now() + interval '3 days 4 hours', 27000, true, 'open');
+  insert into shift_results (shift_id, worker_id, attended, on_time, rating) values
+    ('50000000-0000-4000-a000-000000000150', 'a0000000-0000-4000-a000-000000000001', true, true, 4),
+    ('50000000-0000-4000-a000-000000000151', 'a0000000-0000-4000-a000-000000000002', false, null, null),
+    ('50000000-0000-4000-a000-000000000153', 'a0000000-0000-4000-a000-000000000001', true, true, 5),
+    ('50000000-0000-4000-a000-000000000154', 'a0000000-0000-4000-a000-000000000001', true, true, 5),
+    ('50000000-0000-4000-a000-000000000155', 'a0000000-0000-4000-a000-000000000001', true, true, 5);
+  perform set_config('app.seed_mode', 'off', true);
+end $$;
+
+-- Bảng SĐT (mọi SĐT đang có trong DB) để test không lộ SĐT chạy được dưới role anon.
+drop table if exists t_phones;
+create temp table t_phones as select phone from public.private_contacts;
+grant select on t_phones to anon, authenticated;
+
+-- ===== 14.1 SĐT chủ quán (cột dùng chung được nới; người làm vẫn đúng 10 số) =====
+select pg_temp.t_err('14a. SĐT chủ quán 9 số bị chặn', null,
+  $$update private_contacts set phone = '090000081' where user_id = 'b0000000-0000-4000-a000-000000000019'$$, '%private_contacts_phone_check%');
+select pg_temp.t_err('14b. SĐT có chữ cái bị chặn', null,
+  $$update private_contacts set phone = '09000008a9' where user_id = 'b0000000-0000-4000-a000-000000000019'$$, '%private_contacts_phone_check%');
+select pg_temp.t_err('14c. Tổng đài 1900 chỉ 2 số sau (190012) bị chặn', null,
+  $$update private_contacts set phone = '190012' where user_id = 'b0000000-0000-4000-a000-000000000019'$$, '%private_contacts_phone_check%');
+select pg_temp.t_err('14d. 19001 bị chặn', null,
+  $$update private_contacts set phone = '19001' where user_id = 'b0000000-0000-4000-a000-000000000019'$$, '%private_contacts_phone_check%');
+select pg_temp.t_err('14e. Tổng đài 1900 với 7 số sau bị chặn', null,
+  $$update private_contacts set phone = '19001234567' where user_id = 'b0000000-0000-4000-a000-000000000019'$$, '%private_contacts_phone_check%');
+select pg_temp.t_err('14f. Đầu số 17xx không phải tổng đài 1800/1900: bị chặn', null,
+  $$update private_contacts set phone = '1700123456' where user_id = 'b0000000-0000-4000-a000-000000000019'$$, '%private_contacts_phone_check%');
+select pg_temp.t_do('14g. Số bàn 11 số (0 + 10 số) được nhận', null,
+  $$update private_contacts set phone = '09000008191' where user_id = 'b0000000-0000-4000-a000-000000000019'$$,
+  $$select phone = '09000008191' from private_contacts where user_id = 'b0000000-0000-4000-a000-000000000019'$$);
+select pg_temp.t_do('14h. Số di động 10 số vẫn được nhận', null,
+  $$update private_contacts set phone = '0900000819' where user_id = 'b0000000-0000-4000-a000-000000000019'$$,
+  $$select phone = '0900000819' from private_contacts where user_id = 'b0000000-0000-4000-a000-000000000019'$$);
+select pg_temp.t_do('14i. Tổng đài 1900 với 4 số sau được nhận', null,
+  $$update private_contacts set phone = '19001234' where user_id = 'b0000000-0000-4000-a000-000000000019'$$,
+  $$select phone = '19001234' from private_contacts where user_id = 'b0000000-0000-4000-a000-000000000019'$$);
+select pg_temp.t_do('14j. Tổng đài 1900 với 6 số sau được nhận', null,
+  $$update private_contacts set phone = '1900123456' where user_id = 'b0000000-0000-4000-a000-000000000019'$$,
+  $$select phone = '1900123456' from private_contacts where user_id = 'b0000000-0000-4000-a000-000000000019'$$);
+select pg_temp.t_do('14k. Tổng đài 1800 được nhận', null,
+  $$update private_contacts set phone = '1800123456' where user_id = 'b0000000-0000-4000-a000-000000000019'$$,
+  $$select phone = '1800123456' from private_contacts where user_id = 'b0000000-0000-4000-a000-000000000019'$$);
+select pg_temp.t_err('14l. Đăng ký chủ quán với SĐT sai báo lỗi nêu rõ các dạng số được nhận', 'b0000000-0000-4000-a000-000000000014',
+  $$select register_employer('Chủ Test', '19001', 'Cà Phê Test Hotline', 'cafe', '1 Đường Test, Vũng Tàu', 'khac', null, true, true)$$, '%số bàn 11 số hoặc tổng đài%');
+select pg_temp.t_do('14m. Đăng ký chủ quán bằng tổng đài 1900 được', 'b0000000-0000-4000-a000-000000000014',
+  $$select register_employer('Chủ Test', '1900123456', 'Cà Phê Test Hotline', 'cafe', '1 Đường Test, Vũng Tàu', 'khac', null, true, true)$$,
+  $$select phone = '1900123456' from private_contacts where user_id = 'b0000000-0000-4000-a000-000000000014'$$);
+select pg_temp.t_err('14n. Đăng ký người làm với SĐT 11 số bị chặn (người làm vẫn đúng 10 số)', 'b0000000-0000-4000-a000-000000000018',
+  $$select register_worker('Test Mười Tám Hai', (current_date - interval '20 years')::date, 'ĐH Demo', null, '09000008181', 'trung_tam', '{}', true)$$, '%10 số%');
+select pg_temp.t_err('14o. Đăng ký người làm bằng tổng đài 1900 bị chặn', 'b0000000-0000-4000-a000-000000000018',
+  $$select register_worker('Test Mười Tám Hai', (current_date - interval '20 years')::date, 'ĐH Demo', null, '1900123456', 'trung_tam', '{}', true)$$, '%10 số%');
+select pg_temp.t_true('14p. Đăng ký người làm với SĐT 10 số được', 'b0000000-0000-4000-a000-000000000018',
+  $$select not (j ->> 'minor')::boolean from register_worker('Test Mười Tám Hai', (current_date - interval '20 years')::date, 'ĐH Demo', null, '0900000818', 'trung_tam', '{}', true) j$$);
+select pg_temp.t_err('14q. Người làm đổi SĐT thành số 11 số bị chặn', 'b0000000-0000-4000-a000-000000000018',
+  $$select update_worker_profile('ĐH Demo', null, '09000008181', 'trung_tam', '{}')$$, '%10 số%');
+select pg_temp.t_err('14r. Ghi thẳng bảng: SĐT người làm là tổng đài bị trigger chặn', null,
+  $$update private_contacts set phone = '1800123456' where user_id = 'b0000000-0000-4000-a000-000000000018'$$, '%10 số%');
+select pg_temp.t_do('14s. Người làm đổi SĐT 10 số được', 'b0000000-0000-4000-a000-000000000018',
+  $$select update_worker_profile('ĐH Demo', null, '0900000828', 'trung_tam', '{}')$$,
+  $$select phone = '0900000828' from private_contacts where user_id = 'b0000000-0000-4000-a000-000000000018'$$);
+
+-- ===== 14.2 Mã công khai của quán =====
+select pg_temp.t_true('14t. Cơ sở thêm mới có mã ngẫu nhiên 12 ký tự (default của cột)', null,
+  $$select public_slug ~ '^[0-9a-f]{12}$' from facilities where id = 'f0000000-0000-4000-a000-000000000019'$$);
+select pg_temp.t_true('14u. Mọi cơ sở có mã khác nhau, mã mẫu cố định của seed không sinh từ tên mới', null,
+  $$select count(distinct public_slug) = count(*) and bool_and(public_slug is not null) from facilities$$);
+select pg_temp.t_err('14v. Hai cơ sở không trùng mã', null,
+  $$update facilities set public_slug = 'demo-quan-1' where id = 'f0000000-0000-4000-a000-000000000019'$$, '%facilities_public_slug_key%');
+select pg_temp.t_err('14w. Mã 5 ký tự (ngắn hơn mức tối thiểu 6) bị chặn', null,
+  $$update facilities set public_slug = 'abcde' where id = 'f0000000-0000-4000-a000-000000000019'$$, '%facilities_public_slug_format%');
+select pg_temp.t_do('14x. Mã đúng 6 ký tự được nhận', null,
+  $$update facilities set public_slug = 'abcdef' where id = 'f0000000-0000-4000-a000-000000000019'$$,
+  $$select public_slug = 'abcdef' from facilities where id = 'f0000000-0000-4000-a000-000000000019'$$);
+select pg_temp.t_err('14y. Mã 41 ký tự bị chặn', null,
+  $$update facilities set public_slug = repeat('a', 41) where id = 'f0000000-0000-4000-a000-000000000019'$$, '%facilities_public_slug_format%');
+select pg_temp.t_do('14z. Mã đúng 40 ký tự được nhận', null,
+  $$update facilities set public_slug = repeat('a', 40) where id = 'f0000000-0000-4000-a000-000000000019'$$,
+  $$select char_length(public_slug) = 40 from facilities where id = 'f0000000-0000-4000-a000-000000000019'$$);
+select pg_temp.t_err('14aa. Mã có chữ hoa hoặc ký tự lạ bị chặn', null,
+  $$update facilities set public_slug = 'Abc_def' where id = 'f0000000-0000-4000-a000-000000000019'$$, '%facilities_public_slug_format%');
+
+-- ===== 14.3 Trang quán công khai (anon) =====
+select pg_temp.t_true('14ab. Trang quán mở được khi chưa đăng nhập: tên, vị trí, số ca (ca chỉ có người vắng mặt không tính), điểm đánh giá của ca đã có', null,
+  $$select j ->> 'name' = 'SOHO Coffee' and j ->> 'slug' = 'demo-quan-1' and j ? 'lat' and j ? 'lng'
+       and (j ->> 'completed_shifts')::int = 2 and (j ->> 'review_count')::int = 1 and (j ->> 'avg_stars')::numeric = 5.0
+    from get_public_facility('demo-quan-1') j$$, 'anon');
+select pg_temp.t_true('14ac. Trang quán không có tên/SĐT chủ quán, id cơ sở, nhận xét của người làm', null,
+  $$select not exists (select 1 from t_phones pc where j::text like '%' || pc.phone || '%') and j::text not like '%Nguyễn Thị Hoa%'
+       and not (j ? 'owner_id') and not (j ? 'owner_name') and not (j ? 'phone') and not (j ? 'id') and not (j ? 'facility_id')
+       and j::text not like '%hướng dẫn tận tình%' and not (j ? 'reviews') and not (j ? 'comment')
+    from get_public_facility('demo-quan-1') j$$, 'anon');
+select pg_temp.t_true('14ad. Ca đang mở trên trang quán: ca còn chỗ chính có primary_left 1; ca chính đã đủ nhưng còn chỗ dự phòng vẫn hiện; ca đã xong/đã hủy/bắt đầu rồi không hiện', null,
+  $$select exists (select 1 from jsonb_array_elements(j -> 'open_shifts') e where e ->> 'id' = '50000000-0000-4000-a000-000000000002'
+                     and (e ->> 'primary_left')::int = 1 and (e ->> 'backup_open')::boolean and not (e ->> 'adults_only')::boolean)
+       and exists (select 1 from jsonb_array_elements(j -> 'open_shifts') e where e ->> 'id' = '50000000-0000-4000-a000-000000000001'
+                     and (e ->> 'primary_left')::int = 0 and (e ->> 'backup_open')::boolean)
+       and not exists (select 1 from jsonb_array_elements(j -> 'open_shifts') e where e ->> 'id' in
+                     ('50000000-0000-4000-a000-000000000010', '50000000-0000-4000-a000-000000000007', '50000000-0000-4000-a000-000000000156', '50000000-0000-4000-a000-000000000152'))
+       and exists (select 1 from jsonb_array_elements(j -> 'open_shifts') e where e ->> 'id' = '50000000-0000-4000-a000-000000000157')
+    from get_public_facility('demo-quan-1') j$$, 'anon');
+select pg_temp.t_true('14ae. Thẻ ca trên trang quán không có SĐT, người nhận, mô tả, id cơ sở', null,
+  $$select jsonb_array_length(j -> 'open_shifts') > 0 and not exists (
+       select 1 from jsonb_array_elements(j -> 'open_shifts') e, jsonb_object_keys(e) k
+       where k not in ('id', 'job_type', 'starts_at', 'ends_at', 'hourly_wage', 'urgent', 'headcount', 'primary_left', 'backup_open', 'adults_only'))
+    from get_public_facility('demo-quan-1') j$$, 'anon');
+select pg_temp.t_true('14af. Ca không dành cho dưới 18 (kết thúc 23:00) có adults_only', null,
+  $$select exists (select 1 from jsonb_array_elements(j -> 'open_shifts') e where e ->> 'id' = '50000000-0000-4000-a000-000000000003' and (e ->> 'adults_only')::boolean)
+       and exists (select 1 from jsonb_array_elements(j -> 'open_shifts') e where e ->> 'id' = '50000000-0000-4000-a000-000000000005' and not (e ->> 'adults_only')::boolean)
+    from get_public_facility('demo-quan-2') j$$, 'anon');
+select pg_temp.t_err('14ag. Mã không tồn tại: báo không tìm thấy', null,
+  $$select get_public_facility('khong-co-ma-nay')$$, '%Không tìm thấy trang quán này%', 'anon');
+select pg_temp.t_err('14ah. Mã null: cùng lỗi', null,
+  $$select get_public_facility(null)$$, '%Không tìm thấy trang quán này%', 'anon');
+select pg_temp.t_err('14ai. Cơ sở đã bị gỡ (An Coffee Bean): cùng lỗi, không lộ cơ sở có tồn tại', null,
+  $$select get_public_facility('demo-quan-4')$$, '%Không tìm thấy trang quán này%', 'anon');
+select pg_temp.t_err('14aj. Cơ sở chưa xác minh/đã gỡ (KATINAT): cùng lỗi', null,
+  $$select get_public_facility('demo-quan-5')$$, '%Không tìm thấy trang quán này%', 'anon');
+update facilities set verified = false where id = 'f0000000-0000-4000-a000-000000000001';
+select pg_temp.t_err('14ak. Cơ sở còn active nhưng bị tắt xác minh: cùng lỗi', null,
+  $$select get_public_facility('demo-quan-1')$$, '%Không tìm thấy trang quán này%', 'anon');
+select pg_temp.t_err('14al. Ca của cơ sở bị tắt xác minh không chia sẻ được', null,
+  $$select get_public_shift('50000000-0000-4000-a000-000000000002')$$, '%Không tìm thấy ca này%', 'anon');
+update facilities set verified = true where id = 'f0000000-0000-4000-a000-000000000001';
+select pg_temp.t_true('14am. Đã xác minh lại: trang quán mở lại được', null,
+  $$select get_public_facility('demo-quan-1') ->> 'name' = 'SOHO Coffee'$$, 'anon');
+select pg_temp.t_true('14an. Người đã đăng nhập (chủ quán khác) cũng mở được trang quán', 'e0000000-0000-4000-a000-000000000002',
+  $$select get_public_facility('demo-quan-1') ->> 'name' = 'SOHO Coffee'$$, 'authenticated');
+
+-- ===== 14.4 Chia sẻ ca (anon) =====
+select pg_temp.t_true('14ao. Ca mở trong tương lai: mở được khi chưa đăng nhập, ca cho dưới 18 không có adults_only', null,
+  $$select j ->> 'facility_name' = 'SOHO Coffee' and j ->> 'facility_slug' = 'demo-quan-1' and j ->> 'job_type' = 'pha_che'
+       and (j ->> 'hourly_wage')::int = 30000 and (j ->> 'primary_left')::int = 1 and not (j ->> 'adults_only')::boolean
+       and j ->> 'description' like 'Cần gấp%' and j ? 'lat'
+    from get_public_shift('50000000-0000-4000-a000-000000000002') j$$, 'anon');
+select pg_temp.t_true('14ap. Ca kết thúc 23:00: adults_only; chính đã đủ, còn chỗ dự phòng', null,
+  $$select (j ->> 'adults_only')::boolean and (j ->> 'primary_left')::int = 0 and (j ->> 'backup_open')::boolean
+    from get_public_shift('50000000-0000-4000-a000-000000000003') j$$, 'anon');
+select pg_temp.t_true('14aq. Ca chia sẻ không có SĐT, id cơ sở, id chủ quán, danh sách người nhận', null,
+  $$select not exists (select 1 from t_phones pc where j::text like '%' || pc.phone || '%') and j::text not like '%Nguyễn Thị Hoa%'
+       and not exists (select 1 from jsonb_object_keys(j) k where k in ('facility_id', 'owner_id', 'owner_name', 'phone', 'claims', 'workers', 'my_role', 'allow_minor', 'maps_url'))
+    from get_public_shift('50000000-0000-4000-a000-000000000003') j$$, 'anon');
+select pg_temp.t_err('14ar. Ca đã hủy (cơ sở bị gỡ) không chia sẻ được', null,
+  $$select get_public_shift('50000000-0000-4000-a000-000000000004')$$, '%Không tìm thấy ca này%', 'anon');
+select pg_temp.t_err('14as. Ca đã xác nhận xong không chia sẻ được', null,
+  $$select get_public_shift('50000000-0000-4000-a000-000000000010')$$, '%Không tìm thấy ca này%', 'anon');
+select pg_temp.t_err('14at. Ca đang diễn ra (đã bắt đầu) không chia sẻ được', null,
+  $$select get_public_shift('50000000-0000-4000-a000-000000000007')$$, '%Không tìm thấy ca này%', 'anon');
+select pg_temp.t_err('14au. Ca bắt đầu đúng lúc này: không còn là tương lai, bị chặn', null,
+  $$select get_public_shift('50000000-0000-4000-a000-000000000156')$$, '%Không tìm thấy ca này%', 'anon');
+select pg_temp.t_true('14av. Ca bắt đầu sau 1 giây: vẫn chia sẻ được', null,
+  $$select get_public_shift('50000000-0000-4000-a000-000000000157') ->> 'id' = '50000000-0000-4000-a000-000000000157'$$, 'anon');
+select pg_temp.t_err('14aw. Id ca không tồn tại: cùng lỗi', null,
+  $$select get_public_shift('00000000-0000-4000-a000-0000000000ff')$$, '%Không tìm thấy ca này%', 'anon');
+select pg_temp.t_err('14ax. Id ca null: cùng lỗi', null,
+  $$select get_public_shift(null)$$, '%Không tìm thấy ca này%', 'anon');
+
+-- ===== 14.5 Đánh giá quán =====
+select pg_temp.t_err('14ay. Ca chưa được chủ quán xác nhận: chưa đánh giá được', 'a0000000-0000-4000-a000-000000000001',
+  $$select create_facility_review('50000000-0000-4000-a000-000000000152', 5, null)$$, '%chưa được chủ quán xác nhận%');
+select pg_temp.t_err('14az. Người bị ghi nhận KHÔNG đến không đánh giá được', 'a0000000-0000-4000-a000-000000000002',
+  $$select create_facility_review('50000000-0000-4000-a000-000000000151', 5, null)$$, '%Chỉ người đã làm ca này%');
+select pg_temp.t_err('14ba. Người không làm ca đó không đánh giá được', 'a0000000-0000-4000-a000-000000000005',
+  $$select create_facility_review('50000000-0000-4000-a000-000000000150', 5, null)$$, '%Chỉ người đã làm ca này%');
+select pg_temp.t_err('14bb. Chủ quán không đánh giá được', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_facility_review('50000000-0000-4000-a000-000000000150', 5, null)$$, '%Chỉ người làm%');
+select pg_temp.t_err('14bc. anon không gọi được create_facility_review', null,
+  $$select create_facility_review('50000000-0000-4000-a000-000000000150', 5, null)$$, '%permission denied%', 'anon');
+select pg_temp.t_err('14bd. Tài khoản bị khóa không đánh giá được', 'a0000000-0000-4000-a000-000000000004',
+  $$select create_facility_review('50000000-0000-4000-a000-000000000011', 5, null)$$, '%bị khóa%');
+select pg_temp.t_err('14be. Ca không tồn tại', 'a0000000-0000-4000-a000-000000000001',
+  $$select create_facility_review('00000000-0000-4000-a000-0000000000ff', 5, null)$$, '%Không tìm thấy ca%');
+select pg_temp.t_err('14bf. 0 sao bị từ chối', 'a0000000-0000-4000-a000-000000000001',
+  $$select create_facility_review('50000000-0000-4000-a000-000000000154', 0, null)$$, '%từ 1 đến 5%');
+select pg_temp.t_err('14bg. 6 sao bị từ chối', 'a0000000-0000-4000-a000-000000000001',
+  $$select create_facility_review('50000000-0000-4000-a000-000000000154', 6, null)$$, '%từ 1 đến 5%');
+select pg_temp.t_err('14bh. Không chọn sao bị từ chối', 'a0000000-0000-4000-a000-000000000001',
+  $$select create_facility_review('50000000-0000-4000-a000-000000000154', null, null)$$, '%từ 1 đến 5%');
+select pg_temp.t_err('14bi. Nhận xét 501 ký tự bị từ chối', 'a0000000-0000-4000-a000-000000000001',
+  $$select create_facility_review('50000000-0000-4000-a000-000000000154', 3, repeat('a', 501))$$, '%500 ký tự%');
+select pg_temp.t_do('14bj. Đúng ranh giới: 1 sao, nhận xét đúng 500 ký tự được', 'a0000000-0000-4000-a000-000000000001',
+  $$select create_facility_review('50000000-0000-4000-a000-000000000150', 1, repeat('a', 500))$$,
+  $$select stars = 1 and char_length(comment) = 500 and facility_id = 'f0000000-0000-4000-a000-000000000001'
+    from facility_reviews where shift_id = '50000000-0000-4000-a000-000000000150' and worker_id = 'a0000000-0000-4000-a000-000000000001'$$);
+select pg_temp.t_err('14bk. Một ca đánh giá một lần', 'a0000000-0000-4000-a000-000000000001',
+  $$select create_facility_review('50000000-0000-4000-a000-000000000150', 5, null)$$, '%đã đánh giá%');
+select pg_temp.t_do('14bl. 5 sao, nhận xét toàn khoảng trắng lưu thành trống', 'a0000000-0000-4000-a000-000000000001',
+  $$select create_facility_review('50000000-0000-4000-a000-000000000153', 5, '   ')$$,
+  $$select stars = 5 and comment is null from facility_reviews where shift_id = '50000000-0000-4000-a000-000000000153' and worker_id = 'a0000000-0000-4000-a000-000000000001'$$);
+select pg_temp.t_err('14bm. Ghi thẳng bảng (bỏ qua RPC) cho người vắng mặt vẫn bị trigger chặn', null,
+  $$insert into facility_reviews (facility_id, shift_id, worker_id, stars) values ('f0000000-0000-4000-a000-000000000001', '50000000-0000-4000-a000-000000000151', 'a0000000-0000-4000-a000-000000000002', 3)$$, '%Chỉ người đã làm ca này%');
+select pg_temp.t_err('14bn. Ghi thẳng bảng cho ca chưa xác nhận vẫn bị trigger chặn', null,
+  $$insert into facility_reviews (facility_id, shift_id, worker_id, stars) values ('f0000000-0000-4000-a000-000000000001', '50000000-0000-4000-a000-000000000152', 'a0000000-0000-4000-a000-000000000001', 3)$$, '%chưa được chủ quán xác nhận%');
+select pg_temp.t_err('14bo. Ghi thẳng bảng với quán không khớp ca bị trigger chặn', null,
+  $$insert into facility_reviews (facility_id, shift_id, worker_id, stars) values ('f0000000-0000-4000-a000-000000000001', '50000000-0000-4000-a000-000000000154', 'a0000000-0000-4000-a000-000000000001', 3)$$, '%không khớp%');
+select pg_temp.t_err('14bp. Ghi thẳng bảng 6 sao bị constraint chặn', null,
+  $$insert into facility_reviews (facility_id, shift_id, worker_id, stars) values ('f0000000-0000-4000-a000-000000000002', '50000000-0000-4000-a000-000000000154', 'a0000000-0000-4000-a000-000000000001', 6)$$, '%facility_reviews_stars%');
+select pg_temp.t_err('14bq. Ghi thẳng bảng nhận xét 501 ký tự bị constraint chặn', null,
+  $$insert into facility_reviews (facility_id, shift_id, worker_id, stars, comment) values ('f0000000-0000-4000-a000-000000000002', '50000000-0000-4000-a000-000000000154', 'a0000000-0000-4000-a000-000000000001', 3, repeat('a', 501))$$, '%facility_reviews_comment%');
+select pg_temp.t_err('14br. Đánh giá đã gửi không sửa được số sao', null,
+  $$update facility_reviews set stars = 5 where shift_id = '50000000-0000-4000-a000-000000000150' and worker_id = 'a0000000-0000-4000-a000-000000000001'$$, '%Không sửa được đánh giá%');
+select pg_temp.t_err('14bs. Đánh giá đã gửi không sửa được nhận xét', null,
+  $$update facility_reviews set comment = 'x' where shift_id = '50000000-0000-4000-a000-000000000150' and worker_id = 'a0000000-0000-4000-a000-000000000001'$$, '%Không sửa được đánh giá%');
+select pg_temp.t_true('14bt. RLS: người làm chỉ đọc đánh giá của chính mình (2 dòng)', 'a0000000-0000-4000-a000-000000000001',
+  $$select count(*) = 2 and bool_and(worker_id = 'a0000000-0000-4000-a000-000000000001') from facility_reviews$$, 'authenticated');
+select pg_temp.t_true('14bu. RLS: người làm khác chỉ thấy đánh giá của mình (người 3: 1 dòng)', 'a0000000-0000-4000-a000-000000000003',
+  $$select count(*) = 1 from facility_reviews$$, 'authenticated');
+select pg_temp.t_true('14bv. RLS: chủ quán không đọc được đánh giá nào', 'e0000000-0000-4000-a000-000000000001',
+  $$select count(*) = 0 from facility_reviews$$, 'authenticated');
+select pg_temp.t_err('14bw. Cột hidden_by không cấp cho client', 'a0000000-0000-4000-a000-000000000001',
+  $$select hidden_by from facility_reviews$$, '%permission denied%', 'authenticated');
+select pg_temp.t_err('14bx. select * trên facility_reviews bị chặn vì có cột hidden_by', 'a0000000-0000-4000-a000-000000000001',
+  $$select * from facility_reviews$$, '%permission denied%', 'authenticated');
+select pg_temp.t_err('14by. anon không đọc được facility_reviews', null,
+  $$select count(*) from facility_reviews$$, '%permission denied%', 'anon');
+select pg_temp.t_err('14bz. Người làm không insert thẳng vào facility_reviews qua API', 'a0000000-0000-4000-a000-000000000001',
+  $$insert into facility_reviews (facility_id, shift_id, worker_id, stars) values ('f0000000-0000-4000-a000-000000000002', '50000000-0000-4000-a000-000000000154', 'a0000000-0000-4000-a000-000000000001', 3)$$, '%permission denied%', 'authenticated');
+select pg_temp.t_err('14ca. Người làm không update thẳng facility_reviews', 'a0000000-0000-4000-a000-000000000001',
+  $$update facility_reviews set stars = 5$$, '%permission denied%', 'authenticated');
+select pg_temp.t_err('14cb. Người làm không delete thẳng facility_reviews', 'a0000000-0000-4000-a000-000000000001',
+  $$delete from facility_reviews$$, '%permission denied%', 'authenticated');
+select pg_temp.t_true('14cc. Điểm công khai của SOHO Coffee gồm đánh giá mẫu (5 sao) và đánh giá mới (1 sao): 2 lượt, trung bình 3.0', null,
+  $$select (j ->> 'review_count')::int = 2 and (j ->> 'avg_stars')::numeric = 3.0 from get_public_facility('demo-quan-1') j$$, 'anon');
+select pg_temp.t_true('14cd. Điểm công khai của Phê La Vũng Tàu: 2 lượt (3 và 5 sao), trung bình 4.0; nhận xét không lộ', null,
+  $$select (j ->> 'review_count')::int = 2 and (j ->> 'avg_stars')::numeric = 4.0 and j::text not like '%trả tiền đúng hẹn%' from get_public_facility('demo-quan-2') j$$, 'anon');
+
+-- Nhóm vận hành ẩn đánh giá
+select pg_temp.t_err('14ce. Người làm không ẩn được đánh giá', 'a0000000-0000-4000-a000-000000000001',
+  $$select admin_hide_facility_review((select id from facility_reviews where shift_id = '50000000-0000-4000-a000-000000000150'), true, 'thử')$$, '%nhóm vận hành%');
+select pg_temp.t_err('14cf. Chủ quán không ẩn được đánh giá', 'e0000000-0000-4000-a000-000000000001',
+  $$select admin_hide_facility_review('00000000-0000-4000-a000-0000000000ff', true, 'thử')$$, '%nhóm vận hành%');
+select pg_temp.t_err('14cg. Ẩn đánh giá không tồn tại', '00000000-0000-4000-a000-000000000001',
+  $$select admin_hide_facility_review('00000000-0000-4000-a000-0000000000ff', true, 'thử')$$, '%Không tìm thấy đánh giá%');
+select pg_temp.t_do('14ch. Nhóm vận hành ẩn một đánh giá: có audit, điểm công khai bỏ đánh giá đó', '00000000-0000-4000-a000-000000000001',
+  $$select admin_hide_facility_review((select id from facility_reviews where shift_id = '50000000-0000-4000-a000-000000000150'), true, 'Nội dung không phù hợp')$$,
+  $$select (select hidden and hidden_by = '00000000-0000-4000-a000-000000000001' and hidden_at is not null from facility_reviews where shift_id = '50000000-0000-4000-a000-000000000150')
+       and exists (select 1 from admin_audit_log where action = 'hide_facility_review' and detail ->> 'reason' = 'Nội dung không phù hợp')
+       and (select (j ->> 'review_count')::int = 1 and (j ->> 'avg_stars')::numeric = 5.0 from get_public_facility('demo-quan-1') j)$$);
+select pg_temp.t_true('14ci. Đánh giá bị ẩn: người viết vẫn thấy của mình, nhóm vận hành xem được kèm nhận xét và tên, không SĐT', 'a0000000-0000-4000-a000-000000000001',
+  $$select (select hidden from facility_reviews where shift_id = '50000000-0000-4000-a000-000000000150')$$, 'authenticated');
+select pg_temp.t_true('14cj. admin_list_facility_reviews: đủ 4 đánh giá, có tên người làm, nhận xét, không SĐT', '00000000-0000-4000-a000-000000000001',
+  $$select jsonb_array_length(admin_list_facility_reviews()) = 4
+       and exists (select 1 from jsonb_array_elements(admin_list_facility_reviews()) e where e ->> 'worker_name' = 'Nguyễn Minh Anh' and (e ->> 'hidden')::boolean and char_length(e ->> 'comment') = 500)
+       and not exists (select 1 from t_phones pc where admin_list_facility_reviews()::text like '%' || pc.phone || '%')$$);
+select pg_temp.t_err('14ck. Người làm không gọi được admin_list_facility_reviews', 'a0000000-0000-4000-a000-000000000001',
+  $$select admin_list_facility_reviews()$$, '%nhóm vận hành%');
+select pg_temp.t_do('14cl. Bỏ ẩn: hidden_by/hidden_at về null, điểm công khai tính lại', '00000000-0000-4000-a000-000000000001',
+  $$select admin_hide_facility_review((select id from facility_reviews where shift_id = '50000000-0000-4000-a000-000000000150'), false, null)$$,
+  $$select (select not hidden and hidden_by is null and hidden_at is null from facility_reviews where shift_id = '50000000-0000-4000-a000-000000000150')
+       and (select (j ->> 'review_count')::int = 2 and (j ->> 'avg_stars')::numeric = 3.0 from get_public_facility('demo-quan-1') j)$$);
+
+-- Đánh giá của người làm tự xóa tài khoản biến mất theo; điểm công khai tính lại
+do $$
+begin
+  perform set_config('app.seed_mode', 'on', true);
+  insert into shift_results (shift_id, worker_id, attended, on_time, rating)
+  values ('50000000-0000-4000-a000-000000000150', 'b0000000-0000-4000-a000-000000000018', true, true, 4);
+  perform set_config('app.seed_mode', 'off', true);
+end $$;
+select pg_temp.t_do('14cm. Người làm thứ hai đánh giá cùng ca (4 sao): điểm SOHO Coffee là 3 lượt, trung bình 3.3', 'b0000000-0000-4000-a000-000000000018',
+  $$select create_facility_review('50000000-0000-4000-a000-000000000150', 4, 'Ổn')$$,
+  $$select (select (j ->> 'review_count')::int = 3 and (j ->> 'avg_stars')::numeric = 3.3 from get_public_facility('demo-quan-1') j)$$);
+select pg_temp.t_do('14cn. Admin duyệt người làm b…18 (đủ 18 tuổi): người này có thông báo hồ sơ được duyệt', '00000000-0000-4000-a000-000000000001',
+  $$select admin_review_worker('b0000000-0000-4000-a000-000000000018', true, 'ok')$$,
+  $$select exists (select 1 from notifications where user_id = 'b0000000-0000-4000-a000-000000000018' and kind = 'profile_reviewed' and payload = '{"status":"approved"}')$$);
+select pg_temp.t_do('14co. Người làm xóa tài khoản: đánh giá và thông báo của họ mất, điểm công khai về 2 lượt trung bình 3.0, đánh giá người khác còn', 'b0000000-0000-4000-a000-000000000018',
+  $$select delete_my_account()$$,
+  $$select not exists (select 1 from facility_reviews where worker_id = 'b0000000-0000-4000-a000-000000000018')
+       and not exists (select 1 from notifications where user_id = 'b0000000-0000-4000-a000-000000000018')
+       and not exists (select 1 from shift_results where worker_id = 'b0000000-0000-4000-a000-000000000018')
+       and (select (j ->> 'review_count')::int = 2 and (j ->> 'avg_stars')::numeric = 3.0 from get_public_facility('demo-quan-1') j)$$);
+
+-- Chủ quán xóa tài khoản: cơ sở, ca, đánh giá, thông báo của họ mất; đánh giá của người làm ở quán khác còn
+do $$
+begin
+  perform set_config('app.seed_mode', 'on', true);
+  insert into facility_reviews (facility_id, shift_id, worker_id, stars, comment)
+  values ('f0000000-0000-4000-a000-000000000019', '50000000-0000-4000-a000-000000000155', 'a0000000-0000-4000-a000-000000000001', 5, 'Quán test 19');
+  insert into notifications (user_id, kind, payload)
+  values ('b0000000-0000-4000-a000-000000000019', 'application_new', '{"job_type":"phuc_vu"}');
+  perform set_config('app.seed_mode', 'off', true);
+end $$;
+select pg_temp.t_do('14cp. Chủ quán xóa tài khoản: cơ sở, ca, đánh giá, thông báo xóa theo; đánh giá của người làm ở quán khác còn', 'b0000000-0000-4000-a000-000000000019',
+  $$select delete_my_account()$$,
+  $$select not exists (select 1 from facilities where id = 'f0000000-0000-4000-a000-000000000019')
+       and not exists (select 1 from shifts where id = '50000000-0000-4000-a000-000000000155')
+       and not exists (select 1 from facility_reviews where comment = 'Quán test 19')
+       and not exists (select 1 from notifications where user_id = 'b0000000-0000-4000-a000-000000000019')
+       and (select count(*) = 2 from facility_reviews where worker_id = 'a0000000-0000-4000-a000-000000000001')$$);
+
+-- ===== 14.6 Thông báo trong app =====
+-- Các thông báo dưới đây do trigger sinh từ những hành động ở các nhóm test trước (swap_roles 6g, hủy 8a, báo bận 10g, gỡ cơ sở 10j,
+-- đơn ứng tuyển nhóm 13). Seed chạy ở chế độ _bypass nên không sinh thông báo; chỉ có 6 thông báo mẫu viết tay trong seed.
+select pg_temp.t_true('14cq. Đổi chỗ (swap_roles): người dự phòng lên chính được báo, người bị chuyển xuống không', null,
+  $$select exists (select 1 from notifications where user_id = 'a0000000-0000-4000-a000-000000000007' and kind = 'shift_promoted'
+                    and payload = jsonb_build_object('shift_id', '50000000-0000-4000-a000-000000000001', 'job_type', 'phuc_vu', 'facility_name', 'SOHO Coffee'))
+       and not exists (select 1 from notifications where user_id = 'a0000000-0000-4000-a000-000000000004' and payload ->> 'shift_id' = '50000000-0000-4000-a000-000000000001')$$);
+select pg_temp.t_true('14cr. Người chính hủy sớm: người dự phòng tự lên chính được báo (kèm tên quán)', null,
+  $$select exists (select 1 from notifications where user_id = 'a0000000-0000-4000-a000-000000000003' and kind = 'shift_promoted'
+                    and payload ->> 'shift_id' = '50000000-0000-4000-a000-000000000004' and payload ->> 'facility_name' = 'An Coffee Bean')$$);
+select pg_temp.t_true('14cs. Nhóm vận hành cho người chính báo bận: người dự phòng lên chính được báo', null,
+  $$select exists (select 1 from notifications where user_id = 'a0000000-0000-4000-a000-000000000008' and kind = 'shift_promoted'
+                    and payload ->> 'shift_id' = '50000000-0000-4000-a000-000000000005' and payload ->> 'facility_name' = 'Phê La Vũng Tàu')
+       and not exists (select 1 from notifications where user_id = 'a0000000-0000-4000-a000-000000000007' and payload ->> 'shift_id' = '50000000-0000-4000-a000-000000000005')$$);
+select pg_temp.t_true('14ct. Cơ sở bị gỡ hủy ca: người đang giữ suất được báo ca bị hủy; người đã tự hủy trước đó thì không', null,
+  $$select exists (select 1 from notifications where user_id = 'a0000000-0000-4000-a000-000000000003' and kind = 'shift_cancelled'
+                    and payload ->> 'shift_id' = '50000000-0000-4000-a000-000000000004')
+       and not exists (select 1 from notifications where user_id = 'a0000000-0000-4000-a000-000000000002' and payload ->> 'shift_id' = '50000000-0000-4000-a000-000000000004')$$);
+drop table if exists t_nc;
+create temp table t_nc as select count(*)::int as c from public.notifications;
+select pg_temp.t_do('14cu. Chủ quán hủy ca chưa có ai nhận: không sinh thông báo nào', 'e0000000-0000-4000-a000-000000000001',
+  $$select cancel_shift('50000000-0000-4000-a000-000000000158')$$,
+  $$select (select status = 'cancelled' from shifts where id = '50000000-0000-4000-a000-000000000158') and (select count(*) = (select c from t_nc) from notifications)$$);
+select pg_temp.t_true('14cv. Đơn mới (nộp lại sau khi rút): chủ quán được báo, kèm id đơn, id tin, loại việc, tên quán', null,
+  $$select exists (select 1 from notifications n where n.user_id = 'e0000000-0000-4000-a000-000000000001' and n.kind = 'application_new'
+                    and n.payload = jsonb_build_object('application_id', (select id from job_applications where job_id = 'c0000000-0000-4000-a000-000000000001'
+                                                         and worker_id = 'a0000000-0000-4000-a000-000000000002' and status = 'applied'),
+                                                       'job_id', 'c0000000-0000-4000-a000-000000000001', 'job_type', 'pha_che', 'facility_name', 'SOHO Coffee'))
+       and not exists (select 1 from notifications n join profiles p on p.id = n.user_id where n.kind = 'application_new' and p.role <> 'employer')$$);
+select pg_temp.t_true('14cw. Chủ quán chọn rồi loại đơn: người làm nhận đúng hai thông báo (shortlisted, rejected) cho đơn đó', null,
+  $$select count(*) = 2 and count(*) filter (where payload ->> 'status' = 'shortlisted') = 1 and count(*) filter (where payload ->> 'status' = 'rejected') = 1
+    from notifications where user_id = 'a0000000-0000-4000-a000-000000000001' and kind = 'application_status'
+     and payload ->> 'application_id' = 'd0000000-0000-4000-a000-000000000001'$$);
+select pg_temp.t_true('14cx. Người làm tự rút đơn không sinh thông báo; đơn do seed (chế độ bypass) cũng không có thông báo tự sinh', null,
+  $$select not exists (select 1 from notifications where payload ->> 'status' in ('withdrawn', 'applied'))
+       and not exists (select 1 from notifications where payload ->> 'application_id' in
+            ('d0000000-0000-4000-a000-000000000002', 'd0000000-0000-4000-a000-000000000003', 'd0000000-0000-4000-a000-000000000004', 'd0000000-0000-4000-a000-000000000007')
+            and created_at >= now())$$);
+select pg_temp.t_do('14cy. Duyệt hồ sơ người làm: người đó được báo "approved"', '00000000-0000-4000-a000-000000000001',
+  $$select admin_review_worker('a0000000-0000-4000-a000-000000000010', true, 'ok')$$,
+  $$select exists (select 1 from notifications where user_id = 'a0000000-0000-4000-a000-000000000010' and kind = 'profile_reviewed' and payload = '{"status":"approved"}')$$);
+select pg_temp.t_do('14cz. Từ chối hồ sơ: người đó được báo "rejected", không kèm ghi chú của nhóm vận hành', '00000000-0000-4000-a000-000000000001',
+  $$select admin_review_worker('a0000000-0000-4000-a000-000000000009', false, 'Ghi chú nội bộ không được lộ')$$,
+  $$select exists (select 1 from notifications where user_id = 'a0000000-0000-4000-a000-000000000009' and kind = 'profile_reviewed' and payload = '{"status":"rejected"}')
+       and not exists (select 1 from notifications where payload::text like '%Ghi chú nội bộ%')$$);
+select pg_temp.t_do('14da. (chuẩn bị) Người làm xin link phụ huynh mới sau khi bị từ chối', 'a0000000-0000-4000-a000-000000000009',
+  $$select regenerate_consent_link()$$,
+  $$select status = 'pending' from parental_consents where worker_id = 'a0000000-0000-4000-a000-000000000009'$$);
+select pg_temp.t_err('14db. Phụ huynh nhập SĐT 11 số bị chặn (phụ huynh vẫn đúng 10 số), chưa có thông báo mới', null,
+  $$select submit_parental_consent((select token from parental_consents where worker_id = 'a0000000-0000-4000-a000-000000000009'), 'Phụ Huynh Test', '09000005099', true)$$, '%10 số%');
+select pg_temp.t_do('14dc. Phụ huynh gửi phiếu (SĐT 10 số): người làm được báo, thông báo không có tên/SĐT phụ huynh', null,
+  $$select submit_parental_consent((select token from parental_consents where worker_id = 'a0000000-0000-4000-a000-000000000009'), 'Phụ Huynh Test', '0900000509', true)$$,
+  $$select exists (select 1 from notifications where user_id = 'a0000000-0000-4000-a000-000000000009' and kind = 'parental_consent_submitted'
+                    and payload = '{"status":"submitted"}' and created_at >= now())
+       and not exists (select 1 from notifications where payload::text like '%Phụ Huynh Test%' or payload::text like '%0900000509%')$$);
+select pg_temp.t_true('14dd. Payload mọi thông báo chỉ có khóa cho phép; không có SĐT, token, ngày sinh, tên phụ huynh', null,
+  $$select count(*) > 8
+       and not exists (select 1 from notifications n, jsonb_object_keys(n.payload) k
+                       where k not in ('shift_id', 'job_id', 'application_id', 'job_type', 'facility_name', 'status'))
+       and not exists (select 1 from notifications n, private_contacts pc where n.payload::text like '%' || pc.phone || '%')
+       and not exists (select 1 from notifications n, parental_consents c where n.payload::text like '%' || c.token || '%' or n.payload::text like '%' || c.parent_phone || '%' or n.payload::text like '%' || c.parent_name || '%')
+       and not exists (select 1 from notifications n, shift_confirmation_tokens t where n.payload::text like '%' || t.token || '%')
+       and not exists (select 1 from notifications n, worker_profiles w where n.payload::text like '%' || w.date_of_birth::text || '%')
+       and not exists (select 1 from notifications where payload::text ilike '%token%' or payload::text ilike '%phone%')
+    from notifications$$);
+select pg_temp.t_err('14de. Loại thông báo ngoài danh sách bị constraint chặn', null,
+  $$insert into notifications (user_id, kind) values ('a0000000-0000-4000-a000-000000000001', 'tu_do')$$, '%notifications_kind%');
+select pg_temp.t_err('14df. Payload không phải object bị constraint chặn', null,
+  $$insert into notifications (user_id, kind, payload) values ('a0000000-0000-4000-a000-000000000001', 'profile_reviewed', '[1]')$$, '%notifications_payload%');
+
+select pg_temp.t_true('14dg. my_notifications: người 3 có 3 thông báo, 2 chưa đọc, mới nhất trước (thông báo mẫu của seed đã đọc nằm cuối)', 'a0000000-0000-4000-a000-000000000003',
+  $$select (j ->> 'unread')::int = 2 and jsonb_array_length(j -> 'items') = 3 and (j -> 'items' -> -1 ->> 'read_at') is not null
+       and (j -> 'items' -> 0 ->> 'read_at') is null and not (j -> 'items' -> 0 ? 'user_id')
+    from my_notifications() j$$);
+select pg_temp.t_true('14dh. my_notifications: giới hạn 1 và 0 (nâng lên 1), null dùng mặc định, 1000 bị chặn ở 100 (vẫn đủ 3)', 'a0000000-0000-4000-a000-000000000003',
+  $$select jsonb_array_length(my_notifications(1) -> 'items') = 1 and jsonb_array_length(my_notifications(0) -> 'items') = 1
+       and jsonb_array_length(my_notifications(null) -> 'items') = 3 and jsonb_array_length(my_notifications(1000) -> 'items') = 3$$);
+select pg_temp.t_true('14di. my_notifications: chủ quán chỉ thấy thông báo của mình', 'e0000000-0000-4000-a000-000000000001',
+  $$select jsonb_array_length(j -> 'items') >= 2 and not exists (select 1 from jsonb_array_elements(j -> 'items') e where e ->> 'kind' not in ('application_new'))
+    from my_notifications() j$$);
+select pg_temp.t_err('14dj. anon không gọi được my_notifications', null,
+  $$select my_notifications()$$, '%permission denied%', 'anon');
+select pg_temp.t_err('14dk. Tài khoản bị khóa không xem được thông báo', 'a0000000-0000-4000-a000-000000000004',
+  $$select my_notifications()$$, '%bị khóa%');
+select pg_temp.t_do('14dl. Đánh dấu đã đọc một thông báo: trả về 1, số chưa đọc giảm còn 1', 'a0000000-0000-4000-a000-000000000003',
+  $$select mark_notifications_read(array[(select id from notifications where user_id = 'a0000000-0000-4000-a000-000000000003' and kind = 'shift_promoted' and payload ->> 'shift_id' = '50000000-0000-4000-a000-000000000004')])$$,
+  $$select (select count(*) = 1 from notifications where user_id = 'a0000000-0000-4000-a000-000000000003' and read_at is null)$$);
+select pg_temp.t_true('14dm. Đánh dấu lại thông báo đã đọc: trả về 0', 'a0000000-0000-4000-a000-000000000003',
+  $$select mark_notifications_read(array[(select id from notifications where user_id = 'a0000000-0000-4000-a000-000000000003' and kind = 'shift_promoted' and payload ->> 'shift_id' = '50000000-0000-4000-a000-000000000004')]) = 0$$);
+select pg_temp.t_true('14dn. Không đánh dấu hộ thông báo của người khác: trả về 0, thông báo vẫn chưa đọc', 'a0000000-0000-4000-a000-000000000001',
+  $$select mark_notifications_read(array[(select id from notifications where user_id = 'a0000000-0000-4000-a000-000000000003' and kind = 'shift_cancelled')]) = 0
+       and (select read_at is null from notifications where user_id = 'a0000000-0000-4000-a000-000000000003' and kind = 'shift_cancelled')$$);
+select pg_temp.t_do('14do. Đánh dấu tất cả (null): chỉ thông báo của mình, số chưa đọc về 0, thông báo người khác còn nguyên', 'a0000000-0000-4000-a000-000000000003',
+  $$select mark_notifications_read()$$,
+  $$select (select (my_notifications() ->> 'unread')::int = 0) and (select count(*) > 0 from notifications where user_id <> 'a0000000-0000-4000-a000-000000000003' and read_at is null)$$);
+select pg_temp.t_err('14dp. anon không gọi được mark_notifications_read', null,
+  $$select mark_notifications_read()$$, '%permission denied%', 'anon');
+select pg_temp.t_true('14dq. RLS: người làm select thẳng bảng notifications chỉ thấy thông báo của mình', 'a0000000-0000-4000-a000-000000000003',
+  $$select count(*) = 3 and bool_and(user_id = 'a0000000-0000-4000-a000-000000000003') from notifications$$, 'authenticated');
+select pg_temp.t_true('14dr. RLS: nhóm vận hành cũng không đọc thông báo của người khác', '00000000-0000-4000-a000-000000000001',
+  $$select count(*) = 0 from notifications$$, 'authenticated');
+select pg_temp.t_err('14ds. anon không đọc được bảng notifications', null,
+  $$select count(*) from notifications$$, '%permission denied%', 'anon');
+select pg_temp.t_err('14dt. Người đăng nhập không insert thẳng vào notifications', 'a0000000-0000-4000-a000-000000000003',
+  $$insert into notifications (user_id, kind) values ('a0000000-0000-4000-a000-000000000003', 'profile_reviewed')$$, '%permission denied%', 'authenticated');
+select pg_temp.t_err('14du. Người đăng nhập không update thẳng notifications (giả đã đọc, sửa payload)', 'a0000000-0000-4000-a000-000000000003',
+  $$update notifications set payload = '{}'$$, '%permission denied%', 'authenticated');
+select pg_temp.t_err('14dv. Người đăng nhập không delete thẳng notifications', 'a0000000-0000-4000-a000-000000000003',
+  $$delete from notifications$$, '%permission denied%', 'authenticated');
+select pg_temp.t_err('14dw. Client không gọi được hàm nội bộ _notify', 'a0000000-0000-4000-a000-000000000003',
+  $$select _notify('a0000000-0000-4000-a000-000000000003', 'profile_reviewed', '{}')$$, '%permission denied%', 'authenticated');
+select pg_temp.t_err('14dx. anon không gọi được get_public_* qua hàm nội bộ _public_shift_json', null,
+  $$select _public_shift_json((select s from shifts s limit 1))$$, '%permission denied%', 'anon');
 
 select pg_temp.as_user(null, null);
 select name, passed, detail from t_results order by n;

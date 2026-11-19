@@ -2,10 +2,12 @@
 -- SafeShift — seed demo. Chạy lại bao nhiêu lần cũng được (tự xóa dữ liệu demo cũ).
 -- 1 admin, 9 chủ quán (mỗi chủ một quán; 9 quán thật ở Vũng Tàu, chỉ dùng tên, địa chỉ và hotline công khai của quán,
 -- theo chỉ thị chủ dự án 19/11/2026; tên chủ quán là tên giả), 10 người làm (3 người dưới 18), 12 ca đủ trạng thái,
--- 6 tin tuyển dụng lâu dài và 7 đơn ứng tuyển (cần migration 0003: chạy 0003 trước seed).
+-- 6 tin tuyển dụng lâu dài và 7 đơn ứng tuyển (cần migration 0003), 6 thông báo, 2 đánh giá quán và mã trang quán
+-- (cần migration 0004). CẦN 0004 ĐÃ ÁP trước khi chạy seed này: hotline 8 và 11 chữ số của 3 quán chỉ qua được ràng buộc
+-- SĐT đã nới ở 0004, và cột `public_slug`, bảng `notifications`, `facility_reviews` cũng có từ 0004.
 -- Mọi tài khoản demo có email @demo.safeshift.test và dùng chung mật khẩu công khai `safeshift-demo`
 -- (lưu bằng crypt + gen_salt('bf')), cho nút đăng nhập demo ở /dang-nhap. App chỉ là bản mô phỏng: SĐT người làm và
--- phụ huynh là số giả 0900000xxx; ngoài hotline công khai của quán ở trên không có dữ liệu thật nào.
+-- phụ huynh là số giả 0900000xxx; ngoài hotline công khai của 9 quán ở trên không có dữ liệu thật nào.
 -- Chạy lại seed để khôi phục dữ liệu mẫu. Không xóa user demo bằng tay (lỗi khóa ngoại 23503);
 -- nếu cần dọn, dùng supabase/xoa_du_lieu_demo.sql.
 -- =====================================================================
@@ -93,18 +95,18 @@ insert into public.profiles (id, role, full_name, consent_at) values
   ('a0000000-0000-4000-a000-000000000009', 'worker', 'Đỗ Bảo Ngọc',      now()),
   ('a0000000-0000-4000-a000-000000000010', 'worker', 'Mai Đức Phúc',     now());
 
--- SĐT chủ quán là hotline công khai của quán (chủ dự án duyệt 19/11/2026). Ba quán (Phê La, Phuc Long, Texas Chicken) có hotline
--- 8 hoặc 11 chữ số, không qua được ràng buộc phone ~ '^0[0-9]{9}$' của 0001 nên dùng số giả 0900000xxx.
+-- SĐT chủ quán là hotline công khai của quán (chủ dự án duyệt 19/11/2026), cả 9 quán. Phê La (8 chữ số), Phuc Long và Texas Chicken
+-- (11 chữ số) chỉ qua được ràng buộc phone đã nới ở migration 0004 (0001 chỉ nhận đúng 10 số): chạy 0004 trước seed.
 insert into public.private_contacts (user_id, phone) values
   ('e0000000-0000-4000-a000-000000000001', '0982931487'),
-  ('e0000000-0000-4000-a000-000000000002', '0900000102'),
+  ('e0000000-0000-4000-a000-000000000002', '19003013'),
   ('e0000000-0000-4000-a000-000000000003', '0827794599'),
   ('e0000000-0000-4000-a000-000000000004', '0785337339'),
   ('e0000000-0000-4000-a000-000000000005', '0846659460'),
   ('e0000000-0000-4000-a000-000000000006', '0933528978'),
   ('e0000000-0000-4000-a000-000000000007', '0785330124'),
-  ('e0000000-0000-4000-a000-000000000008', '0900000108'),
-  ('e0000000-0000-4000-a000-000000000009', '0900000109'),
+  ('e0000000-0000-4000-a000-000000000008', '02871001968'),
+  ('e0000000-0000-4000-a000-000000000009', '02866860672'),
   ('a0000000-0000-4000-a000-000000000001', '0900000201'),
   ('a0000000-0000-4000-a000-000000000002', '0900000202'),
   ('a0000000-0000-4000-a000-000000000003', '0900000203'),
@@ -262,5 +264,23 @@ insert into public.job_applications (id, job_id, worker_id, note, status, create
   ('d0000000-0000-4000-a000-000000000005', 'c0000000-0000-4000-a000-000000000003', 'a0000000-0000-4000-a000-000000000003', 'Em biết tiếng Anh giao tiếp cơ bản.',                                           'applied',     now() - interval '1 day',  now() - interval '1 day'),
   ('d0000000-0000-4000-a000-000000000006', 'c0000000-0000-4000-a000-000000000004', 'a0000000-0000-4000-a000-000000000001', null,                                                                          'hired',       now() - interval '8 days', now() - interval '6 days'),
   ('d0000000-0000-4000-a000-000000000007', 'c0000000-0000-4000-a000-000000000006', 'a0000000-0000-4000-a000-000000000004', null,                                                                          'rejected',    now() - interval '15 days', now() - interval '12 days');
+
+-- ---------- thông báo, đánh giá quán, mã trang quán (migration 0004) ----------
+-- Mã công khai cố định cho 9 quán (demo-quan-1…9) (quán thật dùng mã ngẫu nhiên do default của cột sinh ra).
+update public.facilities set public_slug = 'demo-quan-' || ltrim(right(id::text, 3), '0') where id::text like 'f0000000-0000-4000-a000-0000000000__';
+
+-- Seed chạy ở chế độ _bypass nên trigger không tự sinh thông báo: các dòng dưới đây là thông báo mẫu, cùng dạng với trigger (không SĐT, token, ngày sinh).
+insert into public.notifications (user_id, kind, payload, read_at, created_at) values
+  ('a0000000-0000-4000-a000-000000000003', 'shift_promoted', '{"shift_id":"50000000-0000-4000-a000-000000000010","job_type":"pha_che","facility_name":"SOHO Coffee"}', now() - interval '3 days', pg_temp.vn(-3, '07:00')),
+  ('a0000000-0000-4000-a000-000000000001', 'application_status', '{"application_id":"d0000000-0000-4000-a000-000000000006","job_id":"c0000000-0000-4000-a000-000000000004","job_type":"don_phong","facility_name":"An Coffee Bean","status":"hired"}', null, now() - interval '6 days'),
+  ('a0000000-0000-4000-a000-000000000002', 'application_status', '{"application_id":"d0000000-0000-4000-a000-000000000002","job_id":"c0000000-0000-4000-a000-000000000001","job_type":"pha_che","facility_name":"SOHO Coffee","status":"shortlisted"}', null, now() - interval '1 day'),
+  ('e0000000-0000-4000-a000-000000000001', 'application_new', '{"application_id":"d0000000-0000-4000-a000-000000000001","job_id":"c0000000-0000-4000-a000-000000000001","job_type":"pha_che","facility_name":"SOHO Coffee"}', null, now() - interval '2 days'),
+  ('a0000000-0000-4000-a000-000000000009', 'parental_consent_submitted', '{"status":"submitted"}', null, now() - interval '1 day'),
+  ('a0000000-0000-4000-a000-000000000007', 'profile_reviewed', '{"status":"approved"}', now() - interval '4 days', now() - interval '4 days');
+
+-- Đánh giá quán từ hai ca đã xác nhận (ca 10 tại SOHO Coffee, ca 11 tại Phê La Vũng Tàu).
+insert into public.facility_reviews (facility_id, shift_id, worker_id, stars, comment, created_at) values
+  ('f0000000-0000-4000-a000-000000000001', '50000000-0000-4000-a000-000000000010', 'a0000000-0000-4000-a000-000000000003', 5, 'Quán sắp xếp việc rõ ràng, chủ quán hướng dẫn tận tình.', pg_temp.vn(-3, '14:00')),
+  ('f0000000-0000-4000-a000-000000000002', '50000000-0000-4000-a000-000000000011', 'a0000000-0000-4000-a000-000000000004', 3, 'Ca đông khách nên khá bận, quán trả tiền đúng hẹn.', pg_temp.vn(-2, '22:00'));
 
 commit;
