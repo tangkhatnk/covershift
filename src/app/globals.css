@@ -6,6 +6,7 @@
   /* Chiều cao khung dính, dùng chung cho scroll-padding và padding đáy của nội dung. */
   --chrome-top: 3.5rem; /* thanh trên (điện thoại) */
   --chrome-bottom: calc(4.5rem + env(safe-area-inset-bottom)); /* thanh điều hướng dưới + vùng an toàn */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* cùng đường cong với `transition` mặc định của Tailwind (tailwind.config.ts) */
 }
 
 /* Chữ gốc 18px: dễ đọc cho chủ quán lớn tuổi trên điện thoại 360–414px. */
@@ -26,26 +27,26 @@ input, select, textarea {
 
 /* Phần trình duyệt tự vẽ cũng mang bảng màu của giao diện. */
 ::selection {
-  background: #F2C94C;
-  color: #17231D;
+  background: #FFC247; /* accent */
+  color: #0F2230; /* ink */
 }
 input, textarea {
-  caret-color: #1F5C45;
+  caret-color: #0B5C8A; /* brand */
 }
 * {
-  scrollbar-color: #7C8479 #F6F4E8;
+  scrollbar-color: #6F7C86 #F6F3EA; /* rule-strong, chalk */
 }
 a {
   text-underline-offset: 4px;
 }
 
-/* Vòng focus tối trên nền sáng, vàng trên nền xanh đậm (thanh điều hướng, rail, chân trang). */
+/* Vòng focus xanh biển đậm trên nền sáng, vàng nắng trên nền xanh đậm (thanh điều hướng, rail, chân trang). */
 :focus-visible {
-  outline: 3px solid #153F30;
+  outline: 3px solid #083F5F; /* brand-deep */
   outline-offset: 2px;
 }
 .surface-dark :focus-visible {
-  outline-color: #F2C94C;
+  outline-color: #FFC247; /* accent */
 }
 
 /* Giờ ca và số liệu: chữ số bảng cố định để các giờ thẳng cột. */
@@ -58,13 +59,28 @@ a {
 summary { list-style: none; }
 summary::-webkit-details-marker { display: none; }
 
+/* Chuyển động (chỉ CSS): vào trang và danh sách trượt lên 4px kèm mờ dần, không quá 200ms.
+   `backwards` (không phải `both`): xong là bỏ hẳn transform, không để lại lớp chứa mới cho phần tử con cố định/dính.
+   `.page-enter` gắn ở <main> (AppShell, key theo đường dẫn nên chạy lại mỗi lần đổi trang; không gắn ở trang token).
+   `.stagger`: các mục đầu của danh sách vào lần lượt cách nhau 40ms, từ mục thứ 7 trở đi hiện luôn. */
+@keyframes rise { from { opacity: 0; transform: translateY(4px); } }
+@keyframes fade { from { opacity: 0; } }
+.page-enter { animation: rise 200ms var(--ease-out) backwards; }
+.stagger > * { animation: rise 200ms var(--ease-out) backwards; }
+.stagger > :nth-child(2) { animation-delay: 40ms; }
+.stagger > :nth-child(3) { animation-delay: 80ms; }
+.stagger > :nth-child(4) { animation-delay: 120ms; }
+.stagger > :nth-child(5) { animation-delay: 160ms; }
+.stagger > :nth-child(6) { animation-delay: 200ms; }
+.stagger > :nth-child(n+7) { animation: none; }
+
+/* Giảm chuyển động: giữ mờ dần (đổi màu, độ mờ), bỏ mọi dịch chuyển và co giãn. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity !important;
   }
+  .page-enter, .stagger > * { animation-name: fade; }
 }
 
 @media print {

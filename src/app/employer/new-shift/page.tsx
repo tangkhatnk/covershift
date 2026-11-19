@@ -143,7 +143,7 @@ export default async function NewShiftPage({ searchParams }: { searchParams: Pro
                       <b>{JOB_LABEL[s.job_type]}</b> · {fmtTime(s.starts_at)}–{fmtTime(s.ends_at)} · {fmtMoney(s.hourly_wage)}/giờ
                       <span className="block text-sm text-ink-soft">Ca ngày {fmtDate(s.starts_at)}</span>
                     </span>
-                    <span className="shrink-0 font-semibold text-shutter underline underline-offset-4">Dùng lại</span>
+                    <span className="shrink-0 font-semibold text-brand underline underline-offset-4">Dùng lại</span>
                   </Link>
                 </li>
               ))}

@@ -8,7 +8,6 @@ import {
   Building2, CalendarCheck, ChartColumn, Check, CircleUser, CirclePlus, Copy, Ellipsis, Flag, LayoutDashboard, LoaderCircle,
   LogOut, Printer, ScrollText, Search, Settings, Store, UserRound, Users, type LucideIcon,
 } from 'lucide-react';
-import { APP_NAME } from '@/lib/constants';
 import type { ActionState, Role } from '@/lib/types';
 import { Alert, btn, type BtnVariant, type Tone } from './ui';
 
@@ -193,14 +192,21 @@ export function PrintButton({ children = 'In / Lưu PDF' }: { children?: ReactNo
 // Nhãn "Thêm" của nhóm vận hành dùng <details>: chạy được bằng bàn phím và trong trình duyệt nhúng của Zalo.
 // ---------------------------------------------------------------------------------------------
 
-/** Dấu hiệu thương hiệu: cùng hình với src/app/icon.svg (nền tường vàng, cánh cửa xanh có 3 thanh chớp). */
+/**
+ * Logo "Biển & Nắng": mặt trời nhô trên hai làn sóng, trong ô vuông bo góc. Chỉ dùng trên khung xanh đậm (`surface-dark`),
+ * nên ô nền là trắng; favicon (src/app/icon.svg) là bản nền xanh đậm của cùng hình. Chữ dùng font của app, không vẽ path.
+ */
 function Mark() {
   return (
-    <svg viewBox="0 0 32 32" className="h-8 w-8 shrink-0" aria-hidden="true">
-      <rect width="32" height="32" rx="5" className="fill-wall" />
-      <rect x="6" y="4" width="20" height="24" rx="2" className="fill-shutter-deep" />
-      <path d="M9 10h14M9 15h14M9 20h14" className="stroke-wall" strokeWidth="2.5" fill="none" />
-    </svg>
+    <>
+      <svg viewBox="0 0 64 64" className="h-8 w-8 shrink-0" aria-hidden="true">
+        <rect width="64" height="64" rx="14" className="fill-white" />
+        <path d="M19 35a13 13 0 0 1 26 0z" className="fill-accent" />
+        <path d="M9 43q5.75-6 11.5 0t11.5 0t11.5 0t11.5 0" transform="translate(1.5 0)" className="stroke-brand" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <path d="M9 54q5.75-6 11.5 0t11.5 0t11.5 0t11.5 0" transform="translate(1.5 0)" className="stroke-brand opacity-50" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </svg>
+      <span>Safe<span className="text-accent">Shift</span></span>
+    </>
   );
 }
 
@@ -281,7 +287,7 @@ function MoreMenu({ items, pathname, active }: { items: NavItem[]; pathname: str
     >
       <summary
         className={`flex h-full cursor-pointer flex-col items-center justify-start border-t-4 px-1 pt-1 text-center text-sm font-semibold leading-tight ${
-          active ? 'border-wall text-wall' : 'border-transparent text-white'
+          active ? 'border-accent text-accent' : 'border-transparent text-white'
         }`}
       >
         <Ellipsis className="h-6 w-6" aria-hidden="true" />
@@ -294,7 +300,7 @@ function MoreMenu({ items, pathname, active }: { items: NavItem[]; pathname: str
               href={it.href}
               aria-current={it.href === current ? 'page' : undefined}
               className={`flex min-h-[3rem] items-center gap-2 rounded px-4 text-base font-semibold hover:bg-chalk ${
-                it.href === current ? 'bg-wall-tint' : ''
+                it.href === current ? 'bg-accent-tint' : ''
               }`}
             >
               <it.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
@@ -329,33 +335,33 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
   return (
     <>
       <div className={`flex min-h-dvh flex-col ${items ? 'shell-pad lg:pl-60' : ''}`}>
-        <header data-chrome className={`surface-dark sticky top-0 z-30 h-14 bg-shutter-deep ${items ? 'lg:hidden' : ''}`}>
+        <header data-chrome className={`surface-dark sticky top-0 z-30 h-14 bg-brand-deep ${items ? 'lg:hidden' : ''}`}>
           <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4">
-            <Link href={homeHref} className="inline-flex min-h-[3rem] items-center gap-2 rounded px-2 text-xl font-bold text-white"><Mark />{APP_NAME}</Link>
+            <Link href={homeHref} className="inline-flex min-h-[3rem] items-center gap-2 rounded px-2 text-xl font-bold text-white"><Mark /></Link>
             {bare ? null : signedIn ? (
               <Link href="/account" className="inline-flex min-h-[3rem] items-center gap-2 rounded-ui px-2 text-base font-semibold text-white">
                 <CircleUser className="h-6 w-6" aria-hidden="true" />
                 {userName ?? 'Tài khoản'}
               </Link>
             ) : (
-              <Link href="/login" className="inline-flex min-h-[3rem] items-center rounded-ui bg-wall px-4 text-base font-semibold text-ink">
+              <Link href="/login" className="inline-flex min-h-[3rem] items-center rounded-ui bg-accent px-4 text-base font-semibold text-ink">
                 Đăng nhập
               </Link>
             )}
           </div>
         </header>
 
-        <main className={`flex-1 ${mainWidth}`}>{children}</main>
+        <main key={pathname} className={`flex-1 ${mainWidth} ${bare ? '' : 'page-enter'}`}>{children}</main>
 
-        <footer data-chrome className={`surface-dark bg-shutter-deep text-white ${items ? 'pb-[var(--chrome-bottom)] lg:pb-0' : ''}`}>
+        <footer data-chrome className={`surface-dark bg-brand-deep text-white ${items ? 'pb-[var(--chrome-bottom)] lg:pb-0' : ''}`}>
           {footer}
         </footer>
       </div>
 
       {items ? (
         <>
-          <aside data-chrome data-rail className="surface-dark fixed inset-y-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto bg-shutter-deep text-white lg:flex">
-            <Link href={homeHref} className="m-4 inline-flex min-h-[3rem] items-center gap-2 rounded px-2 text-xl font-bold text-white"><Mark />{APP_NAME}</Link>
+          <aside data-chrome data-rail className="surface-dark fixed inset-y-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto bg-brand-deep text-white lg:flex">
+            <Link href={homeHref} className="m-4 inline-flex min-h-[3rem] items-center gap-2 rounded px-2 text-xl font-bold text-white"><Mark /></Link>
             <nav aria-label="Điều hướng chính" className="flex-1 px-4">
               <ul className="space-y-2">
                 {allItems.map((it) => (
@@ -364,7 +370,7 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
                       href={it.href}
                       aria-current={it.href === current ? 'page' : undefined}
                       className={`flex min-h-[3rem] items-center gap-2 rounded-ui px-4 text-lg font-semibold ${
-                        it.href === current ? 'bg-wall text-ink' : 'text-white hover:bg-shutter'
+                        it.href === current ? 'bg-accent text-ink' : 'text-white hover:bg-brand'
                       }`}
                     >
                       <it.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
@@ -374,15 +380,15 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
                 ))}
               </ul>
             </nav>
-            <div className="space-y-2 border-t border-shutter p-4">
+            <div className="space-y-2 border-t border-brand p-4">
               {railHasAccount ? null : (
-                <Link href="/account" className="flex min-h-[3rem] items-center gap-2 rounded-ui px-4 text-base font-semibold text-white hover:bg-shutter">
+                <Link href="/account" className="flex min-h-[3rem] items-center gap-2 rounded-ui px-4 text-base font-semibold text-white hover:bg-brand">
                   <CircleUser className="h-6 w-6 shrink-0" aria-hidden="true" />
                   <span className="min-w-0 break-words">{userName ?? 'Tài khoản'}</span>
                 </Link>
               )}
               <form action="/auth/logout" method="post">
-                <button type="submit" className="flex min-h-[3rem] w-full items-center gap-2 rounded-ui px-4 text-base font-semibold text-white hover:bg-shutter">
+                <button type="submit" className="flex min-h-[3rem] w-full items-center gap-2 rounded-ui px-4 text-base font-semibold text-white hover:bg-brand">
                   <LogOut className="h-6 w-6 shrink-0" aria-hidden="true" />
                   Đăng xuất
                 </button>
@@ -393,7 +399,7 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
           <nav
             data-chrome
             aria-label="Điều hướng chính"
-            className="surface-dark fixed inset-x-0 bottom-0 z-30 border-t border-shutter bg-shutter-deep pb-[env(safe-area-inset-bottom)] lg:hidden"
+            className="surface-dark fixed inset-x-0 bottom-0 z-30 border-t border-brand bg-brand-deep pb-[env(safe-area-inset-bottom)] lg:hidden"
           >
             <ul className="flex h-[4.5rem]">
               {items.map((it) => (
@@ -402,7 +408,7 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
                     href={it.href}
                     aria-current={it.href === current ? 'page' : undefined}
                     className={`flex h-full flex-col items-center justify-start border-t-4 px-1 pt-1 text-center text-sm font-semibold leading-tight ${
-                      it.href === current ? 'border-wall text-wall' : 'border-transparent text-white'
+                      it.href === current ? 'border-accent text-accent' : 'border-transparent text-white'
                     }`}
                   >
                     <it.icon className="h-6 w-6" aria-hidden="true" />

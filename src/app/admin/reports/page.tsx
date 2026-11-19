@@ -41,7 +41,7 @@ function Related({ r }: { r: AdminReport }) {
       {r.shift_id ? (
         <p>
           Ca liên quan:{' '}
-          <Link href={`/employer/shifts/${r.shift_id}`} className="font-semibold text-shutter underline underline-offset-4">
+          <Link href={`/employer/shifts/${r.shift_id}`} className="font-semibold text-brand underline underline-offset-4">
             {shiftLabel || 'Xem ca'}
           </Link>
         </p>

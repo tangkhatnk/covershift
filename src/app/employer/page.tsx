@@ -70,7 +70,7 @@ export default async function EmployerHomePage() {
   // Việc chính của chủ quán là ca, không phải ghim: thẻ vị trí thu gọn, chưa ghim thì nằm sau nhóm "Cần xác nhận", đã ghim thì nằm cuối trang.
   const pinned = facility && facility.status !== 'removed' ? facility.lat != null && facility.lng != null : null;
   const panel = facility ? (
-    <div className={`rounded-ui border p-2 ${pinned ? 'border-rule bg-white' : 'border-wall bg-wall-tint'}`}>
+    <div className={`rounded-ui border p-2 ${pinned ? 'border-rule bg-white' : 'border-accent bg-accent-tint'}`}>
       <Disclosure summary={
         <span className="flex min-w-0 items-center gap-2">
           <MapPin className="h-5 w-5 shrink-0" aria-hidden="true" />
