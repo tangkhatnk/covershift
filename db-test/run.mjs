@@ -217,7 +217,8 @@ try {
     expect('app_config', await n(`select count(*) c from public.app_config`), 3);
     // seed chạy lại được trên DB đã dọn, và không đụng dữ liệu thật.
     try { await runFile(client, 'supabase/seed.sql'); } catch (e) { problems.push(`seed sau dọn lỗi: ${e.message}`); }
-    expect('user demo sau seed lại', await n(`select count(*) c from auth.users where email like '%@demo.safeshift.test'`), 16);
+    expect('user demo sau seed lại', await n(`select count(*) c from auth.users where email like '%@demo.safeshift.test'`), 20);
+    expect('cơ sở demo sau seed lại', await n(`select count(*) c from public.facilities where id::text like 'f0000000-0000-4000-a000-%'`), 9);
     expect('user thật còn sau seed lại', await n(`select count(*) c from auth.users where id in ($1, $2)`, [rw, re]), 2);
     expect('ca thật còn sau seed lại', await n(`select count(*) c from public.shifts where id = $1`, [rs]), 1);
     expect('tin thật còn sau seed lại', await n(`select count(*) c from public.job_posts where id = $1`, [rj]), 1);

@@ -2,7 +2,7 @@
 
 Có hai tầng:
 
-- **A. Test tự động ở tầng database** — 229 test + kiểm quyền + tái chạy + chạy đua + dọn dữ liệu demo, không cần Supabase. Đây là nơi mọi quy tắc nghiệp vụ được chặn.
+- **A. Test tự động ở tầng database** — 230 test + kiểm quyền + tái chạy + chạy đua + dọn dữ liệu demo, không cần Supabase. Đây là nơi mọi quy tắc nghiệp vụ được chặn.
 - **B. Test tay trên giao diện** — chạy trên bản deploy (hoặc local) nối với Supabase thật, sau khi đã chạy `seed.sql`.
 
 ---
@@ -43,7 +43,8 @@ Các trường hợp biên bắt buộc và test tương ứng:
 | Hủy < 2 tiếng → `late_cancel` | 8c | `cancel_claim` + báo cáo cho admin |
 | Trả lời khác "Đủ" → báo cáo | 9a | trigger `payment_feedback_report` |
 | Tự nâng quyền / ghi thẳng bảng / gọi hàm nội bộ | 10a–10f | quyền bảng + quyền hàm |
-| Mọi user demo của seed (16 user: `admin@`, `quan1–5@`, `nguoilam1–10@`) đều có mật khẩu demo; user `@demo.safeshift.test` khác (tài khoản test) không có | 10m | `seed.sql` đặt mật khẩu bằng `extensions.crypt`; nút đăng nhập demo ở `/dang-nhap` dựa vào đây |
+| Mọi user demo của seed (20 user: `admin@`, `quan1–9@`, `nguoilam1–10@`) đều có mật khẩu demo; user `@demo.safeshift.test` khác (tài khoản test) không có | 10m | `seed.sql` đặt mật khẩu bằng `extensions.crypt`; nút đăng nhập demo ở `/dang-nhap` dựa vào đây |
+| Ghi lại tên 9 cơ sở của seed (9 quán thật ở Vũng Tàu) ngoài chế độ seed: `_facilities_guard` không chặn tên nào (không dính bar, pub, club, karaoke, massage...) | 10n | seed chạy ở chế độ bỏ qua trigger nên không tự kiểm tên; test này ghi lại tên khi không bypass |
 | Thao tác admin có audit log | 10g, 10h | mọi RPC `admin_*` |
 | Chủ quán tự xóa tài khoản khi ca của họ có báo cáo | 11b | `delete_my_account` + khóa ngoại `ON DELETE SET NULL` |
 | Xóa tài khoản xóa sạch dữ liệu | 11a | `delete_my_account` + `ON DELETE CASCADE` |
@@ -68,11 +69,11 @@ commit;                                             -- => LỖI "Ca đã đủ n
 
 ## B. Test tay trên giao diện
 
-Chuẩn bị: đã chạy migration + seed (seed đặt mật khẩu demo; chạy lại seed để khôi phục dữ liệu sau mỗi lượt test). Đăng nhập bằng 3 nút ở `/dang-nhap`, không cần tài khoản Google hay email thật: **A** = nhóm vận hành (`admin@`), **Q** = chủ quán (`quan1@`, Quán Demo 1), **N** = người làm (`nguoilam1@`, đã duyệt, 20 tuổi). Muốn đổi vai trò thì đăng xuất rồi bấm nút khác. Không có nút cho các user demo còn lại (`quan2–5@`, `nguoilam2–10@`); các hồ sơ đó dùng làm dữ liệu cho A duyệt hoặc cho ca. Dùng điện thoại hoặc DevTools ở bề rộng 360–414px.
+Chuẩn bị: đã chạy migration + seed (seed đặt mật khẩu demo; chạy lại seed để khôi phục dữ liệu sau mỗi lượt test). Đăng nhập bằng 3 nút ở `/dang-nhap`, không cần tài khoản Google hay email thật: **A** = nhóm vận hành (`admin@`), **Q** = chủ quán (`quan1@`, SOHO Coffee), **N** = người làm (`nguoilam1@`, đã duyệt, 20 tuổi). Muốn đổi vai trò thì đăng xuất rồi bấm nút khác. Không có nút cho các user demo còn lại (`quan2–9@`, `nguoilam2–10@`); các hồ sơ đó dùng làm dữ liệu cho A duyệt hoặc cho ca. Dùng điện thoại hoặc DevTools ở bề rộng 360–414px.
 
 Giới hạn: app không còn đường tạo tài khoản mới, nên form đăng ký (`/dang-ky/*`) và các trường hợp phải đăng ký mới (tuổi 14, tên cơ sở "Karaoke ABC", ngày sinh 16 tuổi) **không kiểm tay được** trên bản demo; các quy tắc này vẫn được test tự động ở mục A (1a, 1b, 4g–4i). Cũng không kiểm tay được những việc cần đăng nhập người làm thứ hai hoặc người chưa duyệt (người dự phòng, "chưa duyệt thì không thấy nút Nhận ca"); xem test 1e–1i, 6a–6h, 8a. Đăng nhập demo dùng chung mật khẩu công khai, nên không nhập dữ liệu thật khi test.
 
-Dữ liệu seed dùng trong kịch bản: "Quán Demo 1–4" đã xác minh, "Quán Demo 5" chờ xác minh; ca 23:00 ở Quán Demo 2 (ngày kia, 18:00–23:00).
+Dữ liệu seed dùng trong kịch bản: 9 quán thật ở Vũng Tàu (cơ sở 1–9, chủ `quan1–9@`): các quán 1–4 và 6–9 đã xác minh, quán số 5 (KATINAT) chờ xác minh; ca 23:00 ở quán số 2 (Phê La Vũng Tàu) (ngày kia, 18:00–23:00).
 
 ### B1. Người làm đã duyệt: tìm và nhận ca (luồng chính)
 
@@ -92,7 +93,7 @@ Dữ liệu seed dùng trong kịch bản: "Quán Demo 1–4" đã xác minh, "Q
 ### B3. Chủ quán
 
 1–2. (Chưa kiểm tay được, xem Giới hạn: chủ quán đăng ký mới chờ xác minh; tên cơ sở "Karaoke ABC" bị từ chối.)
-3. A vào `/admin/co-so` → chọn "Quán Demo 5" (đang chờ xác minh trong seed) → phiếu xác minh: bỏ trống "đúng địa chỉ" → ✔ lỗi; tick đủ → ✔ cơ sở "Đang hoạt động".
+3. A vào `/admin/co-so` → chọn "KATINAT" (đang chờ xác minh trong seed) → phiếu xác minh: bỏ trống "đúng địa chỉ" → ✔ lỗi; tick đủ → ✔ cơ sở "Đang hoạt động".
 4. Q vào `/quan/dang-ca`:
    - lương 20.000 → ✔ *"Lương/giờ phải từ 25500 đ trở lên."* và các ô đã nhập (ngày, giờ, loại việc, tick cam kết) **vẫn còn nguyên**, chỉ cần sửa lương
    - không tick cam kết → ✔ không gửi được
@@ -124,7 +125,7 @@ Dữ liệu seed dùng trong kịch bản: "Quán Demo 1–4" đã xác minh, "Q
 
 ### B6. Xác nhận sau ca
 
-Dùng ca seed "vừa hết giờ" (Quán Demo 3, dọn phòng) — link: `/xac-nhan/demo-token-con-han`.
+Dùng ca seed "vừa hết giờ" (OASIS SEA Coffee & Tea, dọn dẹp) — link: `/xac-nhan/demo-token-con-han`.
 
 1. Mở link **trong Zalo trên điện thoại** (gửi link cho chính mình qua Zalo rồi bấm; chủ quán thật sẽ mở như vậy), hoặc ở trình duyệt ẩn danh → ✔ thấy tên quán, giờ, tên người làm; không cần đăng nhập. Nút "Gửi xác nhận" không hỏi lại bằng hộp thoại (trình duyệt nhúng của Zalo có thể chặn hộp thoại).
 2. Chọn "Đã làm" → "Đúng giờ" → **chưa chấm sao** → Gửi → ✔ lỗi *"Vui lòng chọn Đúng giờ / Trễ và số sao."* hiện trong tầm nhìn, các lựa chọn đã chọn vẫn giữ. Chấm 5 sao → nhận xét → Gửi → ✔ *"Ca này đã được xác nhận. Cảm ơn anh/chị!"*.
@@ -163,12 +164,12 @@ Dùng ca seed "vừa hết giờ" (Quán Demo 3, dọn phòng) — link: `/xac-n
 Cần `0002_toa_do_co_so.sql` đã áp và `seed.sql` đã chạy lại (seed ghi tọa độ). Bản đồ tải nền từ `tiles.openfreemap.org`: máy test cần có mạng.
 
 1. Trang chủ `/` (chưa đăng nhập): dưới băng đầu có bản đồ minh họa, chú thích "Bản đồ minh họa, dữ liệu mẫu" hiện rõ, ✔ 4 ghim (Quán Demo 1–4, các quán đã xác minh), không chồng lên nhau ở 360–414px. Cuộn tới bản đồ mới tải (không chặn phần đầu trang).
-2. N vào `/ca`: ✔ bản đồ chỉ hiện ghim cho ca còn chỗ ở Quán Demo 1–4 (Quán Demo 5 chưa xác minh nên không có ca); chạm một ghim → ✔ thẻ ca tương ứng được chọn và cuộn tới; chạm một thẻ ca → ✔ ghim tương ứng nổi lên. Lọc khu vực/loại việc → ✔ bản đồ và danh sách cùng đổi. Ca không có tọa độ (nếu có) vẫn hiện trong danh sách.
+2. N vào `/ca`: ✔ bản đồ chỉ hiện ghim cho ca còn chỗ ở quán số 1–4 (SOHO Coffee, Phê La, OASIS SEA, An Coffee Bean; KATINAT chưa xác minh nên không có ca); chạm một ghim → ✔ thẻ ca tương ứng được chọn và cuộn tới; chạm một thẻ ca → ✔ ghim tương ứng nổi lên. Lọc khu vực/loại việc → ✔ bản đồ và danh sách cùng đổi. Ca không có tọa độ (nếu có) vẫn hiện trong danh sách.
 3. Tự làm mới: Q đăng thêm một ca (hoặc N nhận ca) ở tab khác, N để `/ca` mở ≥ 30 giây ✔ danh sách và ghim tự cập nhật, không nhảy mất vị trí cuộn.
 4. N mở một ca ở `/ca/[id]`: ✔ bản đồ nhỏ một ghim; "Chỉ đường" mở Google Maps tới đúng tọa độ ghim; không có số điện thoại ở bản đồ hay popup.
-5. Q vào `/quan`: dòng "Vị trí quán: đã ghim" (bấm vào để sửa) ✔ nằm ở cuối trang, sau các nhóm ca, và thu gọn (bản đồ chưa tải). Bấm vào dòng đó → ✔ bản đồ dựng đúng khung, hiện ghim Quán Demo 1; đóng rồi mở lại vẫn đúng khung. (Quán chưa có ghim: ✔ dòng "Chưa ghim vị trí quán" nền vàng nằm sau nhóm "Cần anh/chị xác nhận", trước các nhóm ca khác, cũng thu gọn.) Chạm chỗ khác trên bản đồ (hoặc kéo ghim) → Lưu vị trí → ✔ "Đã lưu vị trí quán."; N mở `/ca/[id]` ca của Quán Demo 1 → ghim đã đổi. Thử "Dùng vị trí hiện tại" (cho phép định vị) khi đang ở ngoài Vũng Tàu → ✔ báo lỗi tiếng Việt, không lưu. **Cuối bài test, đặt lại tọa độ seed** của Quán Demo 1 (10.3441, 107.0749) hoặc chạy lại `seed.sql`.
+5. Q vào `/quan`: dòng "Vị trí quán: đã ghim" (bấm vào để sửa) ✔ nằm ở cuối trang, sau các nhóm ca, và thu gọn (bản đồ chưa tải). Bấm vào dòng đó → ✔ bản đồ dựng đúng khung, hiện ghim SOHO Coffee; đóng rồi mở lại vẫn đúng khung. (Quán chưa có ghim: ✔ dòng "Chưa ghim vị trí quán" nền vàng nằm sau nhóm "Cần anh/chị xác nhận", trước các nhóm ca khác, cũng thu gọn.) Chạm chỗ khác trên bản đồ (hoặc kéo ghim) → Lưu vị trí → ✔ "Đã lưu vị trí quán."; N mở `/ca/[id]` ca của Quán Demo 1 → ghim đã đổi. Thử "Dùng vị trí hiện tại" (cho phép định vị) khi đang ở ngoài Vũng Tàu → ✔ báo lỗi tiếng Việt, không lưu. **Cuối bài test, đặt lại tọa độ seed** của Quán Demo 1 (10.3441, 107.0749) hoặc chạy lại `seed.sql`.
 6. A vào `/admin`: ✔ bản đồ ca trong 24 giờ tới, chạm ghim mở `/quan/ca/<id>`; trang tự làm mới mỗi 30 giây. A vào `/admin/co-so`: ✔ bản đồ mọi cơ sở (đã xác minh / chờ xác minh / đã gỡ khác màu), mở "Vị trí trên bản đồ" của một cơ sở để đặt ghim. **Đừng thử đặt ghim bằng tài khoản nhóm vận hành**: thao tác này ghi nhật ký (`Đặt vị trí cơ sở`) vào `/admin/nhat-ky`; nếu lỡ làm thì chạy lại `seed.sql` để trả tọa độ.
-7. Bàn phím và đọc màn hình: ghim chọn được bằng Tab, mỗi ghim có tên đọc được ("Quán Demo 1, ..."). Bề rộng 360px: bản đồ không gây cuộn ngang, kéo bản đồ không làm cuộn cả trang bị kẹt (có thể lướt qua bản đồ bằng một ngón).
+7. Bàn phím và đọc màn hình: ghim chọn được bằng Tab, mỗi ghim có tên đọc được ("SOHO Coffee, ..."). Bề rộng 360px: bản đồ không gây cuộn ngang, kéo bản đồ không làm cuộn cả trang bị kẹt (có thể lướt qua bản đồ bằng một ngón).
 8. Mất mạng hoặc chặn `tiles.openfreemap.org` → ✔ danh sách ca vẫn dùng được, bản đồ báo không tải được bằng chữ.
 
 ### B10. Kiểm tra giao diện

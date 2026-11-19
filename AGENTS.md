@@ -498,7 +498,7 @@ grant execute on function public.ten_ham(...) to authenticated;
   - không xóa hay đổi nghĩa dữ liệu hiện có nếu task không yêu cầu;
   - cột `not null` mới phải có `default` hoặc bước backfill rõ ràng;
   - không `drop` bảng hoặc cột đang chứa dữ liệu.
-- `supabase/seed.sql` là dữ liệu demo duy nhất của app: 16 user (email `@demo.safeshift.test`, id cố định) có mật khẩu chung công khai `safeshift-demo`, đặt bằng `extensions.crypt`. Seed tự xóa và tạo lại 16 user đó, chạy lại được nhiều lần; chạy lại trong SQL Editor là cách khôi phục dữ liệu mẫu. Không nạp seed vào project đang có người dùng thật.
+- `supabase/seed.sql` là dữ liệu demo duy nhất của app: 20 user (email `@demo.safeshift.test`, id cố định: 1 admin, 9 chủ quán, 10 người làm) có mật khẩu chung công khai `safeshift-demo`, đặt bằng `extensions.crypt`. Seed tự xóa và tạo lại 20 user đó, chạy lại được nhiều lần; chạy lại trong SQL Editor là cách khôi phục dữ liệu mẫu. Không nạp seed vào project đang có người dùng thật.
 - `supabase/xoa_du_lieu_demo.sql` dọn dữ liệu demo, dán nguyên file vào SQL Editor, không hoàn tác được. Vì app chỉ dùng dữ liệu demo, **không chạy** file này trên project đang chạy bản mô phỏng: xóa user demo thì ba nút đăng nhập hỏng. Chỉ chạy khi chủ dự án xác nhận rõ, và sau đó phải chạy lại seed.
 - Không xóa user demo bằng `delete from auth.users where email like ...` hay chọn nhiều user trong Dashboard rồi xóa một lượt. Một báo cáo trỏ tới nhiều đối tượng cùng bị xóa gây lỗi khóa ngoại `23503`. File dọn demo xóa theo đúng thứ tự để tránh việc này.
 - Khi thêm bảng hoặc cột tham chiếu `auth.users`, `shifts` hay `facilities`: chọn `on delete cascade` hoặc `set null` có chủ ý, rồi cập nhật `xoa_du_lieu_demo.sql`, test 11a/11b (xóa tài khoản) và phần dọn demo trong `db-test/run.mjs`.
@@ -559,8 +559,9 @@ Repo `tangkhatnk/covershift` là **PUBLIC**. Mọi thứ đã commit, kể cả 
 - Không dán key hay token vào issue, PR, commit message, ảnh chụp màn hình hay log. Lỡ commit thì báo chủ dự án để xoay (rotate) key, đừng chỉ xóa trong commit sau.
 - Không đưa email, SĐT, họ tên thật của người dùng, quán hay phụ huynh vào test, fixture, seed, ảnh chụp, issue, PR, log hay tài liệu. Dùng dữ liệu giả:
   - email đuôi `@demo.safeshift.test`, ví dụ `nguoilam1@demo.safeshift.test`;
-  - SĐT giả như dạng `0900000101` trong `seed.sql`;
-  - tên như "Quán Demo 1".
+  - SĐT giả như dạng `0900000201` trong `seed.sql`;
+  - tên chủ quán, người làm, phụ huynh là tên giả.
+- **Ngoại lệ có chủ đích (theo chỉ thị chủ dự án 19/11/2026):** `seed.sql` dùng 9 quán thật ở Vũng Tàu (SOHO Coffee, Phê La Vũng Tàu, OASIS SEA Coffee & Tea, An Coffee Bean, KATINAT, Quán Ốc Thiên Nhiên 2, Bọt, Phuc Long Coffee & Tea, Texas Chicken). Chủ dự án đã duyệt dùng **tên, địa chỉ và hotline công khai** của quán. Hotline nằm ở `private_contacts.phone` của chủ quán demo tương ứng (6 quán; Phê La, Phuc Long và Texas Chicken có hotline 8 hoặc 11 chữ số, không qua được ràng buộc `^0[0-9]{9}$` nên dùng số giả). Ngoại lệ chỉ rộng đúng thế: không thêm quán thật khác, không thêm SĐT, tên hay thông tin cá nhân thật nào khác (chủ quán, người làm, phụ huynh vẫn là tên và số giả). Hotline này hiện cho người làm qua `get_shift_contacts()`, nên giao diện phải nhắc đây là dữ liệu mô phỏng và không gọi số đó để hỏi về ca.
 - Trong tài liệu và ví dụ, dùng chỗ giữ chỗ cho project Supabase và domain Vercel (`https://xxxxxxxx.supabase.co`, `<ten-du-an>.vercel.app`), như `.env.example` và `README.md` đang làm.
 - Không bịa tên pháp nhân, địa chỉ, email hay số điện thoại liên hệ trong mã, trang pháp lý hay tài liệu.
 - Link có token (`/xac-nhan/[token]`, `/dong-y/[token]`) là bí mật dùng một lần: không ghi vào log, không gửi tới dịch vụ ngoài. Middleware bỏ qua hai đường dẫn này; không thêm logic phụ thuộc phiên cho chúng.
@@ -573,7 +574,7 @@ Repo `tangkhatnk/covershift` là **PUBLIC**. Mọi thứ đã commit, kể cả 
 - App là bản mô phỏng (quyết định 17/11/2026). Chỉ có một cách đăng nhập: `/dang-nhap` có ba nút một chạm (người làm `nguoilam1@`, chủ quán `quan1@`, nhóm vận hành `admin@`, đều `@demo.safeshift.test`). Mỗi nút gọi server action `demoLogin` trong `src/app/actions.ts`, action này gọi `signInWithPassword` với mật khẩu chung công khai `safeshift-demo` (đặt trong `supabase/seed.sql`).
 - `demoLogin` chỉ nhận vai trò (`worker`, `employer`, `admin`) rồi tự map sang email demo; không nhận email hay mật khẩu từ client. Đây là ngoại lệ duy nhất của quy tắc "một action gọi một RPC" (mục 11 và 18), vì nó gọi Supabase Auth, không gọi RPC.
 - Đã bỏ Google OAuth và magic link. Không thêm lại, và không thêm đăng ký bằng mật khẩu cho người ngoài, SMS, OTP điện thoại hay nhà cung cấp đăng nhập khác. Không thêm email demo mới vào `demoLogin` mà không sửa seed và test.
-- Mật khẩu demo công khai có chủ đích (repo public), nên tuyệt đối không đưa dữ liệu thật vào project này: ai cũng đăng nhập được ba tài khoản demo, kể cả tài khoản `admin@`. Test 10m kiểm 16 user demo của seed đều có mật khẩu và user `@demo` khác (tài khoản test) không có.
+- Mật khẩu demo công khai có chủ đích (repo public), nên tuyệt đối không đưa dữ liệu thật vào project này: ai cũng đăng nhập được ba tài khoản demo, kể cả tài khoản `admin@`. Test 10m kiểm 20 user demo của seed đều có mật khẩu và user `@demo` khác (tài khoản test) không có.
 - Trong Supabase giữ **Confirm email BẬT**. Nếu tắt, ai có anon key (công khai) cũng tạo được tài khoản email và mật khẩu qua API.
 - `/auth/callback` còn lại chỉ để tương thích (không nút nào dẫn tới), chỉ chuyển về `<origin>/` hoặc `/dang-nhap?loi=1`. Không thêm tham số `next` hay redirect tùy ý (tránh open redirect).
 - Không đổi CORS, header bảo mật, hay phạm vi quyền công khai như việc phụ trong một task khác. Đây là thay đổi bảo mật, cần task riêng và chủ dự án duyệt.
@@ -802,14 +803,14 @@ npm run test:db
 Kỳ vọng (theo `CLAUDE.md`, hiện tại):
 
 ```text
-229/229 test đạt
+230/230 test đạt
 privileges_check: ... 0 dòng SAI/KIỂM
 tái chạy ... ĐẠT
 5 dòng ✔ chạy đua
 dọn dữ liệu demo ... ĐẠT
 ```
 
-Thêm test thì số `229` tăng theo; cập nhật con số trong `CLAUDE.md` và `TESTING.md` cùng PR.
+Thêm test thì số `230` tăng theo; cập nhật con số trong `CLAUDE.md` và `TESTING.md` cùng PR.
 
 ### Thay đổi trong `src/` hoặc `middleware.ts`
 

@@ -256,7 +256,7 @@ select pg_temp.t_true('7d. RLS: chủ quán không đọc được worker_profil
 select pg_temp.t_err('7e. anon không đọc được private_contacts', null,
   $$select count(*) from private_contacts$$, '%permission denied%', 'anon');
 select pg_temp.t_true('7f. Người chính đã ghép thấy số của quán', 'a0000000-0000-4000-a000-000000000002',
-  $$select j -> 'facility' ->> 'phone' = '0900000104' and (j -> 'workers') = 'null'::jsonb from get_shift_contacts('50000000-0000-4000-a000-000000000004') j$$, 'authenticated');
+  $$select j -> 'facility' ->> 'phone' = '0785337339' and (j -> 'workers') = 'null'::jsonb from get_shift_contacts('50000000-0000-4000-a000-000000000004') j$$, 'authenticated');
 select pg_temp.t_true('7g. Chủ quán thấy số của người chính + dự phòng trên ca của mình', 'e0000000-0000-4000-a000-000000000004',
   $$select jsonb_array_length(j -> 'workers') = 2 and (j -> 'facility') = 'null'::jsonb from get_shift_contacts('50000000-0000-4000-a000-000000000004') j$$, 'authenticated');
 select pg_temp.t_true('7h. Feed ca và chi tiết ca không chứa số điện thoại', 'a0000000-0000-4000-a000-000000000005',
@@ -351,8 +351,8 @@ select pg_temp.t_true('10k. KPI trả đủ 12 chỉ số', '00000000-0000-4000-
   $$select (select count(*) from jsonb_object_keys(admin_kpis())) = 12$$);
 select pg_temp.t_true('10l. Bảng điều phối 24 giờ tới chạy được', '00000000-0000-4000-a000-000000000001',
   $$select jsonb_typeof(admin_dispatch_board() -> 'upcoming') = 'array'$$);
-select pg_temp.t_true('10m. 16 user demo của seed đều có mật khẩu demo; user @demo khác (tài khoản test) không có', null,
-  $$select count(*) filter (where email ~ '^(admin|quan[1-5]|nguoilam([1-9]|10))@demo\.safeshift\.test$') = 16
+select pg_temp.t_true('10m. 20 user demo của seed đều có mật khẩu demo; user @demo khác (tài khoản test) không có', null,
+  $$select count(*) filter (where email ~ '^(admin|quan[1-9]|nguoilam([1-9]|10))@demo\.safeshift\.test$') = 20
        and count(*) filter (where email ~ '^(admin|quan[0-9]+|nguoilam[0-9]+)@demo\.safeshift\.test$'
                               and (email_confirmed_at is null or confirmation_token is null or recovery_token is null
                                    or email_change is null or email_change_token_new is null
@@ -363,6 +363,13 @@ select pg_temp.t_true('10m. 16 user demo của seed đều có mật khẩu demo
        and count(*) filter (where email !~ '^(admin|quan[0-9]+|nguoilam[0-9]+)@demo\.safeshift\.test$'
                               and coalesce(encrypted_password, '') <> '') = 0
     from auth.users where email like '%@demo.safeshift.test'$$);
+-- 10n. Tên 9 quán thật của seed (seed chạy ở chế độ bỏ qua trigger) đều qua _facilities_guard khi không bypass (không dính bar, pub, club, karaoke, massage...).
+select pg_temp.t_do('10n. Ghi lại tên 9 cơ sở của seed ngoài chế độ seed: trigger _facilities_guard không chặn tên nào', null,
+  $$update facilities set name = name where id::text like 'f0000000-0000-4000-a000-0000000000__'$$,
+  $$select count(*) = 9 and count(distinct owner_id) = 9 and bool_and(address <> '')
+       and (select count(*) = 9 from private_contacts pc join profiles p on p.id = pc.user_id
+             where p.role = 'employer' and pc.user_id in (select owner_id from facilities where id::text like 'f0000000-0000-4000-a000-0000000000__'))
+    from facilities where id::text like 'f0000000-0000-4000-a000-0000000000__'$$);
 
 -- ---------------------------------------------------------------
 -- 11. Xóa tài khoản và toàn bộ dữ liệu
@@ -429,7 +436,7 @@ select pg_temp.t_do('12j. Admin đặt vị trí cơ sở bất kỳ, có dòng 
   $$select set_facility_location('f0000000-0000-4000-a000-000000000002', 10.34, 107.09)$$,
   $$select (select lat = 10.34 and lng = 107.09 from facilities where id = 'f0000000-0000-4000-a000-000000000002')
        and exists (select 1 from admin_audit_log where action = 'set_facility_location' and target_id = 'f0000000-0000-4000-a000-000000000002')$$);
-select pg_temp.t_do('12k. (chuẩn bị) Admin gỡ Quán Demo 5', '00000000-0000-4000-a000-000000000001',
+select pg_temp.t_do('12k. (chuẩn bị) Admin gỡ cơ sở số 5 (KATINAT)', '00000000-0000-4000-a000-000000000001',
   $$select admin_set_facility_status('f0000000-0000-4000-a000-000000000005', 'removed', 'test 12')$$,
   $$select status = 'removed' from facilities where id = 'f0000000-0000-4000-a000-000000000005'$$);
 select pg_temp.t_err('12l. Cơ sở đã gỡ: chủ quán không sửa được vị trí', 'e0000000-0000-4000-a000-000000000005',
@@ -445,7 +452,7 @@ select pg_temp.t_err('12p. Constraint ở bảng chặn lệch cặp (có lat, l
 select pg_temp.t_true('12q. feed_shifts có lat/lng ở mọi ca, vẫn không có số điện thoại', 'a0000000-0000-4000-a000-000000000005',
   $$select count(*) > 0 and bool_and(e ? 'lat' and e ? 'lng') and feed_shifts()::text not like '%0900000%'
     from jsonb_array_elements(feed_shifts()) e$$);
-select pg_temp.t_true('12r. admin_list_facilities trả lat/lng của Quán Demo 1', '00000000-0000-4000-a000-000000000001',
+select pg_temp.t_true('12r. admin_list_facilities trả lat/lng của cơ sở số 1 (SOHO Coffee)', '00000000-0000-4000-a000-000000000001',
   $$select (e ->> 'lat')::float8 = 10.3441 and (e ->> 'lng')::float8 = 107.0749
     from jsonb_array_elements(admin_list_facilities()) e where e ->> 'id' = 'f0000000-0000-4000-a000-000000000001'$$);
 
@@ -546,7 +553,7 @@ select pg_temp.t_do('13ai. Admin đặt lại lương tháng tối thiểu 5.310
   $$select (select value from app_config where key = 'min_monthly_wage') = '5310000'::jsonb$$ );
 select pg_temp.t_err('13aj. Khóa cấu hình lạ vẫn bị từ chối', '00000000-0000-4000-a000-000000000001',
   $$select admin_set_config('khong_co_khoa_nay', 1)$$, '%Tham số không hợp lệ%');
-select pg_temp.t_true('13ak. Quán Demo 4 bị gỡ ở 10j: tin của quán tự đóng; tin quán khác vẫn mở', null,
+select pg_temp.t_true('13ak. Cơ sở số 4 (An Coffee Bean) bị gỡ ở 10j: tin của quán tự đóng; tin quán khác vẫn mở', null,
   $$select (select status = 'closed' and closed_at is not null from job_posts where id = 'c0000000-0000-4000-a000-000000000004') and (select status = 'open' from job_posts where id = 'c0000000-0000-4000-a000-000000000001')$$ );
 select pg_temp.t_err('13al. Người làm chưa được duyệt không nộp đơn được', 'a0000000-0000-4000-a000-000000000010',
   $$select apply_job('c0000000-0000-4000-a000-000000000001', null)$$, '%chưa được duyệt%');
@@ -592,7 +599,7 @@ select pg_temp.t_err('13be. anon không gọi được get_job_contacts', null,
 select pg_temp.t_true('13bf. Đơn shortlisted: chủ quán thấy SĐT người làm, không có phần của quán', 'e0000000-0000-4000-a000-000000000001',
   $$select j -> 'worker' ->> 'phone' = '0900000202' and j -> 'facility' = 'null'::jsonb from get_job_contacts('d0000000-0000-4000-a000-000000000002') j$$, 'authenticated');
 select pg_temp.t_true('13bg. Đơn shortlisted: người nộp thấy SĐT quán, không có phần của người làm', 'a0000000-0000-4000-a000-000000000002',
-  $$select j -> 'facility' ->> 'phone' = '0900000101' and j -> 'worker' = 'null'::jsonb from get_job_contacts('d0000000-0000-4000-a000-000000000002') j$$, 'authenticated');
+  $$select j -> 'facility' ->> 'phone' = '0982931487' and j -> 'worker' = 'null'::jsonb from get_job_contacts('d0000000-0000-4000-a000-000000000002') j$$, 'authenticated');
 select pg_temp.t_true('13bh. Đơn hired: chủ quán thấy SĐT người làm', 'e0000000-0000-4000-a000-000000000002',
   $$select j -> 'worker' ->> 'phone' = '0900000205' from get_job_contacts('d0000000-0000-4000-a000-000000000003') j$$ );
 select pg_temp.t_true('13bi. Đơn hired: người làm thấy SĐT quán', 'a0000000-0000-4000-a000-000000000005',
@@ -734,11 +741,11 @@ select pg_temp.t_err('13dq. Đóng tin đã đóng qua admin: báo không tìm t
 select pg_temp.t_do('13dr. Người làm có đơn ứng tuyển tự xóa tài khoản: đơn xóa theo, tin và đơn của người khác còn', 'b0000000-0000-4000-a000-000000000016',
   $$select delete_my_account()$$,
   $$select not exists (select 1 from auth.users where id = 'b0000000-0000-4000-a000-000000000016') and not exists (select 1 from job_applications where worker_id = 'b0000000-0000-4000-a000-000000000016') and exists (select 1 from job_posts where id = 'c0000000-0000-4000-a000-000000000001') and exists (select 1 from job_applications where id = 'd0000000-0000-4000-a000-000000000001')$$ );
-select pg_temp.t_do('13ds. Tắt verified của Quán Demo 2 bằng ghi thẳng bảng: tin đang mở của quán tự đóng', null,
+select pg_temp.t_do('13ds. Tắt verified của cơ sở số 2 (Phê La Vũng Tàu) bằng ghi thẳng bảng: tin đang mở của quán tự đóng', null,
   $$update facilities set verified = false where id = 'f0000000-0000-4000-a000-000000000002'$$,
   $$select (select status = 'closed' from job_posts where id = 'c0000000-0000-4000-a000-000000000002') and (select status = 'open' from job_posts where id = 'c0000000-0000-4000-a000-000000000001')$$ );
 update facilities set verified = true where id = 'f0000000-0000-4000-a000-000000000002';
-select pg_temp.t_true('13dt. Đã khôi phục Quán Demo 2; tin đã đóng không tự mở lại', null,
+select pg_temp.t_true('13dt. Đã khôi phục cơ sở số 2; tin đã đóng không tự mở lại', null,
   $$select (select verified from facilities where id = 'f0000000-0000-4000-a000-000000000002') and (select status = 'closed' from job_posts where id = 'c0000000-0000-4000-a000-000000000002')$$ );
 
 select pg_temp.as_user(null, null);
