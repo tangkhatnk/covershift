@@ -2,12 +2,12 @@
 version: 1
 slug: "src-app-layout-tsx"
 primary_target: "src/app/layout.tsx"
-related_targets: ["src/app/page.tsx","src/app/ca/page.tsx"]
+related_targets: ["src/app/page.tsx","src/app/shifts/page.tsx"]
 ---
 
 # Surface brief: app shell (layout), home, shift feed
 
-Scope: src/app/layout.tsx (AppShell, fonts, footer), related src/app/page.tsx (home, signed out) and src/app/ca/page.tsx (shift feed). Mode: Operate for the shell and feed, Persuade for the home hero.
+Scope: src/app/layout.tsx (AppShell, fonts, footer), related src/app/page.tsx (home, signed out) and src/app/shifts/page.tsx (shift feed). Mode: Operate for the shell and feed, Persuade for the home hero.
 
 Audience and job: Vũng Tàu cafe/restaurant/homestay owners (many older, phone, often opened from Zalo) post shifts; students (15+) find and claim shifts; the operations team dispatches. Demo on 26/11/2026 is shown to a jury on a laptop or projector, so desktop must be good, not merely unbroken. Constraints: base font 18px, touch targets >= 3rem, WCAG AA, light only, no gradient/glass/shadow, spacing in multiples of 0.5rem, demo data only and labelled as such.
 

@@ -76,7 +76,7 @@ Dùng ranh giới sở hữu sẵn có trước khi tạo ranh giới mới. Đ�
 ### Ứng dụng web (Next.js App Router)
 
 - `src/app/`
-  - các route và trang (`admin/`, `quan/`, `ca/`, `dang-ky/`, `dang-nhap/`, `auth/`...);
+  - các route và trang (`admin/`, `employer/`, `shifts/`, `register/`, `login/`, `auth/`...);
   - `globals.css` (biến `--chrome-top`/`--chrome-bottom`, vòng focus, `@media print`), `layout.tsx` (font `next/font`, `AppShell`), `error.tsx`, `not-found.tsx`.
 - `src/app/actions.ts`
   - mọi server action; một action tương ứng một RPC, ngoại lệ duy nhất là `demoLogin` (mục 15).
@@ -357,7 +357,7 @@ Không cần đọc cả repo cho việc nhỏ. Không đoán khi repo đã có 
 
 ## 10. Bất biến nghiệp vụ
 
-Các quy tắc dưới đây đang được chặn ở database (`supabase/migrations/0001_init.sql`) và có test trong `supabase/tests/edge_cases.sql` (nhãn như `1a`, `4f`). Không đổi con số, ranh giới hay phạm vi áp dụng nếu không có task được duyệt. Một thay đổi như vậy phải đi cùng: migration mới, test mới, và cập nhật `src/lib/constants.ts`, `/dieu-khoan`, `/chinh-sach-du-lieu` khi câu chữ ở đó nhắc tới quy tắc.
+Các quy tắc dưới đây đang được chặn ở database (`supabase/migrations/0001_init.sql`) và có test trong `supabase/tests/edge_cases.sql` (nhãn như `1a`, `4f`). Không đổi con số, ranh giới hay phạm vi áp dụng nếu không có task được duyệt. Một thay đổi như vậy phải đi cùng: migration mới, test mới, và cập nhật `src/lib/constants.ts`, `/terms`, `/privacy` khi câu chữ ở đó nhắc tới quy tắc.
 
 Mọi quy tắc tính theo múi giờ nghiệp vụ `Asia/Ho_Chi_Minh`, không theo UTC của server:
 
@@ -529,7 +529,7 @@ Phụ huynh:
 Dữ liệu tối thiểu:
 
 - Không thu CCCD, ảnh chân dung, địa chỉ nhà. Không thêm trường, upload hay Storage cho các loại này.
-- Dữ liệu hiện có: họ tên, SĐT, ngày sinh, trường, lớp, khu vực, khung giờ rảnh (người làm); họ tên, SĐT, tên và địa chỉ cơ sở kinh doanh (chủ quán). Thêm loại dữ liệu cá nhân mới là thay đổi cần duyệt và cần cập nhật `/chinh-sach-du-lieu`.
+- Dữ liệu hiện có: họ tên, SĐT, ngày sinh, trường, lớp, khu vực, khung giờ rảnh (người làm); họ tên, SĐT, tên và địa chỉ cơ sở kinh doanh (chủ quán). Thêm loại dữ liệu cá nhân mới là thay đổi cần duyệt và cần cập nhật `/privacy`.
 - Chủ quán không đọc được `worker_profiles` (ngày sinh, trường, lớp). Test 7d.
 
 Trang quán công khai và ca chia sẻ (migration 0004, `anon` gọi được; chủ dự án duyệt ngày 19/11/2026):
@@ -542,12 +542,12 @@ Trang quán công khai và ca chia sẻ (migration 0004, `anon` gọi được; 
 
 Thông báo trong app (`notifications`, migration 0004): sinh bằng trigger khi người dự phòng lên chính (`shift_promoted`), ca bị hủy lúc đang giữ suất (`shift_cancelled`), đơn mới vào tin (`application_new`, báo chủ quán), chủ quán chọn/loại/nhận đơn (`application_status`), hồ sơ được duyệt hoặc từ chối (`profile_reviewed`), phụ huynh gửi phiếu (`parental_consent_submitted`). `payload` chỉ có `shift_id`, `job_id`, `application_id`, `job_type`, `facility_name`, `status`: không SĐT, token, ngày sinh, tên phụ huynh, ghi chú của nhóm vận hành (test 14dd). Seed (chế độ `_bypass`) không sinh thông báo tự động. Đọc qua `my_notifications()`, đánh dấu đã đọc qua `mark_notifications_read()`; người dùng chỉ đọc thông báo của mình, không có đường ghi cho client. Test 14cq–14dx.
 
-Hồ sơ công khai (`get_public_profile`, trang `/h/[slug]`):
+Hồ sơ công khai (`get_public_profile`, trang `/p/[slug]`):
 
 - Chỉ có: họ tên, số ca đã xác nhận, tổng giờ, điểm trung bình, tỉ lệ đúng giờ, loại việc, và nhận xét (ngày, tên cơ sở, loại việc, số sao, đúng giờ, lời nhận xét chưa bị admin ẩn).
 - Không bao giờ có SĐT, ngày sinh, trường, lớp. Test 7i.
 - Mặc định tắt chia sẻ (`share_enabled = false`); người ngoài không xem được khi tắt. Test 7j.
-- Trang `/h`, `/xac-nhan`, `/dong-y` giữ `noindex` và `Referrer-Policy: no-referrer` trong `next.config.mjs`.
+- Trang `/p`, `/confirm`, `/consent` giữ `noindex` và `Referrer-Policy: no-referrer` trong `next.config.mjs`.
 - Không mở rộng những gì được công khai (thêm trường, thêm thống kê, bỏ công tắc chia sẻ) khi chưa được duyệt.
 
 Xóa tài khoản và log:
@@ -576,19 +576,19 @@ Repo `tangkhatnk/covershift` là **PUBLIC**. Mọi thứ đã commit, kể cả 
 - **Ngoại lệ có chủ đích (theo chỉ thị chủ dự án 19/11/2026):** `seed.sql` dùng 9 quán thật ở Vũng Tàu (SOHO Coffee, Phê La Vũng Tàu, OASIS SEA Coffee & Tea, An Coffee Bean, KATINAT, Quán Ốc Thiên Nhiên 2, Bọt, Phuc Long Coffee & Tea, Texas Chicken). Chủ dự án đã duyệt dùng **tên, địa chỉ và hotline công khai** của quán. Hotline nằm ở `private_contacts.phone` của chủ quán demo tương ứng (cả 9 quán; Phê La có hotline 8 chữ số, Phuc Long và Texas Chicken 11 chữ số, chỉ qua được ràng buộc SĐT đã nới ở migration 0004, nên seed cần `0004` đã áp trước khi chạy). Ngoại lệ chỉ rộng đúng thế: không thêm quán thật khác, không thêm SĐT, tên hay thông tin cá nhân thật nào khác (chủ quán, người làm, phụ huynh vẫn là tên và số giả). Hotline này hiện cho người làm qua `get_shift_contacts()`, nên giao diện phải nhắc đây là dữ liệu mô phỏng và không gọi số đó để hỏi về ca.
 - Trong tài liệu và ví dụ, dùng chỗ giữ chỗ cho project Supabase và domain Vercel (`https://xxxxxxxx.supabase.co`, `<ten-du-an>.vercel.app`), như `.env.example` và `README.md` đang làm.
 - Không bịa tên pháp nhân, địa chỉ, email hay số điện thoại liên hệ trong mã, trang pháp lý hay tài liệu.
-- Link có token (`/xac-nhan/[token]`, `/dong-y/[token]`) là bí mật dùng một lần: không ghi vào log, không gửi tới dịch vụ ngoài. Middleware bỏ qua hai đường dẫn này; không thêm logic phụ thuộc phiên cho chúng.
+- Link có token (`/confirm/[token]`, `/consent/[token]`) là bí mật dùng một lần: không ghi vào log, không gửi tới dịch vụ ngoài. Middleware bỏ qua hai đường dẫn này; không thêm logic phụ thuộc phiên cho chúng.
 - `NEXT_PUBLIC_SITE_URL` dùng để dựng link gửi phụ huynh và chủ quán, không phải bí mật nhưng sai là link hỏng. Đổi giá trị thì kiểm lại các link đó.
 
 ---
 
 ## 15. Xác thực và vai trò
 
-- App là bản mô phỏng (quyết định 17/11/2026). Chỉ có một cách đăng nhập: `/dang-nhap` có ba nút một chạm (người làm `nguoilam1@`, chủ quán `quan1@`, nhóm vận hành `admin@`, đều `@demo.safeshift.test`). Mỗi nút gọi server action `demoLogin` trong `src/app/actions.ts`, action này gọi `signInWithPassword` với mật khẩu chung công khai `safeshift-demo` (đặt trong `supabase/seed.sql`).
+- App là bản mô phỏng (quyết định 17/11/2026). Chỉ có một cách đăng nhập: `/login` có ba nút một chạm (người làm `nguoilam1@`, chủ quán `quan1@`, nhóm vận hành `admin@`, đều `@demo.safeshift.test`). Mỗi nút gọi server action `demoLogin` trong `src/app/actions.ts`, action này gọi `signInWithPassword` với mật khẩu chung công khai `safeshift-demo` (đặt trong `supabase/seed.sql`).
 - `demoLogin` chỉ nhận vai trò (`worker`, `employer`, `admin`) rồi tự map sang email demo; không nhận email hay mật khẩu từ client. Đây là ngoại lệ duy nhất của quy tắc "một action gọi một RPC" (mục 11 và 18), vì nó gọi Supabase Auth, không gọi RPC.
 - Đã bỏ Google OAuth và magic link. Không thêm lại, và không thêm đăng ký bằng mật khẩu cho người ngoài, SMS, OTP điện thoại hay nhà cung cấp đăng nhập khác. Không thêm email demo mới vào `demoLogin` mà không sửa seed và test.
 - Mật khẩu demo công khai có chủ đích (repo public), nên tuyệt đối không đưa dữ liệu thật vào project này: ai cũng đăng nhập được ba tài khoản demo, kể cả tài khoản `admin@`. Test 10m kiểm 20 user demo của seed đều có mật khẩu và user `@demo` khác (tài khoản test) không có.
 - Trong Supabase giữ **Confirm email BẬT**. Nếu tắt, ai có anon key (công khai) cũng tạo được tài khoản email và mật khẩu qua API.
-- `/auth/callback` còn lại chỉ để tương thích (không nút nào dẫn tới), chỉ chuyển về `<origin>/` hoặc `/dang-nhap?loi=1`. Không thêm tham số `next` hay redirect tùy ý (tránh open redirect).
+- `/auth/callback` còn lại chỉ để tương thích (không nút nào dẫn tới), chỉ chuyển về `<origin>/` hoặc `/login?loi=1`. Không thêm tham số `next` hay redirect tùy ý (tránh open redirect).
 - Không đổi CORS, header bảo mật, hay phạm vi quyền công khai như việc phụ trong một task khác. Đây là thay đổi bảo mật, cần task riêng và chủ dự án duyệt.
 - Có đúng ba vai trò: `worker`, `employer`, `admin`.
   - `register_worker()` và `register_employer()` chỉ tạo `worker`/`employer`. Client không ghi được `profiles.role`. Test 10a.
@@ -603,8 +603,8 @@ Repo `tangkhatnk/covershift` là **PUBLIC**. Mọi thứ đã commit, kể cả 
 
 - Chỉ dùng gói miễn phí của Supabase và Vercel. Không thêm dịch vụ trả phí hay dịch vụ đòi thẻ thanh toán.
 - Không thêm dịch vụ bên thứ ba mới (analytics, theo dõi lỗi, chat, CDN font/script, dịch vụ AI) khi chưa được duyệt. Hiện mã web chỉ gọi Supabase, và bản đồ gọi OpenFreeMap (xem dưới).
-- Bản đồ dùng OpenFreeMap (miễn phí, không cần khóa): **trình duyệt** của người dùng tải ô bản đồ, kiểu bản đồ và phông chữ (glyph) từ `tiles.openfreemap.org`. Dịch vụ này nhận địa chỉ IP và vùng bản đồ đang xem; mã web và Server Action không gửi cho nó dữ liệu cá nhân nào. Chủ dự án đã duyệt dịch vụ này trong brief của PR bản đồ; `/chinh-sach-du-lieu` có mục "Bản đồ" nêu điều này. Nút "Dùng vị trí hiện tại" chỉ đọc vị trí trên máy của chủ quán và chỉ gửi tọa độ quán khi bấm Lưu (RPC `set_facility_location`). Đổi nhà cung cấp bản đồ hay thêm dịch vụ bản đồ khác là thay đổi cần duyệt.
-- Không gửi dữ liệu cá nhân (họ tên, SĐT, email, ngày sinh, trường, token link) ra dịch vụ ngoài khi luồng sản phẩm chưa cho phép và `/chinh-sach-du-lieu` chưa nêu. Không dán dữ liệu thật vào công cụ AI hay công cụ bên ngoài khi làm việc.
+- Bản đồ dùng OpenFreeMap (miễn phí, không cần khóa): **trình duyệt** của người dùng tải ô bản đồ, kiểu bản đồ và phông chữ (glyph) từ `tiles.openfreemap.org`. Dịch vụ này nhận địa chỉ IP và vùng bản đồ đang xem; mã web và Server Action không gửi cho nó dữ liệu cá nhân nào. Chủ dự án đã duyệt dịch vụ này trong brief của PR bản đồ; `/privacy` có mục "Bản đồ" nêu điều này. Nút "Dùng vị trí hiện tại" chỉ đọc vị trí trên máy của chủ quán và chỉ gửi tọa độ quán khi bấm Lưu (RPC `set_facility_location`). Đổi nhà cung cấp bản đồ hay thêm dịch vụ bản đồ khác là thay đổi cần duyệt.
+- Không gửi dữ liệu cá nhân (họ tên, SĐT, email, ngày sinh, trường, token link) ra dịch vụ ngoài khi luồng sản phẩm chưa cho phép và `/privacy` chưa nêu. Không dán dữ liệu thật vào công cụ AI hay công cụ bên ngoài khi làm việc.
 - Edge Function `supabase/functions/shift-reminders/index.ts` (nhắc ca qua email) là phần phụ, **mặc định tắt**: chưa deploy, chưa chạy thử.
   - Không bật, deploy, hay tạo lịch `pg_cron` khi chủ dự án chưa yêu cầu.
   - Hàm cần `SUPABASE_SERVICE_ROLE_KEY`; key này chỉ tồn tại trong môi trường Edge Function của Supabase (đặt bằng `supabase secrets set`), không bao giờ ở Next.js, Vercel hay repo.
@@ -636,18 +636,33 @@ Next.js 15 App Router, React 19, Tailwind 3.4. Mã giao diện ở `src/app/` (t
 - Trang là Server Component (`async`). Trang đọc dữ liệu bằng `createClient()` từ `@/lib/supabase/server` (`supabase.rpc(...)` hoặc `.from().select()`), hoặc lấy `supabase` từ `requireRole()` / `getContext()`.
 - Mọi thao tác ghi đi qua server action trong `src/app/actions.ts`. Một action gom dữ liệu form rồi gọi đúng một RPC (ngoại lệ duy nhất: `demoLogin`, mục 15); chữ ký chung `(prev: ActionState, formData: FormData) => Promise<ActionState>`, dùng với `<ActionForm action={...}>`.
 - Trong action, dùng helper `call()` có sẵn; lỗi trả qua `friendlyError()` (`src/lib/errors.ts`, import là `friendly`). Không gọi `.insert()` / `.update()` / `.delete()` / `.upsert()` từ web (hiện không có chỗ nào làm vậy).
-- Không thêm Route Handler hay `fetch` từ client để ghi dữ liệu. Route Handler hiện chỉ dùng cho `/auth/callback`, `/auth/dang-xuat` và `/admin/kpi/export`.
+- Không thêm Route Handler hay `fetch` từ client để ghi dữ liệu. Route Handler hiện chỉ dùng cho `/auth/callback`, `/auth/logout` và `/admin/kpi/export`.
+
+Đường dẫn web là tiếng Anh (theo chỉ thị chủ dự án 19/11/2026). Giữ nguyên `/`, `/admin`, `/admin/kpi`, `/admin/kpi/export`, `/auth/callback`; các đường dẫn còn lại đổi như sau:
+
+| Cũ | Mới |
+|---|---|
+| `/dang-nhap`, `/auth/dang-xuat` | `/login`, `/auth/logout` |
+| `/dang-ky`, `/dang-ky/nguoi-lam`, `/dang-ky/chu-quan` | `/register`, `/register/worker`, `/register/employer` |
+| `/ca`, `/ca/[id]`, `/ca-cua-toi` | `/shifts`, `/shifts/[id]`, `/my-shifts` |
+| `/ho-so`, `/tai-khoan` | `/profile`, `/account` |
+| `/quan`, `/quan/dang-ca`, `/quan/ca/[id]` | `/employer`, `/employer/new-shift`, `/employer/shifts/[id]` |
+| `/admin/co-so`, `/admin/nguoi-lam`, `/admin/bao-cao`, `/admin/nhat-ky` | `/admin/facilities`, `/admin/workers`, `/admin/reports`, `/admin/audit` |
+| `/xac-nhan/[token]`, `/dong-y/[token]`, `/h/[slug]` | `/confirm/[token]`, `/consent/[token]`, `/p/[slug]` |
+| `/dieu-khoan`, `/chinh-sach-du-lieu` | `/terms`, `/privacy` |
+
+Mọi đường dẫn cũ redirect vĩnh viễn (308, giữ query string) sang đường dẫn mới trong `redirects()` của `next.config.mjs`, để link đã gửi qua Zalo vẫn mở được; dùng đường dẫn chính xác, không wildcard rộng. Thêm hay đổi route thì sửa danh sách đó, `matcher` của `middleware.ts` và `headers()` (các trang token), `NAV`/`contentWidth`/`BARE` trong `client.tsx`. Không dùng đường dẫn tiếng Việt cho route mới. Giá trị query (`?loi=1`, `?moi=1`, `?khu=`, `?loc=`) không đổi.
 
 Quyền và điều hướng:
 
 - `requireRole(...roles)` trong `src/lib/auth.ts` chỉ để điều hướng cho gọn (chưa đăng nhập, chưa đăng ký, bị khóa, sai vai trò). Quyền thật do RLS và RPC ở database quyết định. Không coi việc ẩn nút hay chặn trang là biện pháp bảo mật.
-- Không đặt quy tắc nghiệp vụ (ai được nhận ca, giới hạn giờ cho người dưới 18, hạn xác nhận 72 giờ, mức lương tối thiểu) trong component hay action. Component chỉ hiển thị trạng thái và báo trước cho người dùng; database mới là nơi chặn. Khi hiển thị lại một giới hạn đã có ở database (ví dụ `DEFAULT_MIN_WAGE` ở `src/app/quan/dang-ca/page.tsx`), coi đó là gợi ý, không phải căn cứ chặn.
+- Không đặt quy tắc nghiệp vụ (ai được nhận ca, giới hạn giờ cho người dưới 18, hạn xác nhận 72 giờ, mức lương tối thiểu) trong component hay action. Component chỉ hiển thị trạng thái và báo trước cho người dùng; database mới là nơi chặn. Khi hiển thị lại một giới hạn đã có ở database (ví dụ `DEFAULT_MIN_WAGE` ở `src/app/employer/new-shift/page.tsx`), coi đó là gợi ý, không phải căn cứ chặn.
 
 Quy ước Next 15 của repo:
 
-- `params` và `searchParams` là `Promise`: khai kiểu `Promise<...>` và `await` (xem `src/app/xac-nhan/[token]/page.tsx`, `src/app/ca/page.tsx`).
-- `'use client'` chỉ khi cần trạng thái, hiệu ứng hoặc API trình duyệt. Hiện có bốn file: `src/components/client.tsx` (có `AppShell`, dùng `usePathname`), `src/components/map.tsx` (maplibre-gl cần `window`, WebGL và DOM; chỉ nhận dữ liệu JSON thuần từ trang Server Component), `src/app/xac-nhan/[token]/confirm-form.tsx` và `src/app/error.tsx` (Next bắt buộc error boundary là Client Component). `src/app/not-found.tsx` là Server Component. Trang `/dang-nhap` là Server Component, ba nút demo là form gọi server action `demoLogin`. Client Component nhỏ, đặt ở lá cây; trang bao ngoài vẫn là Server Component. Không dùng `createClient()` từ `@/lib/supabase/client` để đọc hay ghi dữ liệu nghiệp vụ.
-- Trang chứa token hoặc dữ liệu riêng (`/xac-nhan`, `/dong-y`, `/h`, `/admin`) đặt `robots: { index: false, follow: false }`. Trang mới cùng loại làm tương tự.
+- `params` và `searchParams` là `Promise`: khai kiểu `Promise<...>` và `await` (xem `src/app/confirm/[token]/page.tsx`, `src/app/shifts/page.tsx`).
+- `'use client'` chỉ khi cần trạng thái, hiệu ứng hoặc API trình duyệt. Hiện có bốn file: `src/components/client.tsx` (có `AppShell`, dùng `usePathname`), `src/components/map.tsx` (maplibre-gl cần `window`, WebGL và DOM; chỉ nhận dữ liệu JSON thuần từ trang Server Component), `src/app/confirm/[token]/confirm-form.tsx` và `src/app/error.tsx` (Next bắt buộc error boundary là Client Component). `src/app/not-found.tsx` là Server Component. Trang `/login` là Server Component, ba nút demo là form gọi server action `demoLogin`. Client Component nhỏ, đặt ở lá cây; trang bao ngoài vẫn là Server Component. Không dùng `createClient()` từ `@/lib/supabase/client` để đọc hay ghi dữ liệu nghiệp vụ.
+- Trang chứa token hoặc dữ liệu riêng (`/confirm`, `/consent`, `/p`, `/admin`) đặt `robots: { index: false, follow: false }`. Trang mới cùng loại làm tương tự.
 - Server chạy UTC. Mọi giờ và ngày hiển thị qua `src/lib/format.ts` (`fmtDate`, `fmtTime`, `fmtRange`, `fmtDateTime`, `fmtPlainDate`, `vnDateInput`, `fmtMoney`, `hoursBetween`, `shiftState`). Không gọi `toLocaleString`, `Date#getHours` hay tự ghép giờ trong component. Giá trị điền vào `<input type="time">` cũng lấy từ đó (có chủ đích dùng `hourCycle: 'h23'`).
 - Không chạy `next dev` và `next build` cùng lúc (chung thư mục `.next`).
 
@@ -674,8 +689,8 @@ Khung do `AppShell` (`src/components/client.tsx`) dựng, `layout.tsx` chỉ tru
 - Điện thoại: thanh trên dính cao `3.5rem` (`--chrome-top`) và, khi đã đăng nhập có vai trò, thanh điều hướng dưới cao `4.5rem` cộng vùng an toàn (`--chrome-bottom`). Hai biến này nằm ở `globals.css` và được dùng cho `scroll-padding` của `<html>` lẫn padding đáy của chân trang; đổi chiều cao thanh thì đổi biến, không đổi từng chỗ.
 - Từ `lg` (1024px): rail trái cố định rộng `15rem` thay cho thanh trên và thanh dưới; nội dung lùi `lg:pl-60`.
 - Người làm và chủ quán có 3 mục nav. Nhóm vận hành có 4 tab (Điều phối, Cơ sở, Người làm, Báo cáo) và nút "Thêm" (KPI, Nhật ký, Tài khoản) mở bằng `<details>`; rail desktop hiện đủ các mục. Mục `NAV` nằm ở `client.tsx`; thêm trang vào nav là sửa ở đó.
-- Không có nav chính ở trang token và hồ sơ công khai (`/xac-nhan`, `/dong-y`, `/h`), và khi chưa đăng nhập, chưa đăng ký hoặc bị khóa. Những trang đó chỉ có thanh trên.
-- Bề rộng nội dung do hàm `contentWidth(pathname)` trong `src/components/client.tsx` (qua `AppShell`) đặt: trang chủ `/` tự dựng bố cục; `max-w-6xl` cho `/dang-nhap`, `/dieu-khoan`, `/chinh-sach-du-lieu`, `/ca`, `/ca-cua-toi`, `/quan`, `/admin` và mọi `/admin/*` (đúng đường dẫn, không gồm `/ca/[id]`, `/quan/ca/...`, `/quan/dang-ca`); mọi trang còn lại `max-w-3xl`. Trang mới cần rộng hơn thì sửa `contentWidth`, không tự đặt `max-w-*` bao ngoài.
+- Không có nav chính ở trang token và hồ sơ công khai (`/confirm`, `/consent`, `/p`), và khi chưa đăng nhập, chưa đăng ký hoặc bị khóa. Những trang đó chỉ có thanh trên.
+- Bề rộng nội dung do hàm `contentWidth(pathname)` trong `src/components/client.tsx` (qua `AppShell`) đặt: trang chủ `/` tự dựng bố cục; `max-w-6xl` cho `/login`, `/terms`, `/privacy`, `/shifts`, `/my-shifts`, `/employer`, `/admin` và mọi `/admin/*` (đúng đường dẫn, không gồm `/shifts/[id]`, `/employer/shifts/...`, `/employer/new-shift`); mọi trang còn lại `max-w-3xl`. Trang mới cần rộng hơn thì sửa `contentWidth`, không tự đặt `max-w-*` bao ngoài.
 - Trang rộng được dùng nhiều cột và bảng thật; trang `max-w-3xl` không dựng bố cục nhiều cột hay bảng rộng nếu không được giao rõ. Cột chữ của trang đọc vẫn tự giới hạn: điều khoản và chính sách dùng `Doc` (bề rộng đọc `40rem`, mục lục dính bên phải ở desktop).
 
 ### Chữ, vùng chạm, khoảng cách
@@ -683,7 +698,7 @@ Khung do `AppShell` (`src/components/client.tsx`) dựng, `layout.tsx` chỉ tru
 - Chữ gốc là 18px (`html { font-size: 18px }` trong `src/app/globals.css`), nên mọi đơn vị `rem` của Tailwind lớn hơn mặc định 12,5%: `text-base` = 18px, `text-lg` ≈ 20px, `text-sm` ≈ 15,8px. Không hạ cỡ chữ gốc. Không dùng `text-xs` hay `text-[...]`. Nội dung người dùng cần đọc không dưới `text-base`; `text-sm` chỉ cho gợi ý phụ, nhãn Badge, nhãn thanh điều hướng dưới và chân trang.
 - Font chữ là Be Vietnam Pro (`font-sans`, đặt ở `<body>`). Số giờ ca dùng `font-num tabular` (Barlow Condensed, có chữ số bảng cố định để các giờ thẳng cột; Be Vietnam Pro không có).
 - Dùng `rem` hoặc lớp Tailwind, không dùng px cứng cho cỡ chữ và kích thước chạm.
-- Nút và ô nhập cao tối thiểu `3rem` (= 54px ở cỡ gốc, vượt mức 48px); lấy từ `btn()` và `inputCls`, không tự viết lại. Việc quan trọng nhất của trang có thể to hơn (ví dụ `!min-h-[3.75rem] !text-xl` ở nút "Xác nhận ngay" trong `src/app/quan/ca/[id]/page.tsx`). Ô tick dùng `Check` (ô 1.5rem, cả hàng bấm được). Khoảng cách giữa hai vùng chạm đủ để không bấm nhầm.
+- Nút và ô nhập cao tối thiểu `3rem` (= 54px ở cỡ gốc, vượt mức 48px); lấy từ `btn()` và `inputCls`, không tự viết lại. Việc quan trọng nhất của trang có thể to hơn (ví dụ `!min-h-[3.75rem] !text-xl` ở nút "Xác nhận ngay" trong `src/app/employer/shifts/[id]/page.tsx`). Ô tick dùng `Check` (ô 1.5rem, cả hàng bấm được). Khoảng cách giữa hai vùng chạm đủ để không bấm nhầm.
 - Mọi khoảng cách (padding, margin, gap) là bội của `0.5rem` (lớp Tailwind `1`, `2`, `4`, `6`, `8`...). Không dùng giá trị lẻ.
 - Mỗi việc không quá 3 bước, chỉ một hành động chính nổi bật mỗi màn hình. Nút chính dùng `btn('primary')`; hành động hủy hoặc xóa dùng `danger` và có bước xác nhận (xem mục 22).
 - Không có cuộn ngang. Chuỗi dài (tên người, tên quán, địa chỉ) phải xuống dòng được; không cắt (`truncate`) thông tin người dùng cần đọc.
@@ -743,7 +758,7 @@ Dependency hiện tại nhỏ: `next`, `react`, `react-dom`, `@supabase/ssr`, `@
 - Không có thao tác chỉ-hover. `hover:` chỉ là phụ (màu nền); mọi việc phải làm được bằng chạm và bàn phím.
 - Trạng thái đủ bộ: bình thường, hover, active, focus, disabled. `btn()` đã có `disabled:cursor-not-allowed disabled:opacity-50`. Nút gửi form dùng `SubmitButton`: nó đọc `useFormStatus()`, tự khóa và đổi nhãn khi đang gửi để chống bấm hai lần. Không tự viết nút gửi khác trong form dùng `ActionForm`. Nút bấm ngoài form (hiện chưa có) phải tự khóa khi `busy`.
 - Thông báo: lỗi dùng `role="alert"`, thành công dùng `role="status"`. `Alert` tự chọn: tông đỏ là `alert`, các tông còn lại là `status` (truyền `role` để đổi); `ActionForm` truyền rõ theo lỗi hay thành công. Mỗi tông có icon riêng kèm chữ, không chỉ dựa vào màu.
-- Câu hỏi xác nhận trước việc không hoàn tác: `SubmitButton confirm="..."` dùng `window.confirm`. Dùng được ở trang cần đăng nhập (`/ca/[id]`, `/tai-khoan`, `/admin/*`, `/ho-so`). Không dùng `confirm` ở trang chủ quán hoặc phụ huynh mở thẳng từ Zalo hoặc Facebook (`/xac-nhan`, `/dong-y`): trình duyệt nhúng có thể bỏ qua hộp thoại và trả về "không" ngay, nút sẽ như bị liệt. Ở đó dùng câu nhắc cố định ngay trên nút, như `confirm-form.tsx` đang làm ("Kiểm tra lại các lựa chọn. Sau khi gửi sẽ không sửa lại được."). Lý do này được ghi bằng comment ở `client.tsx` và `confirm-form.tsx`; giữ các comment đó.
+- Câu hỏi xác nhận trước việc không hoàn tác: `SubmitButton confirm="..."` dùng `window.confirm`. Dùng được ở trang cần đăng nhập (`/shifts/[id]`, `/account`, `/admin/*`, `/profile`). Không dùng `confirm` ở trang chủ quán hoặc phụ huynh mở thẳng từ Zalo hoặc Facebook (`/confirm`, `/consent`): trình duyệt nhúng có thể bỏ qua hộp thoại và trả về "không" ngay, nút sẽ như bị liệt. Ở đó dùng câu nhắc cố định ngay trên nút, như `confirm-form.tsx` đang làm ("Kiểm tra lại các lựa chọn. Sau khi gửi sẽ không sửa lại được."). Lý do này được ghi bằng comment ở `client.tsx` và `confirm-form.tsx`; giữ các comment đó.
 - Cũng vì trình duyệt nhúng: trang token không phụ thuộc vào `alert`, `prompt`, cửa sổ mới hay bước đăng nhập. Đăng nhập demo là form thường nên chạy được trong trình duyệt nhúng; không thêm lại luồng đăng nhập cần cửa sổ ngoài.
 - Menu "Thêm" của nhóm vận hành dùng `<details>`/`<summary>` (chạy bằng bàn phím và trong trình duyệt nhúng, đóng bằng Esc hoặc chạm ra ngoài); không thay bằng menu thả cần JS phức tạp. Nav có `aria-label="Điều hướng chính"` và mục đang chọn mang `aria-current="page"`.
 - Nhóm lựa chọn dùng input radio/checkbox thật khi có thể. Bộ chấm sao trong `confirm-form.tsx` dùng `role="radiogroup"` với các `button role="radio"` và chưa có điều khiển bằng phím mũi tên. Nếu viết lại kiểu này, hoặc dùng input radio thật, hoặc bổ sung đủ hành vi bàn phím của radiogroup.
@@ -760,9 +775,9 @@ Dependency hiện tại nhỏ: `next`, `react`, `react-dom`, `@supabase/ssr`, `@
 - Ở mỗi bề rộng, kiểm: không cuộn ngang, nút và ô nhập đủ to, chữ đọc được không cần phóng, không bị che bởi thanh trên dính (`sticky top-0`) hay thanh điều hướng dưới dính (đặc biệt thông báo vừa cuộn tới và nút cuối trang).
 - Kiểm các trạng thái liên quan đến thay đổi: rỗng, có dữ liệu, đang gửi (nút khóa), lỗi từ server, thành công, disabled, hết hạn/không hợp lệ (trang token), chưa duyệt hoặc bị khóa.
 - Dùng chuỗi tiếng Việt dài và có dấu: tên người dài, tên quán dài, địa chỉ dài, mô tả ca nhiều dòng, thông báo lỗi dài từ database. Kiểm xuống dòng, không tràn khung, không cắt mất thông tin.
-- Trang `/h/[slug]` có bản in (`@media print` trong `globals.css`; lớp `print:`). Khung trang (thanh trên, rail, nav dưới, chân trang) mang thuộc tính `data-chrome` và bị ẩn khi in; `main` mất padding và giới hạn bề rộng. Khi sửa trang này, `AppShell` hay `globals.css`, mở xem trước bản in (Cmd/Ctrl+P): khung và nút bị ẩn; nội dung không bị cắt giữa một nhận xét; nền trắng. Thêm phần khung mới thì gắn `data-chrome`.
+- Trang `/p/[slug]` có bản in (`@media print` trong `globals.css`; lớp `print:`). Khung trang (thanh trên, rail, nav dưới, chân trang) mang thuộc tính `data-chrome` và bị ẩn khi in; `main` mất padding và giới hạn bề rộng. Khi sửa trang này, `AppShell` hay `globals.css`, mở xem trước bản in (Cmd/Ctrl+P): khung và nút bị ẩn; nội dung không bị cắt giữa một nhận xét; nền trắng. Thêm phần khung mới thì gắn `data-chrome`.
 - Trang chủ quán và phụ huynh mở từ Zalo: nếu có thể, thử trong trình duyệt nhúng thật, hoặc ít nhất xem ở bề rộng điện thoại và ghi rõ chưa thử trong Zalo.
-- Chạy `npm run dev` cần `.env.local` trỏ tới Supabase thật. Trang cần đăng nhập thì agent tự bấm nút demo ở `/dang-nhap` (người làm, chủ quán hoặc nhóm vận hành); không dùng tài khoản thật của chủ dự án.
+- Chạy `npm run dev` cần `.env.local` trỏ tới Supabase thật. Trang cần đăng nhập thì agent tự bấm nút demo ở `/login` (người làm, chủ quán hoặc nhóm vận hành); không dùng tài khoản thật của chủ dự án.
 - Không tuyên bố "đã kiểm trực quan" nếu chưa mở trang thật. Nếu không kiểm được (không có trình duyệt, không có Supabase), ghi rõ trong PR: chưa xem ở bề rộng nào, trạng thái nào. Dữ liệu dùng để chụp ảnh phải là dữ liệu mẫu, không dùng tên hay số điện thoại thật.
 
 ---
@@ -775,13 +790,13 @@ Xưng hô (đúng với mã hiện tại):
 
 - Chủ quán và phụ huynh: "anh/chị" ("Anh/chị chọn cho từng người rồi bấm Gửi xác nhận", "Cảm ơn anh/chị"). Phụ huynh gọi người làm là "con".
 - Người làm (học sinh, sinh viên): "bạn". Chủ quán nói về người làm là "bạn này" hay gọi tên.
-- Trang dùng chung cho mọi vai trò (`/dang-nhap`, `/tai-khoan`, `/dieu-khoan`, `/chinh-sach-du-lieu`) hiện dùng "bạn". Trang chỉ một vai trò thì giữ đúng xưng hô của vai trò đó, không trộn trong cùng một trang.
+- Trang dùng chung cho mọi vai trò (`/login`, `/account`, `/terms`, `/privacy`) hiện dùng "bạn". Trang chỉ một vai trò thì giữ đúng xưng hô của vai trò đó, không trộn trong cùng một trang.
 - Tin nhắn mẫu dán vào Zalo (`reminderText`, `ownerText` trong `src/app/admin/page.tsx`) bắt đầu bằng `[SafeShift]`, giữ dạng văn bản thuần.
 
 Thuật ngữ thống nhất, dùng đúng một cách gọi cho một khái niệm:
 
 - "ca" (ca làm); "người làm" (học sinh, sinh viên); "chủ quán"; "nhóm vận hành" (không gọi "admin" hay "quản trị viên" trên giao diện người dùng); "người chính" và "người dự phòng"; "hồ sơ ca làm" cho hồ sơ công khai; "phụ huynh". Dùng "link" như đang dùng.
-- Dùng "quán" khi nói với chủ quán hoặc người làm; "cơ sở" ở trang vận hành (`/admin/co-so`) và ở thông báo về xác minh hoặc gỡ.
+- Dùng "quán" khi nói với chủ quán hoặc người làm; "cơ sở" ở trang vận hành (`/admin/facilities`) và ở thông báo về xác minh hoặc gỡ.
 - Không đổi tên một khái niệm giữa các trang (không "nhân viên", "ứng viên", "dự bị"; tránh "suất" lẫn với "ca" ở chỗ mới, dù nút "Hủy suất của tôi" đã có sẵn). Muốn đổi thuật ngữ thì đổi đồng loạt, kể cả chuỗi `raise exception` và test (xem dưới).
 - Nhãn hiển thị lấy từ `src/lib/constants.ts` và `src/lib/format.ts`; không tự viết lại tên trạng thái.
 

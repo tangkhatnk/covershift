@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
       Địa chỉ: ${esc(f.address)} — <a href="${esc(maps)}">mở bản đồ</a><br>
       Vai trò của bạn: ${roleText}</p>
       <p>Vui lòng đến sớm 10 phút. Nếu bận, hãy báo ngay cho nhóm vận hành.</p>
-      ${siteUrl ? `<p><a href="${siteUrl}/ca/${s.id}">Xem chi tiết ca và số điện thoại của quán</a></p>` : ''}
+      ${siteUrl ? `<p><a href="${siteUrl}/shifts/${s.id}">Xem chi tiết ca và số điện thoại của quán</a></p>` : ''}
       <p style="color:#666">Không bao giờ thu phí người làm.</p>`;
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',

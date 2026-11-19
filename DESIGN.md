@@ -299,7 +299,7 @@ Khung do `AppShell` (`src/components/client.tsx`) dựng; `layout.tsx` chỉ tru
 | Chân trang | nền `shutter-deep`, chứa `NO_FEE` và `DISCLAIMER`; có nav thì thêm padding đáy bằng `--chrome-bottom` | giống |
 | Nội dung | `mx-auto w-full px-4 py-6` | `lg:px-8 lg:py-8` |
 
-Bề rộng nội dung do `contentWidth(pathname)`: `/` tự dựng bố cục; `max-w-6xl` (72rem) cho `/dang-nhap`, `/dieu-khoan`, `/chinh-sach-du-lieu`, `/ca`, `/ca-cua-toi`, `/quan`, `/admin` và `/admin/*`; `max-w-3xl` (48rem) cho mọi trang còn lại. Trang token và hồ sơ công khai (`/xac-nhan`, `/dong-y`, `/h`) và khi chưa đăng nhập, chưa đăng ký hoặc bị khóa: không có nav chính, chỉ thanh trên. Nhóm `lg:grid` hai cột cho danh sách ca + bản đồ (`ShiftExplorer`) và các lưới `md:grid-cols-2/3`. Breakpoint dùng: `sm` 640, `md` 768, `lg` 1024 (mặc định Tailwind, không khai lại). Tờ đọc `Doc`: cột 40rem căn giữa, mục lục dính bên phải `w-56` ở `lg`, trong `<details>` ở điện thoại.
+Bề rộng nội dung do `contentWidth(pathname)`: `/` tự dựng bố cục; `max-w-6xl` (72rem) cho `/login`, `/terms`, `/privacy`, `/shifts`, `/my-shifts`, `/employer`, `/admin` và `/admin/*`; `max-w-3xl` (48rem) cho mọi trang còn lại. Trang token và hồ sơ công khai (`/confirm`, `/consent`, `/p`) và khi chưa đăng nhập, chưa đăng ký hoặc bị khóa: không có nav chính, chỉ thanh trên. Nhóm `lg:grid` hai cột cho danh sách ca + bản đồ (`ShiftExplorer`) và các lưới `md:grid-cols-2/3`. Breakpoint dùng: `sm` 640, `md` 768, `lg` 1024 (mặc định Tailwind, không khai lại). Tờ đọc `Doc`: cột 40rem căn giữa, mục lục dính bên phải `w-56` ở `lg`, trong `<details>` ở điện thoại.
 
 Khoảng cách luôn là bội của `0.5rem` (9px ở cỡ gốc): `gap-2`, `p-4`, `py-6`, `lg:py-8`. Nút và ô nhập cao tối thiểu `3rem` (54px). `scroll-padding` của `<html>` theo `--chrome-top`/`--chrome-bottom`. In (`@media print`): ẩn mọi phần có `data-chrome`, bỏ padding và giới hạn bề rộng của `main`, nền trắng.
 
@@ -362,7 +362,7 @@ Mô-đun hairline (viền `roof` khi gấp và còn sắp diễn ra, `hover:bord
 Nền `shutter-deep`, chữ trắng, mục đang chọn mang `aria-current="page"`.
 - **Rail (lg)**: mục `min-h-[3rem] px-4 rounded-ui text-lg font-semibold`, icon `h-6 w-6`; đang chọn nền `wall` chữ `ink`; hover `shutter`. Dưới có Tài khoản (nếu chưa nằm trong nav) và nút Đăng xuất.
 - **Nav dưới (điện thoại)**: ô cao `4.5rem`, icon `h-6 w-6` trên nhãn `text-sm leading-tight` căn giữa; đang chọn `border-t-4 border-wall text-wall`. "Thêm" của nhóm vận hành là `<details>`: đóng bằng Esc, chạm ra ngoài hoặc khi đổi trang; danh sách thả `w-60` trắng viền hairline.
-- **Thanh trên**: logo `Mark` (SVG cùng hình `icon.svg`, dùng token `wall`/`shutter-deep`) + tên; bên phải tên người dùng (tới `/tai-khoan`) hoặc nút vàng "Đăng nhập".
+- **Thanh trên**: logo `Mark` (SVG cùng hình `icon.svg`, dùng token `wall`/`shutter-deep`) + tên; bên phải tên người dùng (tới `/account`) hoặc nút vàng "Đăng nhập".
 
 ### Doc, DocSection, DocList (chế độ Read)
 Tờ đọc: `PageTitle`, khối thông báo, mục lục (dính bên phải ở `lg`, trong `<details>` ở điện thoại, mục cao `3rem`), bài `rounded-ui border border-rule bg-white px-4 sm:px-8`. `DocSection` có tiêu đề đánh số `text-xl font-bold`, kẻ trên `border-rule`, `scroll-mt-4`; `DocList` chấm `marker:text-shutter`.
@@ -418,7 +418,7 @@ Tờ đọc: `PageTitle`, khối thông báo, mục lục (dính bên phải ở
 - Thông báo: lỗi `role="alert"`, thành công/thông tin `role="status"`; `ActionForm` cuộn thông báo vào giữa tầm nhìn (`scroll-my-4` và `scroll-padding` của `<html>` tránh thanh dính).
 - `prefers-reduced-motion: reduce`: `globals.css` rút mọi `animation`/`transition` về gần 0 và tắt cuộn mượt; cuộn mã (`scrollBehavior()`, `fitBounds`, `easeTo`) cũng tôn trọng. Vòng quay là `motion-safe`.
 - Không chỉ dùng màu; HTML ngữ nghĩa trước (`button`, `Link`, `label`, `details`, `fieldset`); nav có `aria-label="Điều hướng chính"` và `aria-current="page"`.
-- Trang token (`/xac-nhan`, `/dong-y`) không dùng `window.confirm`, `alert`, cửa sổ mới hay bước đăng nhập (trình duyệt nhúng của Zalo/Facebook có thể bỏ qua hộp thoại); dùng câu nhắc cố định ngay trên nút.
+- Trang token (`/confirm`, `/consent`) không dùng `window.confirm`, `alert`, cửa sổ mới hay bước đăng nhập (trình duyệt nhúng của Zalo/Facebook có thể bỏ qua hộp thoại); dùng câu nhắc cố định ngay trên nút.
 - Menu "Thêm" dùng `<details>`/`<summary>`, chạy bằng bàn phím và trong trình duyệt nhúng.
 
 ## Page modes
@@ -426,17 +426,17 @@ Tờ đọc: `PageTitle`, khối thông báo, mục lục (dính bên phải ở
 | Chế độ | Trang | Cách dựng |
 |---|---|---|
 | Persuade | trang chủ `/` | băng `wall` toàn bề rộng: tiêu đề `text-4xl lg:text-5xl`, câu `NO_FEE` có icon, một nút chính "Bắt đầu"; bên cạnh một `ShiftCard` mẫu ghi rõ "ca mẫu, không phải ca thật" và bản đồ minh họa dữ liệu mẫu; dưới là các mục `Point` kẻ `border-rule`. Chưa có số liệu, lời chứng thực hay khách hàng. |
-| Operate | mọi trang trong app (người làm, chủ quán, nhóm vận hành), trang token `/xac-nhan`, `/dong-y` | `PageTitle` rồi các mô-đun hairline xếp dọc; một hành động chính nổi bật; trang rộng (`max-w-6xl`) dùng nhiều cột và bảng thật. |
-| Read | `/dieu-khoan`, `/chinh-sach-du-lieu` | `Doc`: cột đọc 40rem, mục lục, `leading-relaxed`. |
+| Operate | mọi trang trong app (người làm, chủ quán, nhóm vận hành), trang token `/confirm`, `/consent` | `PageTitle` rồi các mô-đun hairline xếp dọc; một hành động chính nổi bật; trang rộng (`max-w-6xl`) dùng nhiều cột và bảng thật. |
+| Read | `/terms`, `/privacy` | `Doc`: cột đọc 40rem, mục lục, `leading-relaxed`. |
 
 ## Known gaps
 
 Ghi nhận hiện trạng, không phải quy tắc cho trang mới. Mục (a)-(e) do người rà soát giao diện nêu; tài liệu này chưa tự kiểm lại bằng trình duyệt.
 
-- (a) Ô số liệu lớn ở `/h/[slug]`, `/ho-so`, `/admin/nguoi-lam` còn là hạng mục chưa làm lại (theo người rà soát; chưa tự kiểm).
+- (a) Ô số liệu lớn ở `/p/[slug]`, `/profile`, `/admin/workers` còn là hạng mục chưa làm lại (theo người rà soát; chưa tự kiểm).
 - (b) Nhãn nav dưới có thể xuống 2 dòng ở màn hình hẹp (`text-sm leading-tight`, ô chia đều 3-5 mục).
-- (c) Có khối trống ở `/dang-nhap` ở bề rộng 1280px.
-- (d) Pin dạng số ở bản đồ cơ sở (`/admin/co-so`) chưa có chú giải.
+- (c) Có khối trống ở `/login` ở bề rộng 1280px.
+- (d) Pin dạng số ở bản đồ cơ sở (`/admin/facilities`) chưa có chú giải.
 - (e) Chưa thử trong trình duyệt nhúng thật của Zalo/Facebook.
 - Pin `pending` (nền `wall`) và `removed` (nền `rule`) có viền gần như cùng màu nền đất của bản đồ (`wall`/`#F3EFD9` 1,37:1; `rule`/`#F3EFD9` 1,42:1); chữ trong pin vẫn đạt, nhưng ranh giới pin chỉ nhờ bóng. Chưa đo trên thiết bị.
 - Một số chỗ dùng `rounded` mặc định của Tailwind (`0.25rem` = 4,5px) thay vì `rounded-ui` 6px: Badge, link nav trong rail/menu, mục lục của `Doc`. Đây là lệch so với nguyên tắc "một bán kính", **không** được coi là bán kính thứ hai của hệ; trang mới dùng `rounded-ui`.

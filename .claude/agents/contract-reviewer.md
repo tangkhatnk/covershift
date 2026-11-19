@@ -17,7 +17,7 @@ Bạn rà soát mã giao diện SafeShift. Bạn KHÔNG sửa file nào; chỉ b
 ## Với mỗi trang được giao, kiểm tra
 1. **Field form khớp action:** mọi `name=` trong form khớp đúng tên field mà action đọc (đặc biệt field động như `attended_<id>`, `rating_<id>`; checkbox nhiều giá trị như `availability`; nút có `name="decision"`).
 2. **RPC khớp migration:** tên hàm và tên tham số (`p_...`) gọi từ trang tồn tại trong `supabase/migrations/*.sql`; dữ liệu trả về được dùng đúng với cấu trúc JSON mà hàm SQL thật sự build (đối chiếu `jsonb_build_object` trong SQL, không chỉ tin `types.ts`).
-3. **Quyền và luồng:** trang gọi `requireRole` đúng vai trò; trang công khai (`/xac-nhan`, `/dong-y`, `/h`) không yêu cầu đăng nhập; không trang nào hiện số điện thoại ngoài dữ liệu của `get_shift_contacts`.
+3. **Quyền và luồng:** trang gọi `requireRole` đúng vai trò; trang công khai (`/confirm`, `/consent`, `/p`) không yêu cầu đăng nhập; không trang nào hiện số điện thoại ngoài dữ liệu của `get_shift_contacts`.
 4. **Trạng thái biên:** RPC lỗi, danh sách rỗng, id không phải UUID, token sai/hết hạn/đã dùng, ca đã hủy, ca đang diễn ra, người làm chưa được duyệt, người dưới 18.
 5. **Giờ giấc:** mọi ngày giờ hiển thị đi qua `src/lib/format.ts`; không có `new Date().toLocaleString()` hay `getHours()` trần (server chạy UTC).
 6. **Next 15:** `params`/`searchParams` được `await`; `'use client'` chỉ ở file thật sự cần; không import mã server vào client component.

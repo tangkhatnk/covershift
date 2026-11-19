@@ -33,8 +33,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <p className="text-lg font-bold text-wall">{NO_FEE}</p>
               <p className="text-base text-shutter-tint">{DISCLAIMER}</p>
               <p className="flex flex-wrap gap-x-6 text-base font-semibold">
-                <Link href="/dieu-khoan" className="inline-flex min-h-[3rem] items-center underline">Điều khoản</Link>
-                <Link href="/chinh-sach-du-lieu" className="inline-flex min-h-[3rem] items-center underline">Chính sách dữ liệu</Link>
+                <Link href="/terms" className="inline-flex min-h-[3rem] items-center underline">Điều khoản</Link>
+                <Link href="/privacy" className="inline-flex min-h-[3rem] items-center underline">Chính sách dữ liệu</Link>
               </p>
             </div>
           }

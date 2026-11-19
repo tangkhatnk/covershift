@@ -108,7 +108,7 @@ export function Flash({ param, tone = 'green', children }: { param: string; tone
 
 /**
  * Nút gửi form: tự khóa khi đang gửi (chống bấm hai lần). `confirm` = câu hỏi xác nhận trước khi gửi.
- * Không dùng `confirm` ở trang mở từ Zalo/Facebook (/xac-nhan, /dong-y): trình duyệt nhúng có thể bỏ qua hộp thoại
+ * Không dùng `confirm` ở trang mở từ Zalo/Facebook (/confirm, /consent): trình duyệt nhúng có thể bỏ qua hộp thoại
  * và trả "không" ngay, nút sẽ như bị liệt.
  */
 export function SubmitButton({ children, variant = 'primary', confirm, full = true, name, value }: {
@@ -208,31 +208,31 @@ type NavItem = { href: string; label: string; icon: LucideIcon };
 
 const NAV: Record<Role, NavItem[]> = {
   worker: [
-    { href: '/ca', label: 'Tìm ca', icon: Search },
-    { href: '/ca-cua-toi', label: 'Ca của tôi', icon: CalendarCheck },
-    { href: '/ho-so', label: 'Hồ sơ', icon: UserRound },
+    { href: '/shifts', label: 'Tìm ca', icon: Search },
+    { href: '/my-shifts', label: 'Ca của tôi', icon: CalendarCheck },
+    { href: '/profile', label: 'Hồ sơ', icon: UserRound },
   ],
   employer: [
-    { href: '/quan', label: 'Ca của quán', icon: Store },
-    { href: '/quan/dang-ca', label: 'Đăng ca', icon: CirclePlus },
-    { href: '/tai-khoan', label: 'Tài khoản', icon: Settings },
+    { href: '/employer', label: 'Ca của quán', icon: Store },
+    { href: '/employer/new-shift', label: 'Đăng ca', icon: CirclePlus },
+    { href: '/account', label: 'Tài khoản', icon: Settings },
   ],
   admin: [
     { href: '/admin', label: 'Điều phối', icon: LayoutDashboard },
-    { href: '/admin/co-so', label: 'Cơ sở', icon: Building2 },
-    { href: '/admin/nguoi-lam', label: 'Người làm', icon: Users },
-    { href: '/admin/bao-cao', label: 'Báo cáo', icon: Flag },
+    { href: '/admin/facilities', label: 'Cơ sở', icon: Building2 },
+    { href: '/admin/workers', label: 'Người làm', icon: Users },
+    { href: '/admin/reports', label: 'Báo cáo', icon: Flag },
   ],
 };
 /** Các mục của nhóm vận hành nằm sau nút "Thêm" trên điện thoại (rail desktop hiện đủ). */
 const ADMIN_MORE: NavItem[] = [
   { href: '/admin/kpi', label: 'KPI', icon: ChartColumn },
-  { href: '/admin/nhat-ky', label: 'Nhật ký', icon: ScrollText },
-  { href: '/tai-khoan', label: 'Tài khoản', icon: Settings },
+  { href: '/admin/audit', label: 'Nhật ký', icon: ScrollText },
+  { href: '/account', label: 'Tài khoản', icon: Settings },
 ];
 
-const BARE = /^\/(xac-nhan|dong-y|h)(\/|$)/; // trang token / hồ sơ công khai: không có nav chính
-const WIDE_EXACT = new Set(['/dang-nhap', '/dieu-khoan', '/chinh-sach-du-lieu', '/ca', '/ca-cua-toi', '/quan']);
+const BARE = /^\/(confirm|consent|p)(\/|$)/; // trang token / hồ sơ công khai: không có nav chính
+const WIDE_EXACT = new Set(['/login', '/terms', '/privacy', '/shifts', '/my-shifts', '/employer']);
 
 /**
  * Bề rộng nội dung theo đường dẫn: trang rộng (nhiều cột, bảng, danh sách + bản đồ) dùng max-w-6xl, còn lại max-w-3xl;
@@ -322,7 +322,7 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
   const allItems = items ? [...items, ...(role === 'admin' ? ADMIN_MORE : [])] : [];
   const current = activeHref(pathname, allItems);
   const moreActive = more ? more.some((m) => m.href === current) : false;
-  const railHasAccount = allItems.some((i) => i.href === '/tai-khoan');
+  const railHasAccount = allItems.some((i) => i.href === '/account');
 
   const mainWidth = contentWidth(pathname);
 
@@ -333,12 +333,12 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
           <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4">
             <Link href={homeHref} className="inline-flex min-h-[3rem] items-center gap-2 rounded px-2 text-xl font-bold text-white"><Mark />{APP_NAME}</Link>
             {bare ? null : signedIn ? (
-              <Link href="/tai-khoan" className="inline-flex min-h-[3rem] items-center gap-2 rounded-ui px-2 text-base font-semibold text-white">
+              <Link href="/account" className="inline-flex min-h-[3rem] items-center gap-2 rounded-ui px-2 text-base font-semibold text-white">
                 <CircleUser className="h-6 w-6" aria-hidden="true" />
                 {userName ?? 'Tài khoản'}
               </Link>
             ) : (
-              <Link href="/dang-nhap" className="inline-flex min-h-[3rem] items-center rounded-ui bg-wall px-4 text-base font-semibold text-ink">
+              <Link href="/login" className="inline-flex min-h-[3rem] items-center rounded-ui bg-wall px-4 text-base font-semibold text-ink">
                 Đăng nhập
               </Link>
             )}
@@ -376,12 +376,12 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
             </nav>
             <div className="space-y-2 border-t border-shutter p-4">
               {railHasAccount ? null : (
-                <Link href="/tai-khoan" className="flex min-h-[3rem] items-center gap-2 rounded-ui px-4 text-base font-semibold text-white hover:bg-shutter">
+                <Link href="/account" className="flex min-h-[3rem] items-center gap-2 rounded-ui px-4 text-base font-semibold text-white hover:bg-shutter">
                   <CircleUser className="h-6 w-6 shrink-0" aria-hidden="true" />
                   <span className="min-w-0 break-words">{userName ?? 'Tài khoản'}</span>
                 </Link>
               )}
-              <form action="/auth/dang-xuat" method="post">
+              <form action="/auth/logout" method="post">
                 <button type="submit" className="flex min-h-[3rem] w-full items-center gap-2 rounded-ui px-4 text-base font-semibold text-white hover:bg-shutter">
                   <LogOut className="h-6 w-6 shrink-0" aria-hidden="true" />
                   Đăng xuất

@@ -6,7 +6,7 @@
 -- (cần migration 0004). CẦN 0004 ĐÃ ÁP trước khi chạy seed này: hotline 8 và 11 chữ số của 3 quán chỉ qua được ràng buộc
 -- SĐT đã nới ở 0004, và cột `public_slug`, bảng `notifications`, `facility_reviews` cũng có từ 0004.
 -- Mọi tài khoản demo có email @demo.safeshift.test và dùng chung mật khẩu công khai `safeshift-demo`
--- (lưu bằng crypt + gen_salt('bf')), cho nút đăng nhập demo ở /dang-nhap. App chỉ là bản mô phỏng: SĐT người làm và
+-- (lưu bằng crypt + gen_salt('bf')), cho nút đăng nhập demo ở /login. App chỉ là bản mô phỏng: SĐT người làm và
 -- phụ huynh là số giả 0900000xxx; ngoài hotline công khai của 9 quán ở trên không có dữ liệu thật nào.
 -- Chạy lại seed để khôi phục dữ liệu mẫu. Không xóa user demo bằng tay (lỗi khóa ngoại 23503);
 -- nếu cần dọn, dùng supabase/xoa_du_lieu_demo.sql.

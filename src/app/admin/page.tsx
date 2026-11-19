@@ -30,7 +30,7 @@ function reminderText(s: DispatchShift) {
 function ownerText(s: PendingConfirmation) {
   return (
     `[SafeShift] Anh/chị vui lòng xác nhận ca ${JOB_LABEL[s.job_type]} ${fmtRange(s.starts_at, s.ends_at)} tại ${s.facility_name} ` +
-    `(bấm link, không cần đăng nhập, hạn ${fmtDateTime(s.confirm_expires_at)}):\n${SITE_URL}/xac-nhan/${s.confirm_token}`
+    `(bấm link, không cần đăng nhập, hạn ${fmtDateTime(s.confirm_expires_at)}):\n${SITE_URL}/confirm/${s.confirm_token}`
   );
 }
 
@@ -116,7 +116,7 @@ function UpcomingCard({ s, now }: { s: DispatchShift; now: number }) {
 
         <div className="space-y-2">
           <CopyButton text={reminderText(s)}>Sao chép tin nhắn nhắc ca</CopyButton>
-          <Link href={`/quan/ca/${s.id}`} className={linkCls}>Xem chi tiết ca</Link>
+          <Link href={`/employer/shifts/${s.id}`} className={linkCls}>Xem chi tiết ca</Link>
         </div>
       </div>
     </Card>
@@ -145,7 +145,7 @@ function PendingCard({ s }: { s: PendingConfirmation }) {
         </div>
         <div className="space-y-2">
           {s.expired ? null : <CopyButton text={ownerText(s)}>Sao chép tin nhắn cho chủ quán</CopyButton>}
-          <Link href={`/quan/ca/${s.id}`} className={linkCls}>Xem chi tiết ca</Link>
+          <Link href={`/employer/shifts/${s.id}`} className={linkCls}>Xem chi tiết ca</Link>
         </div>
       </div>
     </Card>
@@ -170,7 +170,7 @@ export default async function DispatchPage({ searchParams }: { searchParams: Pro
   const now = Date.now();
   const points: MapPoint[] = upcoming.flatMap((s) => s.lat == null || s.lng == null ? [] : [{
     id: s.id, lat: s.lat, lng: s.lng, text: fmtTime(s.starts_at),
-    label: `${s.facility_name}, ${fmtRange(s.starts_at, s.ends_at)}`, href: `/quan/ca/${s.id}`,
+    label: `${s.facility_name}, ${fmtRange(s.starts_at, s.ends_at)}`, href: `/employer/shifts/${s.id}`,
     tone: s.claims.filter((c) => c.role === 'primary').length >= s.headcount ? 'full' as const : s.urgent ? 'urgent' as const : 'open' as const,
   }]);
   const short = upcoming.filter((s) => s.claims.filter((c) => c.role === 'primary').length < s.headcount).length;

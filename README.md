@@ -24,27 +24,29 @@ Trình duyệt ──► Next.js trên Vercel (Server Component + Server Action,
 - Ứng dụng **không dùng service-role key**. Vercel chỉ giữ anon key. Lộ mã nguồn frontend không lộ quyền gì.
 - Bản đồ (MapLibre) tải ô bản đồ và phông chữ từ `tiles.openfreemap.org` ngay trên trình duyệt người dùng: không cần khóa, không cấu hình thêm, nhưng cần có mạng; dịch vụ này nhận IP và vùng đang xem, không nhận dữ liệu tài khoản.
 - Số điện thoại nằm ở bảng riêng `private_contacts`; chỉ lộ qua `get_shift_contacts()` cho hai bên đã ghép ca.
-- Trang không cần đăng nhập (`/xac-nhan/[token]`, `/dong-y/[token]`, `/h/[slug]`) gọi RPC bằng quyền `anon`, bảo vệ bằng token ngẫu nhiên 244 bit.
+- Trang không cần đăng nhập (`/confirm/[token]`, `/consent/[token]`, `/p/[slug]`) gọi RPC bằng quyền `anon`, bảo vệ bằng token ngẫu nhiên 244 bit.
 
 ### Sơ đồ route
 
 | Đường dẫn | Ai dùng | Việc |
 |---|---|---|
 | `/` | mọi người | Giới thiệu; đã đăng nhập thì tự chuyển theo vai trò |
-| `/dang-nhap`, `/auth/dang-xuat` | mọi người | Đăng nhập bằng 3 nút demo (người làm, chủ quán, nhóm vận hành); đăng xuất. `/auth/callback` còn giữ để tương thích, không nút nào dẫn tới |
-| `/dang-ky`, `/dang-ky/nguoi-lam`, `/dang-ky/chu-quan` | người mới | Chọn vai trò, đồng ý xử lý dữ liệu, đăng ký |
-| `/dieu-khoan`, `/chinh-sach-du-lieu` | mọi người | Điều khoản, chính sách dữ liệu |
-| `/ca`, `/ca/[id]` | người làm | Feed ca (gấp lên đầu, lọc ngày/khu vực/loại việc); nhận ca, hủy, xem SĐT quán, trả lời "đã trả đủ chưa", báo cáo |
-| `/ca-cua-toi` | người làm | Ca sắp tới / cần trả lời / đã qua |
-| `/ho-so` | người làm | Trạng thái duyệt, link phụ huynh, bật/tắt hồ sơ công khai, sửa thông tin |
-| `/h/[slug]` | công khai | Hồ sơ ca làm (in / lưu PDF), không có SĐT |
-| `/dong-y/[token]` | phụ huynh | Phiếu đồng ý, không đăng nhập |
-| `/quan`, `/quan/dang-ca`, `/quan/ca/[id]` | chủ quán | Danh sách ca; đăng ca / nhân bản (`?from=id`); xem người chính–dự phòng, đổi thứ tự, hủy ca, link xác nhận |
-| `/xac-nhan/[token]` | chủ quán | Xác nhận sau ca, không đăng nhập, dùng một lần, hết hạn 72 giờ |
-| `/tai-khoan` | mọi vai trò | Đăng xuất, xóa tài khoản và toàn bộ dữ liệu |
+| `/login`, `/auth/logout` | mọi người | Đăng nhập bằng 3 nút demo (người làm, chủ quán, nhóm vận hành); đăng xuất. `/auth/callback` còn giữ để tương thích, không nút nào dẫn tới |
+| `/register`, `/register/worker`, `/register/employer` | người mới | Chọn vai trò, đồng ý xử lý dữ liệu, đăng ký |
+| `/terms`, `/privacy` | mọi người | Điều khoản, chính sách dữ liệu |
+| `/shifts`, `/shifts/[id]` | người làm | Feed ca (gấp lên đầu, lọc ngày/khu vực/loại việc); nhận ca, hủy, xem SĐT quán, trả lời "đã trả đủ chưa", báo cáo |
+| `/my-shifts` | người làm | Ca sắp tới / cần trả lời / đã qua |
+| `/profile` | người làm | Trạng thái duyệt, link phụ huynh, bật/tắt hồ sơ công khai, sửa thông tin |
+| `/p/[slug]` | công khai | Hồ sơ ca làm (in / lưu PDF), không có SĐT |
+| `/consent/[token]` | phụ huynh | Phiếu đồng ý, không đăng nhập |
+| `/employer`, `/employer/new-shift`, `/employer/shifts/[id]` | chủ quán | Danh sách ca; đăng ca / nhân bản (`?from=id`); xem người chính–dự phòng, đổi thứ tự, hủy ca, link xác nhận |
+| `/confirm/[token]` | chủ quán | Xác nhận sau ca, không đăng nhập, dùng một lần, hết hạn 72 giờ |
+| `/account` | mọi vai trò | Đăng xuất, xóa tài khoản và toàn bộ dữ liệu |
 | `/admin` | admin | Bảng điều phối 24 giờ tới, sao chép tin nhắc ca, "người chính báo bận", ca chờ xác nhận |
-| `/admin/co-so`, `/admin/nguoi-lam` | admin | Duyệt cơ sở (checklist), duyệt người làm + phiếu phụ huynh, khóa/mở, gỡ cơ sở |
-| `/admin/bao-cao`, `/admin/kpi`, `/admin/kpi/export`, `/admin/nhat-ky` | admin | Hộp báo cáo; KPI + CSV + cấu hình lương tối thiểu; audit log |
+| `/admin/facilities`, `/admin/workers` | admin | Duyệt cơ sở (checklist), duyệt người làm + phiếu phụ huynh, khóa/mở, gỡ cơ sở |
+| `/admin/reports`, `/admin/kpi`, `/admin/kpi/export`, `/admin/audit` | admin | Hộp báo cáo; KPI + CSV + cấu hình lương tối thiểu; audit log |
+
+Đường dẫn web là tiếng Anh theo chỉ thị chủ dự án 19/11/2026; đường dẫn tiếng Việt cũ (`/dang-nhap`, `/ca/[id]`, `/xac-nhan/[token]`…) redirect vĩnh viễn sang đường dẫn mới, bảng đổi tên ở `AGENTS.md` mục 18.
 
 ### Cấu trúc thư mục
 
@@ -84,7 +86,7 @@ Gặp lỗi `PGRST202` (không tìm thấy hàm) ngay sau khi dán migration: ch
 
 ### Tài khoản admin
 
-Không cần tạo tay: `seed.sql` đã tạo `admin@demo.safeshift.test`, nút "nhóm vận hành" ở `/dang-nhap` đăng nhập vào tài khoản này và vào thẳng `/admin`. Hàm `make_admin(email, tên)` vẫn còn nhưng chỉ chạy được trong SQL Editor, không gọi được từ client.
+Không cần tạo tay: `seed.sql` đã tạo `admin@demo.safeshift.test`, nút "nhóm vận hành" ở `/login` đăng nhập vào tài khoản này và vào thẳng `/admin`. Hàm `make_admin(email, tên)` vẫn còn nhưng chỉ chạy được trong SQL Editor, không gọi được từ client.
 
 ---
 
@@ -92,7 +94,7 @@ Không cần tạo tay: `seed.sql` đã tạo `admin@demo.safeshift.test`, nút 
 
 App là bản mô phỏng (quyết định 17/11/2026): không có người thật, chỉ dữ liệu mẫu. Đã bỏ Google OAuth và magic link nên không cần cấu hình Google Cloud, SMTP hay Redirect URL.
 
-- `/dang-nhap` có 3 nút một chạm: người làm (`nguoilam1@`), chủ quán (`quan1@`), nhóm vận hành (`admin@`), đều đuôi `@demo.safeshift.test`. Mỗi nút gọi server action `demoLogin`, action này đăng nhập bằng mật khẩu chung công khai `safeshift-demo`.
+- `/login` có 3 nút một chạm: người làm (`nguoilam1@`), chủ quán (`quan1@`), nhóm vận hành (`admin@`), đều đuôi `@demo.safeshift.test`. Mỗi nút gọi server action `demoLogin`, action này đăng nhập bằng mật khẩu chung công khai `safeshift-demo`.
 - Mật khẩu do `supabase/seed.sql` đặt cho cả 20 user demo. Project Supabase thật cần **chạy lại `seed.sql`** trong SQL Editor ít nhất một lần sau khi có thay đổi này, nếu không nút đăng nhập báo lỗi.
 - Khôi phục dữ liệu mẫu (ca bị hủy, tài khoản demo bị xóa, dữ liệu lộn xộn sau khi thử): chạy lại `seed.sql`. Seed tự xóa và tạo lại 20 user demo, đưa lương tối thiểu và giới hạn giờ/tuần về mặc định, chạy lại nhiều lần không sao.
 - **Authentication → Sign In / Providers → Email**: giữ **Confirm email BẬT**. Nếu tắt, ai cầm anon key (công khai trong web) cũng tạo được tài khoản email + mật khẩu qua API.
@@ -187,8 +189,8 @@ Link xác nhận sau ca **không phụ thuộc cron**: token được sinh khi c
 
 | Việc | Cách làm |
 |---|---|
-| Duyệt cơ sở | `/admin/co-so` → điền phiếu xác minh (đúng địa chỉ, đúng người liên hệ là bắt buộc) |
-| Duyệt người dưới 18 | Người làm vào `/ho-so` sao chép link gửi phụ huynh → phụ huynh điền → `/admin/nguoi-lam` bấm Duyệt |
+| Duyệt cơ sở | `/admin/facilities` → điền phiếu xác minh (đúng địa chỉ, đúng người liên hệ là bắt buộc) |
+| Duyệt người dưới 18 | Người làm vào `/profile` sao chép link gửi phụ huynh → phụ huynh điền → `/admin/workers` bấm Duyệt |
 | Nhắc ca | `/admin` → "Sao chép tin nhắn nhắc ca" → dán Zalo |
 | Người chính báo bận | `/admin` → "Người chính báo bận" → hệ thống đưa người dự phòng lên, ghi sự cố; admin gọi báo hai bên |
 | Gửi link xác nhận cho chủ quán | `/admin` → mục "Ca chờ chủ quán xác nhận" → sao chép tin nhắn |

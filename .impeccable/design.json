@@ -224,12 +224,12 @@
       "chromeBottom": "4.5rem + env(safe-area-inset-bottom) (--chrome-bottom)",
       "rail": "15rem từ lg (w-60), nội dung lg:pl-60",
       "contentWidth": {
-        "wide": "max-w-6xl (72rem): /dang-nhap, /dieu-khoan, /chinh-sach-du-lieu, /ca, /ca-cua-toi, /quan, /admin, /admin/*",
+        "wide": "max-w-6xl (72rem): /login, /terms, /privacy, /shifts, /my-shifts, /employer, /admin, /admin/*",
         "narrow": "max-w-3xl (48rem): mọi trang còn lại",
         "home": "/ tự dựng bố cục",
         "docColumn": "40rem, mục lục w-56 dính bên phải từ lg"
       },
-      "noMainNav": "/xac-nhan, /dong-y, /h và khi chưa đăng nhập, chưa đăng ký hoặc bị khóa",
+      "noMainNav": "/confirm, /consent, /p và khi chưa đăng nhập, chưa đăng ký hoặc bị khóa",
       "spacingUnit": "0.5rem (9px ở cỡ gốc 18px)",
       "touchTarget": "min 3rem (54px)",
       "baseFontSize": "18px"
@@ -410,10 +410,10 @@
       "controls": "nút +/- cao rộng 3rem, chữ ghi nguồn text-sm"
     },
     "knownGaps": [
-      "Ô số liệu lớn ở /h/[slug], /ho-so, /admin/nguoi-lam chưa làm lại (theo người rà soát; chưa tự kiểm).",
+      "Ô số liệu lớn ở /p/[slug], /profile, /admin/workers chưa làm lại (theo người rà soát; chưa tự kiểm).",
       "Nhãn nav dưới có thể xuống 2 dòng ở màn hình hẹp.",
-      "Khối trống ở /dang-nhap ở 1280px.",
-      "Pin dạng số ở bản đồ cơ sở (/admin/co-so) chưa có chú giải.",
+      "Khối trống ở /login ở 1280px.",
+      "Pin dạng số ở bản đồ cơ sở (/admin/facilities) chưa có chú giải.",
       "Chưa thử trong trình duyệt nhúng thật của Zalo/Facebook.",
       "Pin pending và removed có viền gần như cùng màu nền đất bản đồ (1,37:1 và 1,42:1); chữ trong pin vẫn đạt.",
       "Một số chỗ dùng rounded mặc định (4,5px) thay vì rounded-ui 6px: Badge, link nav trong rail/menu, mục lục Doc; không phải bán kính thứ hai của hệ."
