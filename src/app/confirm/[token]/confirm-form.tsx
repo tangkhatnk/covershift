@@ -13,16 +13,16 @@ const EMPTY: Answer = { attended: '', onTime: '', rating: 0, comment: '' };
 
 // Vòng focus vẽ trên nhãn khi ô radio ẩn (sr-only) bên trong đang được focus bằng bàn phím.
 const focusCls =
-  'has-[:focus-visible]:outline has-[:focus-visible]:outline-4 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-shutter-deep';
+  'has-[:focus-visible]:outline has-[:focus-visible]:outline-4 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand-deep';
 
 const choiceCls = (on: boolean, tone: 'green' | 'red' | 'amber') =>
   `flex min-h-[3.5rem] cursor-pointer items-center justify-center gap-2 rounded-ui border-2 px-4 text-center text-lg font-bold transition-colors ${focusCls} ${
     on
       ? tone === 'green'
-        ? 'border-shutter bg-shutter text-white'
+        ? 'border-brand bg-brand text-white'
         : tone === 'red'
-          ? 'border-roof bg-roof text-white'
-          : 'border-wall bg-wall text-ink'
+          ? 'border-danger bg-danger text-white'
+          : 'border-accent bg-accent text-ink'
       : 'border-rule-strong bg-white text-ink hover:bg-chalk'
   }`;
 
@@ -46,12 +46,12 @@ function StarChoice({ name, n, rating, onPick }: { name: string; n: number; rati
   return (
     <label
       className={`flex min-h-[3.5rem] cursor-pointer flex-col items-center justify-center rounded-ui border-2 transition-colors ${focusCls} ${
-        lit ? 'border-wall bg-wall-tint' : 'border-rule-strong bg-white hover:bg-chalk'
+        lit ? 'border-accent bg-accent-tint' : 'border-rule-strong bg-white hover:bg-chalk'
       }`}
     >
       <input type="radio" name={name} value={n} checked={rating === n} onChange={() => onPick(n)} className="sr-only" />
       <span className="sr-only">{n} sao</span>
-      <Star aria-hidden="true" className={`h-7 w-7 ${lit ? 'fill-wall stroke-shutter-deep' : 'fill-none stroke-rule-strong'}`} />
+      <Star aria-hidden="true" className={`h-7 w-7 ${lit ? 'fill-accent stroke-brand-deep' : 'fill-none stroke-rule-strong'}`} />
       <span aria-hidden="true" className="text-sm font-semibold text-ink">{n}</span>
     </label>
   );
@@ -138,7 +138,7 @@ export function ConfirmForm({ token, workers }: { token: string; workers: Worker
             ) : null}
 
             {a.attended === 'no' ? (
-              <p className="rounded-ui bg-roof-tint px-4 py-2 text-base text-roof">
+              <p className="rounded-ui bg-danger-tint px-4 py-2 text-base text-danger">
                 Nhóm vận hành sẽ được báo là bạn này không đến ca.
               </p>
             ) : null}
@@ -147,7 +147,7 @@ export function ConfirmForm({ token, workers }: { token: string; workers: Worker
       })}
 
       {missing > 0 ? (
-        <p className="rounded-ui border border-wall bg-wall-tint px-4 py-2 text-base font-medium text-ink">
+        <p className="rounded-ui border border-accent bg-accent-tint px-4 py-2 text-base font-medium text-ink">
           {workers.length > 1
             ? `Còn ${missing} người chưa chọn xong (đã làm / không đến, đúng giờ, số sao).`
             : 'Anh/chị chọn xong các mục ở trên (đã làm / không đến, đúng giờ, số sao) rồi bấm gửi.'}

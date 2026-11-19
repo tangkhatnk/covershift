@@ -42,6 +42,8 @@ Kết nối ca làm ngắn hạn an toàn giữa cơ sở dịch vụ nhỏ và 
 - **Chưa quyết**: có chạy với người thật sau buổi demo hay không.
 
 ## Brand Commitments
+Hướng giao diện hiện tại là "Biển & Nắng" (chỉ thị chủ dự án 19/11/2026, thay "Phố cửa chớp"): xanh biển cho khung và nút chính, vàng nắng làm điểm nhấn, nền vôi sáng, logo mặt trời nhô trên hai làn sóng, giao diện có chuyển động CSS ngắn (tôn trọng giảm chuyển động). Chi tiết: `DESIGN.md`.
+
 Tên SafeShift. Cam kết "Không bao giờ thu phí người làm." (`NO_FEE`) và dòng miễn trừ (`DISCLAIMER`) là nguyên văn bất biến. Chủ dự án đã cho phép đổi một số quy tắc giao diện hiện tại (nền sáng được giữ; thêm `lucide-react`, font `next/font`, bố cục desktop rộng, thanh điều hướng dưới trên điện thoại); các quy tắc đó sẽ được cập nhật trong `AGENTS.md` khi build.
 
 ## Evidence on Hand

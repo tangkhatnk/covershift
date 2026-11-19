@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   title: { default: `${APP_NAME} – Ca làm ngắn hạn an toàn ở Vũng Tàu`, template: `%s · ${APP_NAME}` },
   description: 'Kết nối ca làm ngắn hạn giữa quán cà phê, nhà hàng, homestay, khách sạn nhỏ ở Vũng Tàu và học sinh, sinh viên.',
 };
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#153F30' };
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#083F5F' };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { user, profile } = await getContext();
@@ -30,8 +30,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           homeHref={profile ? homeFor(profile.role) : '/'}
           footer={
             <div className="mx-auto max-w-6xl space-y-2 px-4 py-6 lg:px-8">
-              <p className="text-lg font-bold text-wall">{NO_FEE}</p>
-              <p className="text-base text-shutter-tint">{DISCLAIMER}</p>
+              <p className="text-lg font-bold text-accent">{NO_FEE}</p>
+              <p className="text-base text-brand-tint">{DISCLAIMER}</p>
               <p className="flex flex-wrap gap-x-6 text-base font-semibold">
                 <Link href="/terms" className="inline-flex min-h-[3rem] items-center underline">Điều khoản</Link>
                 <Link href="/privacy" className="inline-flex min-h-[3rem] items-center underline">Chính sách dữ liệu</Link>

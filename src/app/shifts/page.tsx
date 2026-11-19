@@ -9,7 +9,7 @@ import type { Shift } from '@/lib/types';
 
 export const metadata = { title: 'Tìm ca' };
 
-const linkCls = 'font-semibold text-shutter underline underline-offset-4';
+const linkCls = 'font-semibold text-brand underline underline-offset-4';
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? '';
 /** Ngày YYYY-MM-DD có thật (loại 2026-13-45, 2026-02-30). */
 const isYmd = (v: string) => {

@@ -53,7 +53,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const sp = await searchParams;
   return (
     <div>
-      <section className="bg-wall">
+      <section className="bg-accent">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-2 lg:items-center lg:gap-12 lg:px-8 lg:py-16">
           <div className="space-y-6">
             {sp['da-xoa'] ? <Alert tone="green">Tài khoản và toàn bộ dữ liệu của bạn đã được xóa.</Alert> : null}
@@ -117,7 +117,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:py-16">
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-ink">Dành cho người làm</h2>
-            <ul className="list-disc space-y-2 pl-6 text-base text-ink marker:text-shutter">
+            <ul className="list-disc space-y-2 pl-6 text-base text-ink marker:text-brand">
               <li>{NO_FEE} Không đặt cọc, không giữ giấy tờ.</li>
               <li>Chỉ có việc phù hợp: phục vụ, pha chế, thu ngân, dọn phòng, lễ tân, phụ bếp nhẹ, hỗ trợ sự kiện.</li>
               <li>Dưới 18 tuổi: chỉ ca kết thúc trước 22:00, tối đa 8 giờ, có phụ huynh đồng ý.</li>
@@ -126,7 +126,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           </div>
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-ink">Dành cho chủ quán</h2>
-            <ul className="list-disc space-y-2 pl-6 text-base text-ink marker:text-shutter">
+            <ul className="list-disc space-y-2 pl-6 text-base text-ink marker:text-brand">
               <li>Đăng ca trong 1 phút. Mỗi ca có người chính và người dự phòng.</li>
               <li>Người làm đã được nhóm vận hành duyệt.</li>
               <li>Sau ca chỉ cần bấm link xác nhận, không cần đăng nhập.</li>
@@ -135,7 +135,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </div>
       </section>
 
-      <section className="bg-wall">
+      <section className="bg-accent">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between lg:px-8">
           <p className="text-lg font-semibold text-ink">Đây là bản mô phỏng, chỉ có dữ liệu mẫu.</p>
           <div className="sm:w-64">

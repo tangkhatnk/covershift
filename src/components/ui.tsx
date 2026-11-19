@@ -10,33 +10,40 @@ import {
 } from '@/lib/format';
 import type { Shift } from '@/lib/types';
 
-// Thành phần giao diện dùng chung ("Phố cửa chớp"). Chữ to, nút cao tối thiểu 3rem cho người lớn tuổi.
+// Thành phần giao diện dùng chung ("Biển & Nắng"). Chữ to, nút cao tối thiểu 3rem cho người lớn tuổi.
 // Khoảng cách luôn là bội của 0.5rem. Không đổ bóng, không viền trái màu.
 
 export type BtnVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
 const BTN: Record<BtnVariant, string> = {
-  primary: 'bg-shutter text-white hover:bg-shutter-deep active:bg-shutter-deep',
-  secondary: 'border-2 border-shutter bg-white text-shutter hover:bg-shutter-tint',
-  danger: 'bg-roof text-white hover:brightness-90',
-  ghost: 'text-shutter underline underline-offset-4 hover:bg-shutter-tint',
+  primary: 'bg-brand text-white hover:bg-brand-deep active:bg-brand-deep',
+  secondary: 'border-2 border-brand bg-white text-brand hover:bg-brand-tint',
+  danger: 'bg-danger text-white hover:brightness-90',
+  ghost: 'text-brand underline underline-offset-4 hover:bg-brand-tint',
 };
 /** className cho nút / link dạng nút. `full` = rộng hết khung (mặc định). */
 export function btn(variant: BtnVariant = 'primary', full = true) {
-  return `inline-flex min-h-[3rem] items-center justify-center gap-2 rounded-ui px-6 py-2 text-lg font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+  // Nhấn nút co nhẹ 0.97 trong 120ms (bỏ khi giảm chuyển động hoặc nút bị khóa); liệt kê thuộc tính, không `transition: all`.
+  return `inline-flex min-h-[3rem] items-center justify-center gap-2 rounded-ui px-6 py-2 text-lg font-semibold transition-[color,background-color,border-color,opacity,transform] duration-[120ms] motion-safe:active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 ${
     full ? 'w-full' : ''
   } ${BTN[variant]}`;
 }
 
 // Không đặt focus:outline-none: vòng focus 3px toàn cục (globals.css) phải hiện thật.
 export const inputCls =
-  'block w-full min-h-[3rem] rounded-ui border-2 border-rule-strong bg-white px-4 py-2 text-lg text-ink placeholder:text-ink-soft/80 focus:border-shutter';
+  'block w-full min-h-[3rem] rounded-ui border-2 border-rule-strong bg-white px-4 py-2 text-lg text-ink placeholder:text-ink-soft/80 focus:border-brand';
 
-/** Băng tiêu đề trang: tường vàng, một việc chính của trang nằm ngay dưới. */
+/**
+ * Tiêu đề trang: nền vàng nhạt, dải nắng đặc (`h-1`) ở mép trên làm điểm nhấn; một việc chính của trang nằm ngay dưới.
+ * Chiều cao là bội ổn định theo số dòng chữ phụ; `SKELETON_TITLE` bên dưới khớp với nó (CLS 0).
+ */
 export function PageTitle({ children, sub }: { children: ReactNode; sub?: ReactNode }) {
   return (
-    <div className="mb-6 rounded-ui bg-wall px-4 py-4">
-      <h1 className="text-2xl font-bold leading-tight text-ink">{children}</h1>
-      {sub ? <p className="mt-2 text-base text-shutter-deep">{sub}</p> : null}
+    <div className="mb-6 overflow-hidden rounded-ui bg-accent-tint">
+      <div className="h-1 bg-accent" aria-hidden="true" />
+      <div className="px-4 py-4">
+        <h1 className="text-2xl font-bold leading-tight text-ink">{children}</h1>
+        {sub ? <p className="mt-2 text-base text-ink-soft">{sub}</p> : null}
+      </div>
     </div>
   );
 }
@@ -49,7 +56,7 @@ export function Card({ children, className = '', tab }: { children: ReactNode; c
   if (tab) {
     return (
       <section className={`overflow-hidden rounded-ui border border-rule bg-white ${className}`}>
-        <div className="flex flex-wrap items-center gap-2 border-b border-rule bg-wall-tint px-4 py-2">{tab}</div>
+        <div className="flex flex-wrap items-center gap-2 border-b border-rule bg-accent-tint px-4 py-2">{tab}</div>
         <div className="p-4">{children}</div>
       </section>
     );
@@ -57,7 +64,8 @@ export function Card({ children, className = '', tab }: { children: ReactNode; c
   return <section className={`rounded-ui border border-rule bg-white p-4 ${className}`}>{children}</section>;
 }
 
-const SKELETON_TITLE = ['h-[3.875rem]', 'h-[5.875rem]', 'h-[7.5rem] lg:h-24'] as const; // 0, 1, 2 dòng chữ phụ (khớp `PageTitle`)
+// 0, 1, 2 dòng chữ phụ (khớp `PageTitle`, đo ở 360–1440px: 74,25 / 110,25 / 137,25px; 2 dòng chỉ ở điện thoại)
+const SKELETON_TITLE = ['h-[4.125rem]', 'h-[6.125rem]', 'h-[7.625rem] lg:h-[6.125rem]'] as const;
 
 /**
  * Khung chờ cho `loading.tsx`. Mỗi khối có chiều cao xấp xỉ khối thật cùng vị trí (đo theo `PageTitle`, bộ lọc,
@@ -83,9 +91,9 @@ export function PageSkeleton({ gap = 4, lead, sub = 1, action = false, form = fa
     <div role="status" aria-busy="true" className="min-h-dvh">
       <span className="sr-only">Đang tải…</span>
       <div aria-hidden="true" className={`${gap === 6 ? 'space-y-6' : 'space-y-4'} motion-safe:animate-pulse`}>
-        {lead ? <div className={`rounded-ui bg-chalk ${lead === 'back' ? 'h-12 w-40' : 'h-14 lg:h-12'}`} /> : null}
-        <div className={`mb-6 rounded-ui bg-wall-tint ${SKELETON_TITLE[sub]}`} />
-        {action ? <div className="h-[3.75rem] w-full rounded-ui bg-shutter-tint sm:w-56" /> : null}
+        {lead ? <div className={`rounded-ui bg-chalk ${lead === 'back' ? 'h-12 w-40' : 'h-14'}`} /> : null}
+        <div className={`mb-6 rounded-ui bg-accent-tint ${SKELETON_TITLE[sub]}`} />
+        {action ? <div className="h-[3.75rem] w-full rounded-ui bg-brand-tint sm:w-56" /> : null}
         {form ? <div className="h-[17rem] rounded-ui border border-rule bg-white lg:h-28" /> : null}
         {map ? <div className="h-72 rounded-ui border border-rule bg-chalk lg:h-96" /> : null}
         {side ? (
@@ -101,11 +109,11 @@ export function PageSkeleton({ gap = 4, lead, sub = 1, action = false, form = fa
 
 export type Tone = 'green' | 'amber' | 'red' | 'gray' | 'blue';
 const TONE: Record<Tone, string> = {
-  green: 'bg-shutter-tint text-shutter-deep',
-  amber: 'bg-wall-tint text-ink',
-  red: 'bg-roof-tint text-roof',
+  green: 'bg-ok-tint text-ok',
+  amber: 'bg-accent-tint text-ink',
+  red: 'bg-danger-tint text-danger',
   gray: 'border border-rule bg-chalk text-ink-soft',
-  blue: 'bg-sea-tint text-sea',
+  blue: 'bg-info-tint text-info',
 };
 export function Badge({ tone = 'gray', icon, children }: { tone?: Tone; icon?: ReactNode; children: ReactNode }) {
   return (
@@ -137,11 +145,11 @@ export function StateBadge({ state }: { state: ShiftState }) {
 }
 
 const ALERT: Record<Tone, { box: string; icon: string; Icon: LucideIcon }> = {
-  green: { box: 'border-shutter bg-shutter-tint', icon: 'text-shutter', Icon: CircleCheck },
-  amber: { box: 'border-wall bg-wall-tint', icon: 'text-ink', Icon: TriangleAlert },
-  red: { box: 'border-roof bg-roof-tint', icon: 'text-roof', Icon: OctagonAlert },
+  green: { box: 'border-ok bg-ok-tint', icon: 'text-ok', Icon: CircleCheck },
+  amber: { box: 'border-accent bg-accent-tint', icon: 'text-ink', Icon: TriangleAlert },
+  red: { box: 'border-danger bg-danger-tint', icon: 'text-danger', Icon: OctagonAlert },
   gray: { box: 'border-rule-strong bg-white', icon: 'text-ink-soft', Icon: Info },
-  blue: { box: 'border-sea bg-sea-tint', icon: 'text-sea', Icon: Info },
+  blue: { box: 'border-info bg-info-tint', icon: 'text-info', Icon: Info },
 };
 /** Thông báo: nền nhạt + viền 1px + icon + chữ. Lỗi (tông đỏ) là `role="alert"`, còn lại `role="status"`. */
 export function Alert({ tone = 'blue', role, ref, className = '', children }: {
@@ -173,9 +181,9 @@ export function Check({ name, value, defaultChecked, required, children }: {
   name: string; value?: string; defaultChecked?: boolean; required?: boolean; children: ReactNode;
 }) {
   return (
-    <label className="flex cursor-pointer items-start gap-4 rounded-ui border-2 border-rule-strong bg-white p-4 text-base has-[:checked]:border-shutter has-[:checked]:bg-shutter-tint">
+    <label className="flex cursor-pointer items-start gap-4 rounded-ui border-2 border-rule-strong bg-white p-4 text-base has-[:checked]:border-brand has-[:checked]:bg-brand-tint">
       <input type="checkbox" name={name} value={value ?? 'on'} defaultChecked={defaultChecked} required={required}
-        className="h-6 w-6 shrink-0 accent-shutter" />
+        className="h-6 w-6 shrink-0 accent-brand" />
       <span>{children}</span>
     </label>
   );
@@ -192,12 +200,12 @@ export function Empty({ children }: { children: ReactNode }) {
 export function Tel({ phone, block = false }: { phone: string | null | undefined; block?: boolean }) {
   if (!phone) return <span className="text-ink-soft">(chưa có số)</span>;
   return block ? (
-    <a href={`tel:${phone}`} className="inline-flex min-h-[3rem] items-center gap-2 font-semibold text-shutter underline underline-offset-4">
+    <a href={`tel:${phone}`} className="inline-flex min-h-[3rem] items-center gap-2 font-semibold text-brand underline underline-offset-4">
       <Phone className="h-5 w-5 shrink-0" aria-hidden="true" />
       {phone}
     </a>
   ) : (
-    <a href={`tel:${phone}`} className="py-2 font-semibold text-shutter underline underline-offset-4">{phone}</a>
+    <a href={`tel:${phone}`} className="py-2 font-semibold text-brand underline underline-offset-4">{phone}</a>
   );
 }
 
@@ -210,7 +218,7 @@ export function DemoPhoneNote() {
 export function Disclosure({ summary, defaultOpen, children }: { summary: ReactNode; defaultOpen?: boolean; children: ReactNode }) {
   return (
     <details className="group" open={defaultOpen}>
-      <summary className="flex min-h-[3rem] cursor-pointer items-center justify-between gap-2 rounded-ui px-2 text-base font-semibold text-shutter hover:bg-shutter-tint">
+      <summary className="flex min-h-[3rem] cursor-pointer items-center justify-between gap-2 rounded-ui px-2 text-base font-semibold text-brand hover:bg-brand-tint">
         {summary}
         <ChevronDown className="h-5 w-5 shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
       </summary>
@@ -226,7 +234,7 @@ export function Stars({ value }: { value: number | null | undefined }) {
     <span role="img" aria-label={`${value} trên 5 sao`} className="inline-flex items-center">
       {[1, 2, 3, 4, 5].map((i) => (
         <Star key={i} aria-hidden="true"
-          className={`h-5 w-5 ${i <= n ? 'fill-wall stroke-shutter-deep' : 'fill-none stroke-rule-strong'}`} />
+          className={`h-5 w-5 ${i <= n ? 'fill-accent stroke-brand-deep' : 'fill-none stroke-rule-strong'}`} />
       ))}
     </span>
   );
@@ -238,7 +246,7 @@ function Slot({ taken, backup }: { taken: boolean; backup?: boolean }) {
   return (
     <svg viewBox="0 0 24 32" className="h-10 w-8 shrink-0" aria-hidden="true">
       <rect x="1" y="1" width="22" height="30" rx="2"
-        className={taken ? 'fill-shutter stroke-shutter-deep' : 'fill-white stroke-rule-strong'}
+        className={taken ? 'fill-brand stroke-brand-deep' : 'fill-white stroke-rule-strong'}
         strokeWidth="2" strokeDasharray={backup && !taken ? '4 3' : undefined} />
       {taken
         ? [8, 14, 20, 26].map((y) => <line key={y} x1="4" x2="20" y1={y} y2={y} className="stroke-white" strokeWidth="2" />)
@@ -277,8 +285,8 @@ export function ShiftCard({ shift, href, extra, showState = false, now }: { shif
   const upcoming = state === 'open' || state === 'filled';
   const urgent = shift.urgent && upcoming;
   const body = (
-    <article className={`overflow-hidden rounded-ui border bg-white ${urgent ? 'border-roof' : 'border-rule'} ${href ? 'hover:border-shutter' : ''}`}>
-      <div className="flex flex-wrap items-center gap-2 border-b border-rule bg-wall-tint px-4 py-2">
+    <article className={`overflow-hidden rounded-ui border bg-white ${urgent ? 'border-danger' : 'border-rule'} ${href ? 'hover:border-brand' : ''} transition-colors`}>
+      <div className="flex flex-wrap items-center gap-2 border-b border-rule bg-accent-tint px-4 py-2">
         {urgent ? <Badge tone="red">GẤP</Badge> : null}
         <span className="text-base font-bold text-ink">{JOB_LABEL[shift.job_type]}</span>
         {shift.allow_minor ? <Badge tone="green">Nhận dưới 18 tuổi</Badge> : null}
@@ -292,7 +300,7 @@ export function ShiftCard({ shift, href, extra, showState = false, now }: { shif
           </p>
         </div>
         <p className="text-base text-ink">{shift.facility_name} · {AREA_LABEL[shift.area]}</p>
-        <p className="text-lg font-semibold text-shutter">
+        <p className="text-lg font-semibold text-brand">
           {fmtMoney(shift.hourly_wage)}/giờ <span className="font-normal text-ink-soft">· {hoursBetween(shift.starts_at, shift.ends_at)} giờ</span>
         </p>
         {upcoming ? <SlotStrip headcount={shift.headcount} primary={shift.primary_count} backup={shift.backup_count} /> : null}
@@ -314,7 +322,7 @@ export function Doc({ title, sub, toc, notice, children }: {
     <ol className="space-y-2 text-base">
       {toc.map((t, i) => (
         <li key={t.id}>
-          <a href={`#${t.id}`} className="flex min-h-[3rem] items-center rounded px-2 text-ink-soft hover:bg-wall-tint hover:text-ink">{i + 1}. {t.label}</a>
+          <a href={`#${t.id}`} className="flex min-h-[3rem] items-center rounded px-2 text-ink-soft hover:bg-accent-tint hover:text-ink">{i + 1}. {t.label}</a>
         </li>
       ))}
     </ol>
@@ -350,5 +358,5 @@ export function DocSection({ id, n, title, children }: { id: string; n: number; 
 }
 
 export const DocList = ({ children }: { children: ReactNode }) => (
-  <ul className="list-disc space-y-2 pl-6 marker:text-shutter">{children}</ul>
+  <ul className="list-disc space-y-2 pl-6 marker:text-brand">{children}</ul>
 );
