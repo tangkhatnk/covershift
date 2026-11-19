@@ -335,3 +335,97 @@ export async function setConfig(_: ActionState, fd: FormData): Promise<ActionSta
     ok: 'Đã lưu cấu hình.', revalidate: ['/admin/kpi'],
   });
 }
+
+// ---------------------------------------------------------------- tuyển dụng lâu dài (migration 0003)
+// Việc đọc (feed_job_posts, job_post_detail, my_applications, employer_job_posts, job_applicants, get_job_contacts) do
+// trang Server Component gọi supabase.rpc trực tiếp, không cần action.
+
+const jobPaths = (jobId: string) => [
+  '/jobs', '/my-applications', '/employer/jobs', '/admin',
+  ...(jobId ? [`/jobs/${jobId}`, `/employer/jobs/${jobId}`] : []),
+];
+
+/** Form: title, job_type, employment, wage_type, wage_min, wage_max, hours_per_week, schedule_note, description, openings, days, commit */
+export async function createJobPost(_: ActionState, fd: FormData): Promise<ActionState> {
+  return call('create_job_post', {
+    p_title: strOrNull(fd, 'title'),
+    p_job: strOrNull(fd, 'job_type'),
+    p_employment: strOrNull(fd, 'employment'),
+    p_wage_type: strOrNull(fd, 'wage_type'),
+    p_wage_min: intOrNull(fd, 'wage_min'),
+    p_wage_max: intOrNull(fd, 'wage_max'),
+    p_hours: intOrNull(fd, 'hours_per_week'),
+    p_schedule: strOrNull(fd, 'schedule_note'),
+    p_description: strOrNull(fd, 'description'),
+    p_openings: intOrNull(fd, 'openings') ?? 1,
+    p_days: intOrNull(fd, 'days') ?? 30,
+    p_commit: bool(fd, 'commit'),
+  }, { ok: 'Đã đăng tin tuyển dụng.', revalidate: jobPaths('') });
+}
+
+/** Form: job_id. Chủ quán đóng tin của cơ sở mình. */
+export async function closeJobPost(_: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, 'job_id');
+  return call('close_job_post', { p_job: id }, { ok: 'Đã đóng tin tuyển dụng.', revalidate: jobPaths(id) });
+}
+
+/** Form: job_id, note (lời nhắn, tùy chọn). Người làm nộp đơn. */
+export async function applyJob(_: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, 'job_id');
+  return call('apply_job', { p_job: id, p_note: strOrNull(fd, 'note') }, {
+    ok: 'Đã gửi đơn ứng tuyển. Bạn sẽ nhận thông báo khi quán phản hồi.', revalidate: jobPaths(id),
+  });
+}
+
+/** Form: application_id, job_id (chỉ để tải lại trang tin, tùy chọn). Người làm rút đơn của mình. */
+export async function withdrawApplication(_: ActionState, fd: FormData): Promise<ActionState> {
+  return call('withdraw_application', { p_application: str(fd, 'application_id') }, {
+    ok: 'Đã rút đơn ứng tuyển.', revalidate: jobPaths(str(fd, 'job_id')),
+  });
+}
+
+/** Form: application_id, status (shortlisted | rejected | hired), job_id (chỉ để tải lại trang tin, tùy chọn). Chủ quán xử lý đơn. */
+export async function setApplicationStatus(_: ActionState, fd: FormData): Promise<ActionState> {
+  const status = str(fd, 'status');
+  return call('set_application_status', { p_application: str(fd, 'application_id'), p_status: status }, {
+    ok: status === 'hired' ? 'Đã nhận người này.'
+      : status === 'shortlisted' ? 'Đã chọn người này vào vòng tiếp theo.'
+      : 'Đã đánh dấu chưa phù hợp.',
+    revalidate: jobPaths(str(fd, 'job_id')),
+  });
+}
+
+/** Form: job_id, reason. Nhóm vận hành đóng tin. */
+export async function adminCloseJobPost(_: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, 'job_id');
+  return call('admin_close_job_post', { p_job: id, p_reason: strOrNull(fd, 'reason') }, {
+    ok: 'Đã đóng tin tuyển dụng.', revalidate: jobPaths(id),
+  });
+}
+
+// ---------------------------------------------------------------- thông báo và đánh giá quán (migration 0004)
+// Việc đọc (my_notifications, get_public_facility, get_public_shift, admin_list_facility_reviews) do trang gọi trực tiếp.
+
+/** Form: id (lặp lại cho từng thông báo; bỏ trống = đánh dấu đã đọc tất cả). */
+export async function markNotificationsRead(_: ActionState, fd: FormData): Promise<ActionState> {
+  const ids = fd.getAll('id').map(String).filter(Boolean);
+  return call('mark_notifications_read', { p_ids: ids.length ? ids : null }, {
+    ok: 'Đã đánh dấu đã đọc.', revalidate: ['/notifications'],
+  });
+}
+
+/** Form: shift_id, stars (1–5), comment (tùy chọn). Người làm đánh giá quán sau ca đã xác nhận. */
+export async function createFacilityReview(_: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, 'shift_id');
+  return call('create_facility_review', { p_shift: id, p_stars: intOrNull(fd, 'stars'), p_comment: strOrNull(fd, 'comment') }, {
+    ok: 'Đã gửi đánh giá. Cảm ơn bạn.', revalidate: ['/my-shifts', `/shifts/${id}`],
+  });
+}
+
+/** Form: id, hidden ("true" | "false"), reason. Nhóm vận hành ẩn hoặc hiện đánh giá quán. */
+export async function adminHideFacilityReview(_: ActionState, fd: FormData): Promise<ActionState> {
+  const hidden = str(fd, 'hidden') === 'true';
+  return call('admin_hide_facility_review', { p_id: str(fd, 'id'), p_hidden: hidden, p_reason: strOrNull(fd, 'reason') }, {
+    ok: hidden ? 'Đã ẩn đánh giá.' : 'Đã hiện lại đánh giá.', revalidate: ['/admin'],
+  });
+}

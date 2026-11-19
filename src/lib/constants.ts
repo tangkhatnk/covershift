@@ -47,6 +47,13 @@ export const AVAILABILITY_LABEL = {
   cuoi_tuan_toi: 'Cuối tuần – tối',
 } as const;
 
+export const EMPLOYMENT_LABEL = { full_time: 'Toàn thời gian', part_time: 'Bán thời gian' } as const;
+export const WAGE_TYPE_LABEL = { monthly: 'Theo tháng', hourly: 'Theo giờ' } as const;
+export const JOB_POST_STATUS_LABEL = { open: 'Đang tuyển', closed: 'Đã đóng' } as const;
+// Gợi ý cho ô nhập, không phải căn cứ chặn: database mới là nơi chặn (job_posts_hours, _expires).
+export const JOB_POST_MAX_DAYS = 30;
+export const JOB_HOURS_MAX = 48;
+
 export const PAYMENT_LABEL = { full: 'Đủ', partial: 'Chưa đủ', unpaid: 'Chưa nhận' } as const;
 export type PaymentAnswer = keyof typeof PAYMENT_LABEL;
 
