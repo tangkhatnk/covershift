@@ -23,6 +23,7 @@ Implementation, test, debug hoặc verification, đúng như brief. Brief cũng 
 - Ghi dữ liệu chỉ qua server action trong `src/app/actions.ts`; quy tắc nghiệp vụ nằm ở database, giao diện không tự kiểm thay.
 - Dùng thành phần có sẵn trong `src/components/` trước khi tạo mới. Không thêm thư viện, không nâng phiên bản.
 - Không tắt, bỏ qua hay nới test để cho qua. Không bịa kết quả; không khẳng định đã xem giao diện khi chưa mở trang thật.
+- Không chạy `db-test/apply-remote.mjs` hay mở kết nối tới Supabase thật, trừ khi brief ghi rõ và chủ dự án đã xác nhận qua hộp hỏi quyền (`AGENTS.md` mục 12). Không đọc hay in `SUPABASE_DB_URL`.
 - **Không** tạo nhánh, commit, push, mở PR, merge. Không gọi agent con. Git là việc của `execution-manager`.
 - Brief ghi "chỉ đọc": không sửa file nào, chỉ trả danh sách file cần sửa kèm lý do.
 

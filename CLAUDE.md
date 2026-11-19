@@ -28,7 +28,7 @@ Hiện trạng (quyết định 17/11/2026): app là **bản mô phỏng**, ch�
 - Mỗi thay đổi ở `supabase/` phải chạy lại `npm run test:db` (kỳ vọng `229/229`, `privileges_check: … 0 dòng SAI/KIỂM`, `tái chạy … ĐẠT`, 5 dòng `✔ chạy đua`, `dọn dữ liệu demo … ĐẠT`; hoặc nhiều test hơn nếu thêm test).
 - Mỗi thay đổi ở `src/` phải chạy `npx tsc --noEmit`; trước khi báo xong chạy thêm `next build` (lệnh ở mục Lệnh).
 - `tsc` và `build` sạch **không** có nghĩa là chạy đúng. Chưa mở trên trình duyệt thì nói rõ là chưa kiểm.
-- Migration `0001_init.sql` **đã áp lên Supabase thật ngày 17/11/2026** (lúc đó 85/85 test đạt trên Supabase; từ đó thêm test 11b nên là 86; migration `0002_toa_do_co_so.sql` thêm 18 test nhóm 12 nên là 104; migration `0003_viec_lam_dai_han.sql` (tuyển dụng lâu dài, chưa áp lên Supabase thật) thêm 125 test nhóm 13 nên nay là 229) → **KHÔNG sửa `0001`, `0002` nữa**. Mọi thay đổi schema là file migration mới (`0004_...sql` trở đi) kèm test, chủ dự án dán bằng SQL Editor, rồi chạy `supabase/tests/privileges_check.sql`.
+- Migration `0001_init.sql` **đã áp lên Supabase thật ngày 17/11/2026** (lúc đó 85/85 test đạt trên Supabase; từ đó thêm test 11b nên là 86; migration `0002_toa_do_co_so.sql` thêm 18 test nhóm 12 nên là 104; migration `0003_viec_lam_dai_han.sql` (tuyển dụng lâu dài, chưa áp lên Supabase thật) thêm 125 test nhóm 13 nên nay là 229) → **KHÔNG sửa `0001`, `0002` nữa**. Mọi thay đổi schema là file migration mới (`0004_...sql` trở đi) kèm test; chủ dự án áp bằng SQL Editor hoặc `node db-test/apply-remote.mjs <file>` (theo chỉ thị 19/11/2026; agent chỉ được chạy script này khi chủ dự án xác nhận qua hộp hỏi quyền, xem `AGENTS.md` mục 12), rồi chạy `supabase/tests/privileges_check.sql`.
 - Thông báo lỗi nghiệp vụ là tiếng Việt trong `raise exception`; `edge_cases.sql` khớp theo chuỗi này → sửa câu chữ thì sửa cả test.
 - Test SQL: hành động và kiểm tra phải là hai câu lệnh riêng (`pg_temp.t_do`), vì một câu không thấy dữ liệu hàm volatile vừa ghi.
 - Server chạy UTC: mọi hiển thị giờ đi qua `src/lib/format.ts`.
@@ -50,7 +50,7 @@ npm run dev                     # cần .env.local trỏ tới Supabase thật
 ## Bản đồ nhanh
 - `supabase/migrations/0001_init.sql`, `0002_toa_do_co_so.sql`, `0003_viec_lam_dai_han.sql` — nguồn sự thật của mọi quy tắc
 - `supabase/seed.sql` · `supabase/tests/edge_cases.sql` · `db-test/`
-- `supabase/tests/check_before_migration.sql` (trước migration) · `supabase/tests/privileges_check.sql` (sau migration) — chỉ đọc, dán vào SQL Editor
+- `supabase/tests/check_before_migration.sql` (trước migration) · `supabase/tests/privileges_check.sql` (sau migration) — chỉ đọc, dán vào SQL Editor (`privileges_check.sql` cũng chạy được bằng `db-test/apply-remote.mjs`)
 - `supabase/xoa_du_lieu_demo.sql` — xóa dữ liệu demo theo đúng thứ tự. **Không chạy** khi app còn là bản mô phỏng: xóa user demo thì nút đăng nhập hỏng (khôi phục bằng chạy lại `seed.sql`). Không xóa user demo hàng loạt bằng tay: lỗi khóa ngoại 23503
 - `src/app/actions.ts` — mọi server action (1 action = 1 RPC; ngoại lệ duy nhất là `demoLogin`)
 - `src/lib/{constants,types,format,auth}.ts` · `src/components/{ui,client}.tsx` · `tailwind.config.ts` (bảng màu, font) · `PRODUCT.md` (hướng giao diện) · `DESIGN.md` (hệ hình ảnh đang chạy) · `src/app/icon.svg` (biểu tượng trình duyệt); quy tắc bắt buộc ở `AGENTS.md` mục 18–23

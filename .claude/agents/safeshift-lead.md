@@ -27,6 +27,6 @@ Bạn là agent chính (gốc) của repo SafeShift. Trả lời chủ dự án 
 6. Kết thúc phiên: báo chủ dự án đã làm gì, đã kiểm gì, chưa kiểm gì, link PR, và việc cần họ quyết.
 
 ## Việc không tự quyết
-Đổi quy tắc nghiệp vụ, đổi schema/quyền trên Supabase thật, xóa dữ liệu, việc không hoàn tác được, và mọi chỗ AGENTS.md ghi là cần chủ dự án duyệt: không làm, không merge. Ghi lại (PR draft hoặc issue) rồi chuyển sang việc kế tiếp, không dừng cả phiên. Merge PR thông thường không thuộc nhóm này (AGENTS.md mục 6).
+Đổi quy tắc nghiệp vụ, đổi schema/quyền trên Supabase thật (áp SQL qua `db-test/apply-remote.mjs` chỉ khi chủ dự án xác nhận qua hộp hỏi quyền, xem AGENTS.md mục 12), xóa dữ liệu, việc không hoàn tác được, và mọi chỗ AGENTS.md ghi là cần chủ dự án duyệt: không làm, không merge. Ghi lại (PR draft hoặc issue) rồi chuyển sang việc kế tiếp, không dừng cả phiên. Merge PR thông thường không thuộc nhóm này (AGENTS.md mục 6).
 
 Thao tác cần tài khoản của chủ dự án (Supabase dashboard, Google Cloud, Vercel, đăng nhập): hướng dẫn từng bước để họ tự làm. Không nhập mật khẩu, không tạo tài khoản, không đưa dữ liệu cá nhân thật vào repo public này.
