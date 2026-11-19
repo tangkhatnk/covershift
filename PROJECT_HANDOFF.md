@@ -200,11 +200,23 @@ Chỉ thị: thêm "tuyển dụng lâu dài" (tin + đơn ứng tuyển) và ch
 | # | Quyết định | Hệ quả |
 |---|---|---|
 | P1 | Chủ dự án cho dùng **tên, địa chỉ và hotline công khai** của 9 quán thật ở Vũng Tàu (SOHO Coffee, Phê La Vũng Tàu, OASIS SEA Coffee & Tea, An Coffee Bean, KATINAT, Quán Ốc Thiên Nhiên 2, Bọt, Phuc Long Coffee & Tea, Texas Chicken) trong `seed.sql`, thay "Quán Demo 1–5" | 9 cơ sở, 9 chủ quán demo (`quan1–9@`; chủ `quan6–9@` mới), seed tạo 20 user demo. 5 cơ sở cũ giữ id và trạng thái (số 4 bị test 10j gỡ, số 5 chờ xác minh) |
-| P2 | Hotline nằm ở `private_contacts.phone` của chủ quán tương ứng; SĐT người làm và phụ huynh vẫn là số giả `0900000…` | 6 quán có hotline qua được `^0[0-9]{9}$`; Phê La (8 chữ số), Phuc Long và Texas Chicken (11 chữ số) dùng số giả vì ràng buộc của `0001`. Muốn hiện đủ 9 hotline cần migration mới nới ràng buộc (chưa làm) |
+| P2 | Hotline nằm ở `private_contacts.phone` của chủ quán tương ứng; SĐT người làm và phụ huynh vẫn là số giả `0900000…` | Cả 9 quán có hotline thật. Phê La (8 chữ số), Phuc Long và Texas Chicken (11 chữ số) chỉ qua được ràng buộc đã nới ở `0004` (`0001` chỉ nhận đúng 10 số): **seed này cần `0004` đã áp** trước khi chạy |
 | P3 | Hotline hiện cho người làm qua `get_shift_contacts()` | Giao diện cần dòng nhắc "Dữ liệu mô phỏng. Không gọi số này để hỏi về ca." (làm ở PR sau, chưa có) |
 | P4 | Tọa độ ghim lấy từ OpenStreetMap, gần đúng (chỉ quán OASIS SEA ra đúng số nhà); `area` gán theo khu gần nhất trong enum | Chủ quán hoặc nhóm vận hành sửa ghim bằng `set_facility_location` |
 
 Việc sau khi merge: chạy lại `seed.sql` trên Supabase thật (không trong 21–22/11).
+
+### Giả định mới, chưa xác nhận, theo chỉ thị chủ dự án 19/11/2026 (thông báo, trang quán công khai, đánh giá quán, chia sẻ ca; migration `0004`)
+Chỉ thị: "khỏi giới hạn, cứ làm hết mình"; chủ dự án đã duyệt hai RPC công khai `anon` mới và việc nới SĐT chủ quán. Các điểm dưới do agent tự chốt:
+| # | Giả định | Ghi chú |
+|---|---|---|
+| I1 | **Hai RPC công khai mới** `get_public_facility`, `get_public_shift` (nay có bảy RPC `anon`); lỗi chung cho mọi trường hợp không đủ điều kiện | Chủ dự án đã duyệt; `AGENTS.md` mục 11, 13 |
+| I2 | Trang quán công khai chỉ có điểm trung bình và số lượt đánh giá, **không có nhận xét**, không có tên/SĐT chủ quán | Để không lộ danh tính người làm; muốn hiện nhận xét là quyết định riêng |
+| I3 | Đánh giá quán: chỉ người được chủ quán xác nhận "đã làm", mỗi ca một lần, không sửa, không giới hạn thời gian sau ca; nhóm vận hành ẩn/hiện | Chưa có hạn (vd. 30 ngày) và chưa cho chủ quán xem nhận xét |
+| I4 | Mô tả ca (≤ 500 ký tự, do chủ quán gõ) hiện công khai ở `get_public_shift`; chủ quán có thể tự ghi SĐT vào đó | Cần nhắc ở form đăng ca; DB không lọc được |
+| I5 | Thông báo: sinh bằng trigger (6 loại), không có hạn lưu, người dự phòng bị đổi xuống không được báo, người làm tự rút đơn không báo chủ quán; seed không sinh thông báo tự động (chế độ `_bypass`) | Có thể thêm sau |
+| I6 | SĐT: cột `private_contacts.phone` nới chung (`0` + 9–10 số, hoặc `1800`/`1900` + 4–6 số); người làm và phụ huynh vẫn 10 số | Quán thật nhập hotline; mọi SĐT cũ vẫn hợp lệ |
+| I7 | Mã công khai của quán ngẫu nhiên 12 ký tự hex, đổi không có RPC (chủ quán chưa tự đổi/thu hồi mã được) | Lộ mã thì chỉ lộ thông tin đã công khai, nhưng chưa có cách thu hồi |
 
 ### Giả định chưa được kiểm chứng [CHƯA KIỂM]
 - Migration chạy được trên **Supabase thật**. Mới chỉ chạy trên Postgres 18 nhúng với schema `auth` giả lập. Điểm rủi ro cụ thể:
@@ -345,7 +357,8 @@ Chức năng: đăng ca / nhân bản / đổi thứ tự chính–dự phòng �
 - Giao diện đã làm lại theo hướng "Phố cửa chớp" (`PRODUCT.md`, `DESIGN.md`): PR #10 (khung trang, thành phần, trang công khai), #12 (người làm, hồ sơ ca làm, phiếu phụ huynh), #13 (chủ quán, xác nhận sau ca, nhóm vận hành), #14 (bản đồ ca và cơ sở, ghim vị trí quán; cần migration 0002, đã áp) và PR hoàn thiện (dọn lớp màu cũ và bí danh `brand`, link trong đoạn văn, biểu tượng trình duyệt `src/app/icon.svg`, thẻ vị trí quán ở `/quan` thu gọn).
 - Bản đồ: MapLibre + OpenFreeMap (`src/components/map.tsx`): `/` (minh họa, dữ liệu mẫu), `/ca`, `/ca/[id]`, `/quan` (ghim vị trí), `/admin`, `/admin/co-so`. Kịch bản kiểm tay: `TESTING.md` B11.
 
-- Migration `0003_viec_lam_dai_han.sql` (tin tuyển dụng lâu dài, đơn ứng tuyển) viết xong kèm 125 test (nay 230/230 trên Postgres nhúng), **chưa áp lên Supabase thật**. Chủ dự án cần: dán `0003` bằng SQL Editor → chạy `privileges_check.sql` → chạy lại `seed.sql`. Giao diện cho tính năng này chưa có; mã web gọi RPC mới chỉ merge sau khi `0003` đã áp (`AGENTS.md` mục 6, cổng 5).
+- Migration `0004_thong_bao_quan_cong_khai.sql` (thông báo, trang quán công khai, đánh giá quán, chia sẻ ca, nới SĐT chủ quán) viết xong kèm 128 test (nay 358/358 trên Postgres nhúng), **chưa áp lên Supabase thật**. Chủ dự án cần: dán `0004` bằng SQL Editor (sau `0003`) → chạy `privileges_check.sql` → chạy lại `seed.sql`. Giao diện cho các tính năng này chưa có; mã web gọi RPC mới chỉ merge sau khi `0004` đã áp.
+- Migration `0003_viec_lam_dai_han.sql` (tin tuyển dụng lâu dài, đơn ứng tuyển) viết xong kèm 125 test, **chưa áp lên Supabase thật**. Chủ dự án cần: dán `0003` bằng SQL Editor → chạy `privileges_check.sql` → chạy lại `seed.sql`. Giao diện cho tính năng này chưa có; mã web gọi RPC mới chỉ merge sau khi `0003` đã áp (`AGENTS.md` mục 6, cổng 5).
 
 ### Còn lại, theo thứ tự
 1. ~~Chạy lại `supabase/seed.sql` trên Supabase thật~~ — đã xong (18/11). Còn lại: thử bấm 3 nút ở `/dang-nhap` trên bản deploy.

@@ -59,7 +59,7 @@ Dùng ranh giới sở hữu sẵn có trước khi tạo ranh giới mới. Đ�
 
 - `supabase/migrations/`
   - schema, trigger, constraint, RLS, RPC;
-  - hiện có `0001_init.sql` (đã áp lên Supabase thật ngày 17/11/2026), `0002_toa_do_co_so.sql` (cột `lat`/`lng` của cơ sở, đã áp ngày 18/11/2026) và `0003_viec_lam_dai_han.sql` (tuyển dụng lâu dài, **chưa áp** lên Supabase thật): `0001` và `0002` không sửa nữa; thay đổi mới là file migration mới (`0004_...sql`).
+  - hiện có `0001_init.sql` (đã áp lên Supabase thật ngày 17/11/2026), `0002_toa_do_co_so.sql` (cột `lat`/`lng` của cơ sở, đã áp ngày 18/11/2026) `0003_viec_lam_dai_han.sql` (tuyển dụng lâu dài) và `0004_thong_bao_quan_cong_khai.sql` (thông báo, trang quán công khai, đánh giá quán, chia sẻ ca, nới SĐT chủ quán), hai file sau **chưa áp** lên Supabase thật: `0001` và `0002` không sửa nữa; thay đổi mới là file migration mới (`0005_...sql`).
 - `supabase/seed.sql`
   - dữ liệu mẫu; phải chạy lại được nhiều lần.
 - `supabase/tests/`
@@ -468,7 +468,7 @@ grant execute on function public.ten_ham(...) to authenticated;
   - `_owns_facility`, `_owns_shift`, `_has_claim`, `_shift_open_for_me` và `is_admin()` được grant cho `authenticated` (không cho `anon`) vì dùng trong biểu thức RLS.
   - Không thêm ngoại lệ mới nếu không sửa cả `privileges_check.sql` và giải thích lý do.
   - `cfg_int`, `vn_date`, `age_on`, `make_admin` không cấp cho client. `generate_due_confirmation_tokens` chỉ cấp cho `service_role`.
-- RPC công khai (không cần đăng nhập) chỉ có năm hàm: `get_parental_consent`, `submit_parental_consent`, `get_confirmation`, `submit_confirmation`, `get_public_profile`. Bảng chỉ có `app_config` là `anon` đọc được. Không mở thêm.
+- RPC công khai (không cần đăng nhập) chỉ có bảy hàm: `get_parental_consent`, `submit_parental_consent`, `get_confirmation`, `submit_confirmation`, `get_public_profile`, và hai hàm chủ dự án đã duyệt ngày 19/11/2026 (migration 0004): `get_public_facility` (trang quán công khai, mở bằng mã ngẫu nhiên `facilities.public_slug`) và `get_public_shift` (chia sẻ một ca lên mạng xã hội). Cả hai bảo vệ bằng mã/id, trả cùng một lỗi cho mọi trường hợp không đủ điều kiện, và không có SĐT, tên chủ quán, danh sách người nhận (mục 13). Bảng chỉ có `app_config` là `anon` đọc được. Không mở thêm; `privileges_check.sql` khai bảy hàm này có chủ đích và vẫn bắt mọi hàm `anon` ngoài danh sách (`db-test/run.mjs` thử cấp rồi thu hồi một hàm để kiểm điều đó).
 - `_bypass()` chỉ trả `true` khi `app.seed_mode = 'on'` **và** `session_user` là `postgres` hoặc `supabase_admin`. Không nới điều kiện này, không dùng `_bypass()` trong RPC, không thêm đường bỏ qua trigger nào khác. Test 10f.
 - Thông báo lỗi nghiệp vụ là tiếng Việt, viết ngay trong `raise exception`, nói người dùng cần làm gì.
   - `friendlyError()` trong `src/lib/errors.ts` hiện nguyên văn lỗi mã `P0001` và `42501` (trừ `permission denied`). Các lỗi khác bị thay bằng câu chung.
@@ -487,12 +487,13 @@ grant execute on function public.ten_ham(...) to authenticated;
 - Một thay đổi schema gồm đủ các phần:
   - file migration;
   - test trong `supabase/tests/edge_cases.sql`;
-  - cập nhật `db-test/run.mjs`: file này chạy lần lượt từng migration (hiện `0001`, `0002`, `0003`) theo danh sách viết tay, nên migration mới không được kiểm nếu không thêm vào;
-  - cập nhật số test kỳ vọng ghi trong `CLAUDE.md`, `README.md`, `TESTING.md` (hiện là `104/104`).
+  - cập nhật `db-test/run.mjs`: file này chạy lần lượt từng migration (hiện `0001`–`0004`) theo danh sách viết tay, nên migration mới không được kiểm nếu không thêm vào;
+  - cập nhật số test kỳ vọng ghi trong `CLAUDE.md`, `README.md`, `TESTING.md` (hiện là `358/358`).
 - Chạy `npm run test:db` trước khi báo xong. Kỳ vọng như `CLAUDE.md`: tất cả test đạt, `privileges_check` không có dòng `SAI`/`KIỂM`, `tái chạy` đạt, 5 dòng `✔ chạy đua`, `dọn dữ liệu demo` đạt.
 - Chủ dự án dán migration vào Supabase SQL Editor, rồi chạy `supabase/tests/privileges_check.sql` trên project thật. Agent không tự chạy DDL hay ghi dữ liệu lên project Supabase thật, kể cả khi máy có kết nối MCP tới đó.
 - Không dùng đường tắt bỏ qua file migration: `supabase db push`, `supabase db reset`, sửa bảng bằng Table Editor, hay sinh schema bằng diff/pull rồi áp thẳng. Mọi thay đổi phải truy vết được trong `supabase/migrations/`.
 - `supabase/tests/check_before_migration.sql` chỉ dùng cho project mới, trước khi dán `0001`. Không dùng nó để kiểm thay đổi sau này.
+- `supabase/migrations/0004_thong_bao_quan_cong_khai.sql` (theo chỉ thị chủ dự án 19/11/2026) **chưa áp lên Supabase thật**. Chủ dự án phải: dán `0004` bằng SQL Editor (sau `0003`), chạy `supabase/tests/privileges_check.sql` (kỳ vọng 0 dòng `SAI`/`KIỂM`; hai hàm `get_public_facility`, `get_public_shift` phải ra "đúng (RPC công khai)"), rồi chạy lại `supabase/seed.sql` (seed mới có thông báo, đánh giá quán và mã trang quán cố định `demo-quan-1`…`demo-quan-5`). Mã web gọi RPC của `0004` chỉ merge sau khi bước đó xong (mục 6, cổng 5). Từ khi áp, `0004` cũng không sửa nữa.
 - `supabase/migrations/0003_viec_lam_dai_han.sql` (tuyển dụng lâu dài, theo chỉ thị chủ dự án 19/11/2026) **chưa áp lên Supabase thật**. Chủ dự án phải: dán `0003` bằng SQL Editor (sau `0001`, `0002`), chạy `supabase/tests/privileges_check.sql`, rồi chạy lại `supabase/seed.sql` (seed mới có tin và đơn mẫu, và khóa `min_monthly_wage`). Mã web gọi RPC của `0003` chỉ được merge sau khi bước đó xong (mục 6, cổng 5). Từ khi áp, `0003` cũng không sửa nữa.
 - Theo quyết định ngày 17/11/2026, app là bản mô phỏng: đợt 21–22/11 không dùng người thật, chỉ dữ liệu mẫu. Dù vậy quy tắc migration không đổi: không sửa `0001` và `0002`, thay đổi schema là file mới, và nếu sau này có dữ liệu thật thì giữ nguyên dữ liệu đó:
   - không xóa hay đổi nghĩa dữ liệu hiện có nếu task không yêu cầu;
@@ -510,6 +511,7 @@ grant execute on function public.ten_ham(...) to authenticated;
 Số điện thoại:
 
 - SĐT người làm và chủ quán chỉ lưu ở `private_contacts.phone`. Không thêm cột SĐT vào bảng khác.
+  - Dạng SĐT (migration 0004, chỉ thị chủ dự án 19/11/2026, để nhận hotline quán thật): cột nhận `0` + 9 hoặc 10 số (di động 10 số, số bàn 11 số) hoặc tổng đài `1800`/`1900` + 4–6 số (constraint `private_contacts_phone_check`, dùng chung cả hai vai trò). **Người làm vẫn đúng 10 số di động** (trigger `_private_contacts_guard` theo vai trò, chặn cả khi ghi thẳng bảng), SĐT phụ huynh vẫn đúng 10 số (`submit_parental_consent`). Test 14a–14s, 14db.
 - Giữa người làm và chủ quán, SĐT chỉ lộ qua `get_shift_contacts()`. Hàm này chỉ trả khi hai bên đang ghép ca (suất còn hiệu lực, hoặc chủ quán của ca), ca chưa hủy, và chưa quá 7 ngày sau giờ kết thúc ca. Test 7a, 7b, 7f, 7g, 8b.
 - Ngoại lệ có chủ đích, chỉ ba loại:
   - chính chủ đọc SĐT của mình (policy `private_contacts_read`);
@@ -529,6 +531,16 @@ Dữ liệu tối thiểu:
 - Không thu CCCD, ảnh chân dung, địa chỉ nhà. Không thêm trường, upload hay Storage cho các loại này.
 - Dữ liệu hiện có: họ tên, SĐT, ngày sinh, trường, lớp, khu vực, khung giờ rảnh (người làm); họ tên, SĐT, tên và địa chỉ cơ sở kinh doanh (chủ quán). Thêm loại dữ liệu cá nhân mới là thay đổi cần duyệt và cần cập nhật `/chinh-sach-du-lieu`.
 - Chủ quán không đọc được `worker_profiles` (ngày sinh, trường, lớp). Test 7d.
+
+Trang quán công khai và ca chia sẻ (migration 0004, `anon` gọi được; chủ dự án duyệt ngày 19/11/2026):
+
+- `get_public_facility(slug)`: chỉ cơ sở `verified` và `active`. Chỉ có: tên, loại hình, khu vực, địa chỉ, link bản đồ, lat/lng, số ca đã hoàn thành (ca đã xác nhận có ít nhất một người đến), điểm trung bình và số lượt đánh giá (bỏ đánh giá bị ẩn), và các ca đang mở sắp tới (loại việc, giờ, lương, chỗ chính còn, còn chỗ dự phòng không, chỉ từ 18 tuổi không). Không bao giờ có tên hay SĐT chủ quán, id cơ sở, mô tả ca, danh sách người nhận, và **không có nhận xét của người làm** (chỉ điểm), để không lộ danh tính người làm. Mã `public_slug` ngẫu nhiên 12 ký tự (default của cột; không sinh từ tên); mã sai, cơ sở chưa xác minh, chờ duyệt hoặc đã gỡ đều trả cùng một lỗi. Test 14t–14an.
+- `get_public_shift(id)`: chỉ ca `open`, bắt đầu sau `now()`, của cơ sở đã xác minh; ca khác trả cùng một lỗi. Có thêm mô tả ca và tên/địa chỉ/vị trí quán; không SĐT, không id cơ sở, không danh sách người nhận. Lưu ý: mô tả ca (≤ 500 ký tự) do chủ quán tự gõ và hiện công khai ở đây; form đăng ca nên nhắc chủ quán không ghi SĐT cá nhân vào mô tả (việc của PR web). Test 14ao–14ax.
+- Hai RPC này không ghi nhật ký truy cập. Trang web gọi chúng (PR riêng) đặt `robots` và `Referrer-Policy` theo mục 18; có cho công cụ tìm kiếm lập chỉ mục trang quán hay không là quyết định riêng của chủ dự án.
+
+Đánh giá quán (`facility_reviews`, migration 0004): người làm chỉ đánh giá được khi ca đã `completed` và chính họ được ghi nhận `attended`, một lần mỗi ca, 1–5 sao, nhận xét ≤ 500 (trigger `_facility_reviews_validate`, chặn cả khi ghi thẳng bảng); không sửa sau khi gửi; nhóm vận hành ẩn/hiện bằng `admin_hide_facility_review()` (có audit) và xem tất cả qua `admin_list_facility_reviews()`. Người làm chỉ đọc đánh giá của mình (policy + grant theo cột, `hidden_by` không cấp); chủ quán không đọc nhận xét. Test 14ay–14cp.
+
+Thông báo trong app (`notifications`, migration 0004): sinh bằng trigger khi người dự phòng lên chính (`shift_promoted`), ca bị hủy lúc đang giữ suất (`shift_cancelled`), đơn mới vào tin (`application_new`, báo chủ quán), chủ quán chọn/loại/nhận đơn (`application_status`), hồ sơ được duyệt hoặc từ chối (`profile_reviewed`), phụ huynh gửi phiếu (`parental_consent_submitted`). `payload` chỉ có `shift_id`, `job_id`, `application_id`, `job_type`, `facility_name`, `status`: không SĐT, token, ngày sinh, tên phụ huynh, ghi chú của nhóm vận hành (test 14dd). Seed (chế độ `_bypass`) không sinh thông báo tự động. Đọc qua `my_notifications()`, đánh dấu đã đọc qua `mark_notifications_read()`; người dùng chỉ đọc thông báo của mình, không có đường ghi cho client. Test 14cq–14dx.
 
 Hồ sơ công khai (`get_public_profile`, trang `/h/[slug]`):
 
@@ -561,7 +573,7 @@ Repo `tangkhatnk/covershift` là **PUBLIC**. Mọi thứ đã commit, kể cả 
   - email đuôi `@demo.safeshift.test`, ví dụ `nguoilam1@demo.safeshift.test`;
   - SĐT giả như dạng `0900000201` trong `seed.sql`;
   - tên chủ quán, người làm, phụ huynh là tên giả.
-- **Ngoại lệ có chủ đích (theo chỉ thị chủ dự án 19/11/2026):** `seed.sql` dùng 9 quán thật ở Vũng Tàu (SOHO Coffee, Phê La Vũng Tàu, OASIS SEA Coffee & Tea, An Coffee Bean, KATINAT, Quán Ốc Thiên Nhiên 2, Bọt, Phuc Long Coffee & Tea, Texas Chicken). Chủ dự án đã duyệt dùng **tên, địa chỉ và hotline công khai** của quán. Hotline nằm ở `private_contacts.phone` của chủ quán demo tương ứng (6 quán; Phê La, Phuc Long và Texas Chicken có hotline 8 hoặc 11 chữ số, không qua được ràng buộc `^0[0-9]{9}$` nên dùng số giả). Ngoại lệ chỉ rộng đúng thế: không thêm quán thật khác, không thêm SĐT, tên hay thông tin cá nhân thật nào khác (chủ quán, người làm, phụ huynh vẫn là tên và số giả). Hotline này hiện cho người làm qua `get_shift_contacts()`, nên giao diện phải nhắc đây là dữ liệu mô phỏng và không gọi số đó để hỏi về ca.
+- **Ngoại lệ có chủ đích (theo chỉ thị chủ dự án 19/11/2026):** `seed.sql` dùng 9 quán thật ở Vũng Tàu (SOHO Coffee, Phê La Vũng Tàu, OASIS SEA Coffee & Tea, An Coffee Bean, KATINAT, Quán Ốc Thiên Nhiên 2, Bọt, Phuc Long Coffee & Tea, Texas Chicken). Chủ dự án đã duyệt dùng **tên, địa chỉ và hotline công khai** của quán. Hotline nằm ở `private_contacts.phone` của chủ quán demo tương ứng (cả 9 quán; Phê La có hotline 8 chữ số, Phuc Long và Texas Chicken 11 chữ số, chỉ qua được ràng buộc SĐT đã nới ở migration 0004, nên seed cần `0004` đã áp trước khi chạy). Ngoại lệ chỉ rộng đúng thế: không thêm quán thật khác, không thêm SĐT, tên hay thông tin cá nhân thật nào khác (chủ quán, người làm, phụ huynh vẫn là tên và số giả). Hotline này hiện cho người làm qua `get_shift_contacts()`, nên giao diện phải nhắc đây là dữ liệu mô phỏng và không gọi số đó để hỏi về ca.
 - Trong tài liệu và ví dụ, dùng chỗ giữ chỗ cho project Supabase và domain Vercel (`https://xxxxxxxx.supabase.co`, `<ten-du-an>.vercel.app`), như `.env.example` và `README.md` đang làm.
 - Không bịa tên pháp nhân, địa chỉ, email hay số điện thoại liên hệ trong mã, trang pháp lý hay tài liệu.
 - Link có token (`/xac-nhan/[token]`, `/dong-y/[token]`) là bí mật dùng một lần: không ghi vào log, không gửi tới dịch vụ ngoài. Middleware bỏ qua hai đường dẫn này; không thêm logic phụ thuộc phiên cho chúng.
@@ -803,14 +815,14 @@ npm run test:db
 Kỳ vọng (theo `CLAUDE.md`, hiện tại):
 
 ```text
-230/230 test đạt
+358/358 test đạt
 privileges_check: ... 0 dòng SAI/KIỂM
 tái chạy ... ĐẠT
 5 dòng ✔ chạy đua
 dọn dữ liệu demo ... ĐẠT
 ```
 
-Thêm test thì số `230` tăng theo; cập nhật con số trong `CLAUDE.md` và `TESTING.md` cùng PR.
+Thêm test thì số `358` tăng theo; cập nhật con số trong `CLAUDE.md` và `TESTING.md` cùng PR.
 
 ### Thay đổi trong `src/` hoặc `middleware.ts`
 
@@ -824,7 +836,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_K
 
 ### Thay đổi schema đã áp lên Supabase thật
 
-- viết migration mới (`0003_...sql`), không sửa file đã áp;
+- viết migration mới (`0005_...sql`), không sửa file đã áp;
 - kèm test trong `supabase/tests/edge_cases.sql`;
 - chạy `npm run test:db`;
 - chủ dự án dán migration bằng SQL Editor, rồi chạy `supabase/tests/privileges_check.sql`: không dòng nào cột `ket_luan` bắt đầu bằng `SAI` hoặc `KIỂM`. Postgres nhúng chạy bằng superuser nên không bắt được lỗi quyền riêng của Supabase; bước này không thay thế được.
@@ -931,7 +943,7 @@ Trước khi đánh dấu PR sẵn sàng, đọc toàn bộ diff cuối (`git di
 - mã chết, `console.log` gỡ lỗi, TODO tạm;
 - khóa bí mật hoặc dữ liệu cá nhân thật (kể cả service-role key);
 - quyền hoặc RLS bị nới; test bị yếu đi;
-- migration cũ bị sửa (`0001_init.sql` và `0002_toa_do_co_so.sql` không được đổi; `0003` chưa áp nên còn sửa được, đã áp thì không);
+- migration cũ bị sửa (`0001_init.sql` và `0002_toa_do_co_so.sql` không được đổi; `0003` và `0004` chưa áp nên còn sửa được, đã áp thì không);
 - tài liệu (`CLAUDE.md`, `README.md`, `TESTING.md`, con số test) lệch với hành vi mới;
 - phụ thuộc đổi mà task không cần.
 

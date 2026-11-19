@@ -3,6 +3,8 @@
 -- Dán nguyên file vào SQL Editor (không bôi đen một phần) và chạy. Chạy lại nhiều lần không lỗi.
 -- Chỉ xóa: user có email @demo.safeshift.test (và 2 user test cố định b0000000-...14/15), cơ sở/ca/suất/token/kết quả
 -- và tin tuyển dụng/đơn ứng tuyển của họ (xóa theo; đơn của người thật nộp vào tin của quán demo cũng mất theo tin), ca test cố định, báo cáo + nhật ký admin gắn với họ.
+-- Thông báo của user demo và đánh giá quán (cơ sở/ca/người làm demo) xóa theo nhờ ON DELETE CASCADE; thông báo của người thật giữ nguyên
+-- (dù payload có thể trỏ tới ca demo đã xóa), đánh giá của người thật về ca demo mất theo ca.
 -- Dữ liệu của người thật được giữ: tài khoản, hồ sơ, cơ sở, ca, suất, nhật ký admin thật, app_config.
 -- Báo cáo của người thật về ca demo vẫn còn (shift_id tự về null).
 --
@@ -65,6 +67,10 @@ select nhom, ten, so_dong, ky_vong from (
          (select count(*) from public.reports where reporter_id is null and subject_id is null and shift_id is null), '0'
   union all select 8, 'CÒN LẠI DEMO', 'tin tuyển dụng demo (id c0000000-...)',
          (select count(*) from public.job_posts where id::text like 'c0000000-0000-4000-a000-0000000000__'), '0'
+  union all select 8, 'CÒN LẠI DEMO', 'thông báo của user demo/test',
+         (select count(*) from public.notifications where user_id::text ~ '^(00000000|a0000000|e0000000|b0000000)-0000-4000-a000-'), '0'
+  union all select 8, 'CÒN LẠI DEMO', 'đánh giá quán demo (cơ sở f0000000-...)',
+         (select count(*) from public.facility_reviews where facility_id::text like 'f0000000-0000-4000-a000-0000000000__'), '0'
   union all select 8, 'CÒN LẠI DEMO', 'phiếu phụ huynh / token demo (demo-%)',
          (select count(*) from public.parental_consents where token like 'demo-%') + (select count(*) from public.shift_confirmation_tokens where token like 'demo-%'), '0'
   union all select 9, 'SỐ DÒNG (dữ liệu thật còn lại)', t.tablename::text,

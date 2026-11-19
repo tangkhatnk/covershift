@@ -281,3 +281,91 @@ export type JobContacts = {
   /** Có khi người gọi là chủ quán hoặc admin. */
   worker: { name: string; phone: string } | null;
 };
+
+/** Thông báo trong app (migration 0004). payload chỉ có id đối tượng, loại việc, tên cơ sở, trạng thái: không SĐT, token, ngày sinh. */
+export type NotificationKind =
+  | 'shift_promoted'
+  | 'shift_cancelled'
+  | 'application_new'
+  | 'application_status'
+  | 'profile_reviewed'
+  | 'parental_consent_submitted';
+
+export type AppNotification = {
+  id: string;
+  kind: NotificationKind;
+  payload: {
+    shift_id?: string;
+    job_id?: string;
+    application_id?: string;
+    job_type?: JobType;
+    facility_name?: string;
+    status?: string;
+  };
+  read_at: string | null;
+  created_at: string;
+};
+
+/** my_notifications(p_limit): mới nhất trước; mark_notifications_read(p_ids) trả số thông báo vừa đổi. */
+export type MyNotifications = { unread: number; items: AppNotification[] };
+
+/** Thẻ ca công khai (_public_shift_json): không SĐT, không người nhận, không id cơ sở. */
+export type PublicShiftCard = {
+  id: string;
+  job_type: JobType;
+  starts_at: string;
+  ends_at: string;
+  hourly_wage: number;
+  urgent: boolean;
+  headcount: number;
+  /** Số chỗ người chính còn trống. */
+  primary_left: number;
+  /** Còn chỗ người dự phòng. */
+  backup_open: boolean;
+  /** Ca không dành cho dưới 18 tuổi (giao diện ghi "chỉ từ 18 tuổi"). */
+  adults_only: boolean;
+};
+
+/** get_public_facility(p_slug): gọi được khi chưa đăng nhập; lỗi "Không tìm thấy trang quán này." cho mọi trường hợp không đủ điều kiện. */
+export type PublicFacility = {
+  slug: string;
+  name: string;
+  type: FacilityType;
+  area: Area;
+  address: string;
+  maps_url: string | null;
+  lat: number | null;
+  lng: number | null;
+  completed_shifts: number;
+  review_count: number;
+  /** null khi chưa có đánh giá. Không có nhận xét. */
+  avg_stars: number | null;
+  open_shifts: PublicShiftCard[];
+};
+
+/** get_public_shift(p_id): gọi được khi chưa đăng nhập; lỗi "Không tìm thấy ca này." cho mọi trường hợp không đủ điều kiện. */
+export type PublicShift = PublicShiftCard & {
+  description: string | null;
+  facility_name: string;
+  facility_type: FacilityType;
+  area: Area;
+  address: string;
+  lat: number | null;
+  lng: number | null;
+  facility_slug: string;
+};
+
+/** admin_list_facility_reviews(): nhóm vận hành xem để ẩn/hiện. */
+export type AdminFacilityReview = {
+  id: string;
+  facility_id: string;
+  facility_name: string;
+  shift_id: string;
+  starts_at: string;
+  worker_name: string;
+  stars: number;
+  comment: string | null;
+  hidden: boolean;
+  hidden_at: string | null;
+  created_at: string;
+};

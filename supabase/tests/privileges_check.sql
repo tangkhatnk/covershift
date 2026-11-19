@@ -43,7 +43,7 @@ select n, loai, doi_tuong, quyen_dang_co, ket_luan from (
          'anon=' || has_function_privilege('anon', p.oid, 'EXECUTE')::text || ' authenticated=' || has_function_privilege('authenticated', p.oid, 'EXECUTE')::text
            || ' service_role=' || has_function_privilege('service_role', p.oid, 'EXECUTE')::text,
          case
-           when p.proname in ('get_parental_consent','submit_parental_consent','get_confirmation','submit_confirmation','get_public_profile')
+           when p.proname in ('get_parental_consent','submit_parental_consent','get_confirmation','submit_confirmation','get_public_profile','get_public_facility','get_public_shift')
              then case when has_function_privilege('anon', p.oid, 'EXECUTE') and has_function_privilege('authenticated', p.oid, 'EXECUTE') then 'đúng (RPC công khai)' else 'SAI: thiếu quyền' end
            when p.proname in ('_has_claim','_owns_facility','_owns_shift','_shift_open_for_me','is_admin')
              then case when has_function_privilege('anon', p.oid, 'EXECUTE') then 'SAI: anon gọi được' when has_function_privilege('authenticated', p.oid, 'EXECUTE') then 'đúng (hàm dùng trong RLS, chỉ authenticated)' else 'SAI: RLS sẽ lỗi' end
