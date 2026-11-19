@@ -44,8 +44,8 @@ export default async function FeedPage({ searchParams }: {
 
   return (
     <div className="space-y-4">
-      <LiveRefresh />
       <PageTitle sub="Ca gấp hiện lên đầu. Bấm vào ca để xem và nhận.">Tìm ca</PageTitle>
+      <LiveRefresh />
 
       {profile.role === 'worker' && approval !== 'approved' ? (
         approval === 'rejected' ? (

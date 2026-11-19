@@ -286,7 +286,7 @@ function MoreMenu({ items, pathname, active }: { items: NavItem[]; pathname: str
       }}
     >
       <summary
-        className={`flex h-full cursor-pointer flex-col items-center justify-start border-t-4 px-1 pt-1 text-center text-sm font-semibold leading-tight ${
+        className={`flex h-full cursor-pointer flex-col items-center justify-start whitespace-nowrap border-t-4 px-1 pt-1 text-center text-sm font-semibold leading-tight ${
           active ? 'border-accent text-accent' : 'border-transparent text-white'
         }`}
       >
@@ -338,7 +338,7 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
         <header data-chrome className={`surface-dark sticky top-0 z-30 h-14 bg-brand-deep ${items ? 'lg:hidden' : ''}`}>
           <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4">
             <Link href={homeHref} className="inline-flex min-h-[3rem] items-center gap-2 rounded px-2 text-xl font-bold text-white"><Mark /></Link>
-            {bare ? null : signedIn ? (
+            {bare || pathname === '/login' ? null : signedIn ? (
               <Link href="/account" className="inline-flex min-h-[3rem] items-center gap-2 rounded-ui px-2 text-base font-semibold text-white">
                 <CircleUser className="h-6 w-6" aria-hidden="true" />
                 {userName ?? 'Tài khoản'}
@@ -399,15 +399,15 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
           <nav
             data-chrome
             aria-label="Điều hướng chính"
-            className="surface-dark fixed inset-x-0 bottom-0 z-30 border-t border-brand bg-brand-deep pb-[env(safe-area-inset-bottom)] lg:hidden"
+            className="surface-dark fixed inset-x-0 bottom-0 z-30 bg-brand-deep pb-[env(safe-area-inset-bottom)] lg:hidden"
           >
             <ul className="flex h-[4.5rem]">
               {items.map((it) => (
-                <li key={it.href} className="min-w-0 flex-1">
+                <li key={it.href} className="min-w-0 flex-auto">
                   <Link
                     href={it.href}
                     aria-current={it.href === current ? 'page' : undefined}
-                    className={`flex h-full flex-col items-center justify-start border-t-4 px-1 pt-1 text-center text-sm font-semibold leading-tight ${
+                    className={`flex h-full flex-col items-center justify-start whitespace-nowrap border-t-4 px-1 pt-1 text-center text-sm font-semibold leading-tight ${
                       it.href === current ? 'border-accent text-accent' : 'border-transparent text-white'
                     }`}
                   >
@@ -417,7 +417,7 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
                 </li>
               ))}
               {more ? (
-                <li className="min-w-0 flex-1">
+                <li className="min-w-0 flex-auto">
                   <MoreMenu items={more} pathname={pathname} active={moreActive} />
                 </li>
               ) : null}

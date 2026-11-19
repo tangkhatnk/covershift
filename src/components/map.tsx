@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useTransition, type KeyboardEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { RefreshCw } from 'lucide-react';
 import type { AddLayerObject, Map as MapLibreMap, Marker as MapLibreMarker } from 'maplibre-gl';
 import { JOB_LABEL } from '@/lib/constants';
 import { fmtTime } from '@/lib/format';
@@ -426,12 +427,16 @@ export function LiveRefresh({ intervalMs = 30000 }: { intervalMs?: number }) {
     return () => { clearInterval(t); document.removeEventListener('visibilitychange', onVisible); };
   }, [intervalMs]);
   return (
-    // Cao cố định (3,5rem, nút 3rem + lề) và giờ dùng chữ số bảng: đổi "--:--" thành giờ thật không làm đổi chiều cao hay xuống dòng.
-    <div className="flex h-[3.5rem] items-center justify-between gap-2">
+    // Nằm dưới tiêu đề, một dòng gọn, cao cố định 3rem (đúng vùng chạm của nút) và giờ dùng chữ số bảng:
+    // đổi "--:--" thành giờ thật không làm đổi chiều cao. Nút là ghost để không tranh với hành động chính của trang.
+    <div className="flex h-12 items-center justify-between gap-2">
       <p aria-live="off" className="min-w-0 flex-1 text-sm leading-snug text-ink-soft">
-        Tự cập nhật mỗi {Math.round(intervalMs / 1000)} giây · lần cuối <span className="tabular">{last ? fmtTime(new Date(last).toISOString()) : '--:--'}</span>
+        Tự cập nhật · <span className="tabular">{last ? fmtTime(new Date(last).toISOString()) : '--:--'}</span>
       </p>
-      <button type="button" onClick={run} disabled={pending} className={btn('secondary', false)}>Làm mới</button>
+      <button type="button" onClick={run} disabled={pending} className={`${btn('ghost', false)} !px-2`}>
+        <RefreshCw className={`h-5 w-5 ${pending ? 'motion-safe:animate-spin' : ''}`} aria-hidden="true" />
+        Làm mới
+      </button>
     </div>
   );
 }

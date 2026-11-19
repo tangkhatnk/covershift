@@ -166,7 +166,7 @@
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "PageTitle trên nền vàng nhạt (text-2xl)."
+        "purpose": "PageTitle trên nền vôi (text-2xl)."
       },
       "title": {
         "displayName": "Title",
@@ -512,7 +512,7 @@
       "name": "Page Title Band",
       "kind": "custom",
       "refersTo": "page-title",
-      "description": "Tiêu đề trang: nền vàng nhạt, dải nắng đặc mảnh ở mép trên; một việc chính của trang nằm ngay dưới.",
+      "description": "Tiêu đề trang: chữ trên nền vôi, gạch nắng ngắn 3rem x 4,5px bên dưới; một việc chính của trang nằm ngay dưới.",
       "html": "<div class=\"ds-title\"><h1>Ca của quán</h1><p>Đăng ca khi thiếu người, xác nhận sau ca bằng một cú bấm.</p></div>",
       "css": ".ds-title{border-radius:6px;background:#FFC247;padding:1rem;font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-title h1{margin:0;font-size:1.5rem;line-height:1.25;font-weight:700;color:#0F2230;} .ds-title p{margin:0.5rem 0 0;font-size:1rem;line-height:1.5rem;color:#083F5F;}"
     },
@@ -567,10 +567,10 @@
   ],
   "narrative": {
     "northStar": "Biển & Nắng",
-    "overview": "**Creative North Star: \"Biển & Nắng\"**\n\nBãi biển Vũng Tàu lúc sáng: nước xanh biển, nắng vàng, cát vôi sáng. Ca làm là đơn vị của sản phẩm, và hình của nó vẫn là một hàng ô cửa: cánh đóng là đã có người, khung trống là còn chỗ, một ô nét đứt là người dự phòng. Logo là mặt trời nhô trên hai làn sóng. Giao diện từ chối kiểu chợ việc làm màu phấn với thẻ bo tròn và ảnh sinh viên cười; nó giống tấm biển hướng dẫn hơn là ứng dụng.\n\nMật độ vừa phải, chữ to, một việc chính mỗi màn hình, vì người đọc là chủ quán lớn tuổi mở link từ Zalo ngoài nắng. Mọi thứ phẳng: không bóng, không gradient, không kính mờ, ngoại lệ duy nhất là bóng mềm của pin bản đồ. Hình dạng là chữ nhật viền hairline bo 6px; khung chrome xanh biển đậm (thanh trên, rail, nav dưới, chân trang) bao quanh nền vôi. Chuyển động chỉ CSS, ngắn, tắt dịch chuyển khi người dùng chọn giảm chuyển động (mục Motion).\n\nNhận ra được dù xóa hết chữ: tiêu đề trang nền vàng nhạt có dải nắng đặc ở mép trên, mô-đun viền mảnh có dải đầu nhạt, rail xanh biển, mục đang chọn màu nắng, và các ô cửa.",
+    "overview": "**Creative North Star: \"Biển & Nắng\"**\n\nBãi biển Vũng Tàu lúc sáng: nước xanh biển, nắng vàng, cát vôi sáng. Ca làm là đơn vị của sản phẩm, và hình của nó vẫn là một hàng ô cửa: cánh đóng là đã có người, khung trống là còn chỗ, một ô nét đứt là người dự phòng. Logo là mặt trời nhô trên hai làn sóng. Giao diện từ chối kiểu chợ việc làm màu phấn với thẻ bo tròn và ảnh sinh viên cười; nó giống tấm biển hướng dẫn hơn là ứng dụng.\n\nMật độ vừa phải, chữ to, một việc chính mỗi màn hình, vì người đọc là chủ quán lớn tuổi mở link từ Zalo ngoài nắng. Mọi thứ phẳng: không bóng, không gradient, không kính mờ, ngoại lệ duy nhất là bóng mềm của pin bản đồ. Hình dạng là chữ nhật viền hairline bo 6px; khung chrome xanh biển đậm (thanh trên, rail, nav dưới, chân trang) bao quanh nền vôi. Chuyển động chỉ CSS, ngắn, tắt dịch chuyển khi người dùng chọn giảm chuyển động (mục Motion).\n\nNhận ra được dù xóa hết chữ: tiêu đề trang chữ đậm trên nền vôi với một gạch nắng ngắn bên dưới, mô-đun viền mảnh có dải đầu nhạt, rail xanh biển, mục đang chọn màu nắng, và các ô cửa.",
     "keyCharacteristics": [
       "Bảng màu: xanh biển (brand), vàng nắng (accent), thành công (ok), lỗi (danger), thông tin (info), mỗi họ có sắc đậm/chuẩn/nhạt khi cần; nền vôi và mực.",
-      "Vàng đặc là điểm nhấn thật (mục đang chọn, nút Đăng nhập, dải nắng mảnh của tiêu đề, pin đang chọn); vàng nhạt cho tiêu đề trang và dải đầu mô-đun; danger chỉ cho lỗi và nguy hiểm; info chỉ cho thông tin; ok chỉ cho thành công.",
+      "Vàng đặc là điểm nhấn thật (mục đang chọn, nút Đăng nhập, gạch nắng ngắn dưới tiêu đề, pin đang chọn); vàng nhạt cho dải đầu mô-đun; danger chỉ cho lỗi và nguy hiểm; info chỉ cho thông tin; ok chỉ cho thành công.",
       "Số giờ ca là con số lớn nhất trên màn hình, Barlow Condensed với chữ số bảng cố định.",
       "Mỗi trạng thái ca là một cặp icon + chữ + tông, không bao giờ chỉ màu.",
       "Phẳng, viền hairline, 6px, khoảng cách là bội của 0,5rem."

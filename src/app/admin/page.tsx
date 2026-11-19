@@ -179,10 +179,10 @@ export default async function DispatchPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="space-y-6">
-      <LiveRefresh />
-      <PageTitle sub={`Cập nhật lúc ${fmtDateTime(new Date(now).toISOString())}. Trang tự làm mới mỗi 30 giây.`}>
+      <PageTitle sub={`Cập nhật lúc ${fmtDateTime(new Date(now).toISOString())}.`}>
         Bảng điều phối
       </PageTitle>
+      <LiveRefresh />
 
       {/* Kết quả "Người chính báo bận" (action primaryBusy chuyển hướng về đây); Flash tự xóa ?bao-ban khỏi URL. */}
       {busyResult === 'da-thay' ? (

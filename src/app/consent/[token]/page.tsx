@@ -41,9 +41,15 @@ export default async function ParentalConsentPage({ params }: { params: Promise<
             <span className="text-lg">Link này đã hết hạn. Anh/chị nhờ con tạo link mới trong mục Hồ sơ rồi gửi lại.</span>
           </Alert>
         ) : (
-          <Alert tone="red">
-            <span className="text-lg">Link không hợp lệ. Anh/chị nhờ con gửi lại link trong mục Hồ sơ.</span>
-          </Alert>
+          <>
+            <Alert tone="red">
+              <span className="text-lg">Link không hợp lệ. Anh/chị nhờ con gửi lại link trong mục Hồ sơ.</span>
+            </Alert>
+            <p className="text-base text-ink">
+              Link có thể bị sai, đã dùng hoặc đã hết hạn. Nếu con cũng không lấy lại được link, anh/chị liên hệ nhóm vận hành
+              qua kênh đã được thông báo khi đăng ký.
+            </p>
+          </>
         )}
       </div>
     );
