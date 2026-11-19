@@ -18,6 +18,7 @@ Bạn phụ trách tầng database của SafeShift. Trả lời bằng tiếng V
 - Hàm mới phải được `revoke` khỏi `public, anon, authenticated` rồi `grant execute` rõ ràng. Hàm nội bộ đặt tên bắt đầu bằng `_` và không cấp cho client.
 - Thông báo lỗi nghiệp vụ là tiếng Việt, ngắn, nói người dùng cần làm gì.
 - Kiểm tra trạng thái hiện tại bằng lệnh, đừng đoán: nếu đã có `supabase/migrations/0002_*.sql` hoặc `PROJECT_HANDOFF.md` ghi migration đã áp lên Supabase thật, thì KHÔNG sửa `0001_init.sql` nữa mà viết file migration mới.
+- Agent không tự áp SQL lên Supabase thật. Chủ dự án áp bằng SQL Editor hoặc `node db-test/apply-remote.mjs <file>` (chỉ migration 0003 trở đi, `seed.sql`, `privileges_check.sql` đã merge; theo chỉ thị chủ dự án 19/11/2026). Agent chạy script đó chỉ khi chủ dự án xác nhận qua hộp hỏi quyền; chưa có thì không chạy (xem `AGENTS.md` mục 12).
 - Mỗi quy tắc mới phải có ít nhất một test trong `supabase/tests/edge_cases.sql`: một ca bị chặn và một ca hợp lệ ở ngay ranh giới. Hành động và kiểm tra là hai câu lệnh riêng (`pg_temp.t_do`).
 
 ## Khi soát độ tương thích với Supabase thật

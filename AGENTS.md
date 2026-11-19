@@ -64,14 +64,15 @@ Dùng ranh giới sở hữu sẵn có trước khi tạo ranh giới mới. Đ�
   - dữ liệu mẫu; phải chạy lại được nhiều lần.
 - `supabase/tests/`
   - `edge_cases.sql`: test biên, chạy trong `npm run test:db`;
-  - `privileges_check.sql`: kiểm quyền bảng/hàm của `anon`/`authenticated`, chỉ đọc, chạy tự động và chạy tay trong SQL Editor sau migration;
+  - `privileges_check.sql`: kiểm quyền bảng/hàm của `anon`/`authenticated`, chỉ đọc, chạy tự động và chạy tay (SQL Editor hoặc `db-test/apply-remote.mjs`) sau migration;
   - `check_before_migration.sql`: kiểm project Supabase mới trước khi dán migration, chỉ đọc.
 - `supabase/xoa_du_lieu_demo.sql`
   - dọn dữ liệu demo đúng thứ tự khóa ngoại; không chạy khi app còn là bản mô phỏng (mục 12).
 - `supabase/functions/`
   - hiện có `shift-reminders/index.ts`.
 - `db-test/`
-  - bộ chạy `npm run test:db` trên Postgres nhúng (`run.mjs`, `race.mjs`); có `package.json` riêng, tách khỏi app.
+  - bộ chạy `npm run test:db` trên Postgres nhúng (`run.mjs`, `race.mjs`); có `package.json` riêng, tách khỏi app;
+  - `apply-remote.mjs`: script để chủ dự án áp migration 0003 trở đi, `seed.sql`, `privileges_check.sql` lên Supabase thật từ máy mình (mục 12); `run.mjs` không gọi nó.
 
 ### Ứng dụng web (Next.js App Router)
 
@@ -247,7 +248,7 @@ Chỉ merge khi đủ **tất cả**:
 2. `execution-manager` đã tự rà diff cuối (mục 29), nhánh đã cập nhật theo `main` và không xung đột.
 3. Agent chính đã review cuối và kết luận `APPROVE`; kết luận đó nằm trong PR dưới dạng bình luận.
 4. PR không thuộc nhóm "không tự quyết" bên dưới.
-5. Mã web trong PR không phụ thuộc migration chưa áp lên Supabase thật. Merge vào `main` là deploy production ngay; web gọi RPC hay cột chưa có sẽ vỡ ngay. Gặp trường hợp này, tách PR: phần migration kèm test (merge được; chủ dự án mới là người dán SQL lên Supabase) và phần mã web để ở PR draft, ghi "chờ chủ dự án dán migration"; rồi làm việc kế tiếp.
+5. Mã web trong PR không phụ thuộc migration chưa áp lên Supabase thật. Merge vào `main` là deploy production ngay; web gọi RPC hay cột chưa có sẽ vỡ ngay. Gặp trường hợp này, tách PR: phần migration kèm test (merge được; chủ dự án mới là người áp SQL lên Supabase, bằng SQL Editor hoặc `db-test/apply-remote.mjs`) và phần mã web để ở PR draft, ghi "chờ chủ dự án áp migration"; rồi làm việc kế tiếp.
 
 ### Cách merge
 
@@ -263,7 +264,7 @@ Không force-push. Mở PR `revert` bằng `git revert` (không dùng `git reset
 Không merge và không tự làm các việc sau. Ghi lại (PR draft hoặc issue, nêu rõ cần chủ dự án quyết gì) rồi chuyển sang việc kế tiếp, không dừng cả phiên:
 
 - đổi quy tắc nghiệp vụ (mục 10);
-- đổi schema hoặc quyền trên Supabase thật (agent không áp lên Supabase; chủ dự án dán SQL), xóa dữ liệu, sửa `0001_init.sql` hoặc `0002_toa_do_co_so.sql` (mục 12);
+- đổi schema hoặc quyền trên Supabase thật (agent không áp lên Supabase, trừ ngoại lệ chờ xác nhận của `apply-remote.mjs` ở mục 12; chủ dự án tự áp SQL), xóa dữ liệu, sửa `0001_init.sql` hoặc `0002_toa_do_co_so.sql` (mục 12);
 - mọi chỗ khác trong file này ghi là cần chủ dự án duyệt: mở rộng phạm vi công khai của dữ liệu cá nhân, CORS và header bảo mật, dịch vụ bên thứ ba mới, phụ thuộc mới (mục 13–17);
 - mọi việc không hoàn tác được.
 
@@ -491,6 +492,9 @@ grant execute on function public.ten_ham(...) to authenticated;
   - cập nhật số test kỳ vọng ghi trong `CLAUDE.md`, `README.md`, `TESTING.md` (hiện là `104/104`).
 - Chạy `npm run test:db` trước khi báo xong. Kỳ vọng như `CLAUDE.md`: tất cả test đạt, `privileges_check` không có dòng `SAI`/`KIỂM`, `tái chạy` đạt, 5 dòng `✔ chạy đua`, `dọn dữ liệu demo` đạt.
 - Chủ dự án dán migration vào Supabase SQL Editor, rồi chạy `supabase/tests/privileges_check.sql` trên project thật. Agent không tự chạy DDL hay ghi dữ liệu lên project Supabase thật, kể cả khi máy có kết nối MCP tới đó.
+- Theo chỉ thị chủ dự án 19/11/2026: chủ dự án có thể chạy `node db-test/apply-remote.mjs <file>` từ gốc repo trên máy mình để áp migration 0003 trở đi, `supabase/seed.sql` và `supabase/tests/privileges_check.sql` lên Supabase thật, thay cho dán vào SQL Editor (dán SQL Editor vẫn dùng được). Script chỉ nhận ba loại file đó, chỉ chạy bản giống hệt `origin/main` (đã merge, không sửa cục bộ), đọc chuỗi kết nối `SUPABASE_DB_URL` từ `.env.local` (đã gitignore) và không in chuỗi đó ra. Chuỗi kết nối chỉ nằm trong `.env.local`, không bao giờ vào repo, PR hay log; không đặt tiền tố `NEXT_PUBLIC_`, không thêm vào `.env.example`.
+  - Việc để agent (`execution-manager`/worker) tự chạy script này: ĐANG CHỜ chủ dự án xác nhận trực tiếp qua hệ thống quyền (hộp hỏi quyền khi lệnh chạy). Khi chưa có xác nhận đó, agent KHÔNG chạy. Khi đã có: chạy từng file một, foreground, mô tả lệnh ghi rõ là chạy lên Supabase THẬT và file nào; mỗi lần chạy báo kết quả và ghi vào PR liên quan.
+  - Với agent vẫn cấm: SQL tự gõ ngoài ba loại file trên; sửa `0001`, `0002`; chạy `xoa_du_lieu_demo.sql`; đổi cài đặt Auth, dashboard, quyền; chạy lại `seed.sql` trong 21–22/11 (trừ khi chủ dự án bảo).
 - Không dùng đường tắt bỏ qua file migration: `supabase db push`, `supabase db reset`, sửa bảng bằng Table Editor, hay sinh schema bằng diff/pull rồi áp thẳng. Mọi thay đổi phải truy vết được trong `supabase/migrations/`.
 - `supabase/tests/check_before_migration.sql` chỉ dùng cho project mới, trước khi dán `0001`. Không dùng nó để kiểm thay đổi sau này.
 - `supabase/migrations/0003_viec_lam_dai_han.sql` (tuyển dụng lâu dài, theo chỉ thị chủ dự án 19/11/2026) **chưa áp lên Supabase thật**. Chủ dự án phải: dán `0003` bằng SQL Editor (sau `0001`, `0002`), chạy `supabase/tests/privileges_check.sql`, rồi chạy lại `supabase/seed.sql` (seed mới có tin và đơn mẫu, và khóa `min_monthly_wage`). Mã web gọi RPC của `0003` chỉ được merge sau khi bước đó xong (mục 6, cổng 5). Từ khi áp, `0003` cũng không sửa nữa.
@@ -826,7 +830,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_ANON_K
 - viết migration mới (`0003_...sql`), không sửa file đã áp;
 - kèm test trong `supabase/tests/edge_cases.sql`;
 - chạy `npm run test:db`;
-- chủ dự án dán migration bằng SQL Editor, rồi chạy `supabase/tests/privileges_check.sql`: không dòng nào cột `ket_luan` bắt đầu bằng `SAI` hoặc `KIỂM`. Postgres nhúng chạy bằng superuser nên không bắt được lỗi quyền riêng của Supabase; bước này không thay thế được.
+- chủ dự án áp migration (SQL Editor hoặc `db-test/apply-remote.mjs`), rồi chạy `supabase/tests/privileges_check.sql`: không dòng nào cột `ket_luan` bắt đầu bằng `SAI` hoặc `KIỂM`. Postgres nhúng chạy bằng superuser nên không bắt được lỗi quyền riêng của Supabase; bước này không thay thế được.
 
 ### Giao diện
 

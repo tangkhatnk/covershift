@@ -111,6 +111,16 @@ Chép `.env.example` thành `.env.local`:
 
 Không có biến bí mật nào phía web.
 
+`SUPABASE_DB_URL` (tùy chọn, chỉ cho `db-test/apply-remote.mjs`, mục 4b) cũng nằm trong `.env.local` nhưng là **bí mật**: chuỗi kết nối Postgres có mật khẩu. Không đặt tiền tố `NEXT_PUBLIC_`, không thêm vào `.env.example`, không đưa lên Vercel hay repo.
+
+### 4b. Áp SQL lên Supabase thật bằng script (tùy chọn)
+
+Thay cho dán vào SQL Editor, chủ dự án có thể chạy từ máy mình (theo chỉ thị 19/11/2026):
+
+1. Supabase → **Connect** → chép chuỗi kết nối Postgres, thêm vào `.env.local` (đã gitignore) dòng `SUPABASE_DB_URL=postgresql://postgres:***@db.xxxxxxxx.supabase.co:5432/postgres` với mật khẩu thật của database.
+2. Chạy từng file, từ gốc repo, theo thứ tự: `node db-test/apply-remote.mjs supabase/migrations/0003_viec_lam_dai_han.sql`, rồi `node db-test/apply-remote.mjs supabase/tests/privileges_check.sql` (thoát mã 2 nếu có dòng `SAI`/`KIỂM`), rồi `node db-test/apply-remote.mjs supabase/seed.sql`.
+3. Script chỉ nhận migration 0003 trở đi, `seed.sql`, `privileges_check.sql`, và chỉ khi file giống hệt bản trên `origin/main` (đã merge). Từ chối mọi file khác, kể cả `0001`, `0002`, `xoa_du_lieu_demo.sql`. Cần `npm install` trong `db-test/` một lần (như `npm run test:db`).
+
 ## 5. Chạy local
 
 ```bash
