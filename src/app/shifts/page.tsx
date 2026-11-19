@@ -30,24 +30,16 @@ export default async function FeedPage({ searchParams }: {
   const viec = Object.hasOwn(JOB_LABEL, one(sp.viec)) ? one(sp.viec) : '';
   const filtering = Boolean(ngay || khu || viec);
 
-  let approval: string | null = null;
-  let reviewNote: string | null = null;
-  let consentStatus: string | null = null;
-  if (profile.role === 'worker') {
-    const [wp, pc] = await Promise.all([
-      supabase.from('worker_profiles').select('approval, review_note').eq('user_id', user.id).maybeSingle(),
-      supabase.from('parental_consents').select('status').eq('worker_id', user.id).maybeSingle(),
-    ]);
-    approval = (wp.data?.approval as string | undefined) ?? null;
-    reviewNote = (wp.data?.review_note as string | null | undefined) ?? null;
-    consentStatus = (pc.data?.status as string | undefined) ?? null;
-  }
-
-  const { data, error } = await supabase.rpc('feed_shifts', {
-    p_date: ngay || null,
-    p_area: khu || null,
-    p_job: viec || null,
-  });
+  const isWorker = profile.role === 'worker';
+  // Ba truy vấn độc lập: chạy song song để không cộng dồn độ trễ.
+  const [wp, pc, { data, error }] = await Promise.all([
+    isWorker ? supabase.from('worker_profiles').select('approval, review_note').eq('user_id', user.id).maybeSingle() : null,
+    isWorker ? supabase.from('parental_consents').select('status').eq('worker_id', user.id).maybeSingle() : null,
+    supabase.rpc('feed_shifts', { p_date: ngay || null, p_area: khu || null, p_job: viec || null }),
+  ]);
+  const approval = (wp?.data?.approval as string | undefined) ?? null;
+  const reviewNote = (wp?.data?.review_note as string | null | undefined) ?? null;
+  const consentStatus = (pc?.data?.status as string | undefined) ?? null;
   const shifts = (data ?? []) as Shift[];
 
   return (

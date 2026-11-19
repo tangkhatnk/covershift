@@ -15,8 +15,13 @@ export default async function NewShiftPage({ searchParams }: { searchParams: Pro
   const { supabase, profile } = await requireRole('employer');
   const { from } = await searchParams;
 
-  const { data: facility } = await supabase
-    .from('facilities').select('id, verified, status').eq('owner_id', profile.id).maybeSingle();
+  // Bốn truy vấn độc lập: chạy song song; ba cái sau chỉ dùng khi cơ sở đã được phép đăng ca.
+  const [{ data: facility }, { data: cfg }, cloneRes, recentRes] = await Promise.all([
+    supabase.from('facilities').select('id, verified, status').eq('owner_id', profile.id).maybeSingle(),
+    supabase.from('app_config').select('key, value'),
+    from ? supabase.rpc('shift_detail', { p_shift: from }) : Promise.resolve({ data: null }),
+    from ? Promise.resolve({ data: null }) : supabase.rpc('employer_shifts'),
+  ]);
   const canPost = !!facility && facility.verified === true && facility.status === 'active';
 
   if (!canPost) {
@@ -32,12 +37,6 @@ export default async function NewShiftPage({ searchParams }: { searchParams: Pro
       </div>
     );
   }
-
-  const [{ data: cfg }, cloneRes, recentRes] = await Promise.all([
-    supabase.from('app_config').select('key, value'),
-    from ? supabase.rpc('shift_detail', { p_shift: from }) : Promise.resolve({ data: null }),
-    from ? Promise.resolve({ data: null }) : supabase.rpc('employer_shifts'),
-  ]);
 
   const rawMin = Number((cfg as { key: string; value: unknown }[] | null)?.find((r) => r.key === 'min_hourly_wage')?.value);
   const minWage = Number.isFinite(rawMin) && rawMin > 0 ? rawMin : DEFAULT_MIN_WAGE;

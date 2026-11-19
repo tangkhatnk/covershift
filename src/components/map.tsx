@@ -413,9 +413,15 @@ export function LiveRefresh({ intervalMs = 30000 }: { intervalMs?: number }) {
   const runRef = useRef(run);
   runRef.current = run;
   useEffect(() => setLast(Date.now()), []);
+  // Chỉ làm mới khi tab đang hiện; tab ẩn thì bỏ qua, và khi quay lại mà đã quá một chu kỳ thì làm mới một lần.
+  const lastRef = useRef(Date.now());
+  lastRef.current = last ?? lastRef.current;
   useEffect(() => {
-    const t = setInterval(() => { if (document.visibilityState === 'visible') runRef.current(); }, intervalMs);
-    return () => clearInterval(t);
+    const tick = () => { if (document.visibilityState === 'visible') runRef.current(); };
+    const onVisible = () => { if (document.visibilityState === 'visible' && Date.now() - lastRef.current >= intervalMs) runRef.current(); };
+    const t = setInterval(tick, intervalMs);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(t); document.removeEventListener('visibilitychange', onVisible); };
   }, [intervalMs]);
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">

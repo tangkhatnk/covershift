@@ -39,7 +39,11 @@ export default async function EmployerShiftPage({
   const sp = await searchParams;
   if (!UUID_RE.test(id)) notFound();
 
-  const { data, error } = await supabase.rpc('shift_detail', { p_shift: id });
+  // get_shift_contacts độc lập với shift_detail (tự kiểm quyền ở database), nên chạy song song; kết quả chỉ dùng khi ca hợp lệ.
+  const [{ data, error }, { data: contactData, error: contactError }] = await Promise.all([
+    supabase.rpc('shift_detail', { p_shift: id }),
+    supabase.rpc('get_shift_contacts', { p_shift: id }),
+  ]);
   // P0001 = "Không tìm thấy ca." từ database. Lỗi kỹ thuật (mạng…) thì báo thử lại, đừng giả là ca không tồn tại.
   if (error?.code === 'P0001' || (!error && !data)) notFound();
   if (error) return <Alert tone="red">{friendlyError(error)}</Alert>;
@@ -47,7 +51,6 @@ export default async function EmployerShiftPage({
   const isAdmin = profile.role === 'admin';
   if (!shift.is_owner && !isAdmin) notFound();
 
-  const { data: contactData, error: contactError } = await supabase.rpc('get_shift_contacts', { p_shift: id });
   const workers = (contactError ? null : (contactData as Contacts | null)?.workers) ?? [];
   const primaries = workers.filter((w) => w.role === 'primary');
   const backups = workers.filter((w) => w.role === 'backup');

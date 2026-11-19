@@ -57,6 +57,28 @@ export function Card({ children, className = '', tab }: { children: ReactNode; c
   return <section className={`rounded-ui border border-rule bg-white p-4 ${className}`}>{children}</section>;
 }
 
+/**
+ * Khung chờ cho `loading.tsx`: băng tiêu đề + vài mô-đun cao gần bằng thật để bố cục không nhảy khi dữ liệu về.
+ * Chỉ nhấp nháy khi người dùng không chọn giảm chuyển động.
+ */
+export function PageSkeleton({ cards = 3 }: { cards?: number }) {
+  return (
+    <div role="status" aria-busy="true" className="space-y-6">
+      <span className="sr-only">Đang tải…</span>
+      <div aria-hidden="true" className="space-y-6 motion-safe:animate-pulse">
+        <div className="h-24 rounded-ui bg-wall-tint" />
+        {Array.from({ length: cards }, (_, i) => (
+          <div key={i} className="h-40 space-y-4 rounded-ui border border-rule bg-white p-4">
+            <div className="h-6 w-2/3 rounded-ui bg-chalk" />
+            <div className="h-4 w-1/2 rounded-ui bg-chalk" />
+            <div className="h-4 w-1/3 rounded-ui bg-chalk" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export type Tone = 'green' | 'amber' | 'red' | 'gray' | 'blue';
 const TONE: Record<Tone, string> = {
   green: 'bg-shutter-tint text-shutter-deep',
