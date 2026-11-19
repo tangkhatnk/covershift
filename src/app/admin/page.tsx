@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { primaryBusy } from '@/app/actions';
 import { ActionForm, CopyButton, Flash, SubmitButton } from '@/components/client';
 import { LiveRefresh, ShiftMap, type MapPoint } from '@/components/map';
-import { Alert, Badge, Card, Disclosure, Empty, Field, PageTitle, StateBadge, Tel, inputCls } from '@/components/ui';
+import { Alert, Badge, Card, DemoPhoneNote, Disclosure, Empty, Field, PageTitle, StateBadge, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { JOB_LABEL, SITE_URL } from '@/lib/constants';
 import { friendlyError } from '@/lib/errors';
@@ -63,6 +63,7 @@ function UpcomingCard({ s, now }: { s: DispatchShift; now: number }) {
           <p className="text-base text-ink">
             Chủ quán: {s.owner_name} · <Tel phone={s.owner_phone} />
           </p>
+          <DemoPhoneNote />
         </div>
 
         <div>
@@ -141,6 +142,7 @@ function PendingCard({ s }: { s: PendingConfirmation }) {
           <p className="text-base text-ink">
             Chủ quán: {s.owner_name} · <Tel phone={s.owner_phone} />
           </p>
+          <DemoPhoneNote />
           <p className="text-base text-ink">Hạn xác nhận: {fmtDateTime(s.confirm_expires_at)}</p>
         </div>
         <div className="space-y-2">

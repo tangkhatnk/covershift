@@ -4,7 +4,7 @@ import {
   Ban, ChevronDown, CircleAlert, CircleCheck, CirclePlay, DoorClosed, DoorOpen, Hourglass, Info, OctagonAlert, Phone, Star, TriangleAlert,
   type LucideIcon,
 } from 'lucide-react';
-import { AREA_LABEL, JOB_LABEL } from '@/lib/constants';
+import { AREA_LABEL, DEMO_PHONE_NOTE, JOB_LABEL } from '@/lib/constants';
 import {
   fmtDate, fmtMoney, fmtTime, hoursBetween, shiftState, SHIFT_STATE_LABEL, SHIFT_STATE_TONE, type ShiftState,
 } from '@/lib/format';
@@ -157,6 +157,11 @@ export function Tel({ phone, block = false }: { phone: string | null | undefined
   ) : (
     <a href={`tel:${phone}`} className="py-2 font-semibold text-shutter underline underline-offset-4">{phone}</a>
   );
+}
+
+/** Dòng nhắc cạnh SĐT của quán: hotline trong seed là số thật của quán, nhưng app chỉ là bản mô phỏng. */
+export function DemoPhoneNote() {
+  return <p className="text-sm text-ink-soft">{DEMO_PHONE_NOTE}</p>;
 }
 
 /** Phần mở rộng (<details>): chạy bằng bàn phím, mũi tên xoay khi mở. Dòng tóm tắt cao tối thiểu 3rem. */

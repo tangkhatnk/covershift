@@ -2,7 +2,7 @@ import { MapPin } from 'lucide-react';
 import { setAccountStatus, setFacilityLocation, setFacilityStatus, verifyFacility } from '@/app/actions';
 import { ActionForm, SubmitButton } from '@/components/client';
 import { LocationPicker, ShiftMap, type MapPoint } from '@/components/map';
-import { Alert, Badge, Card, Check, Disclosure, Empty, Field, PageTitle, Tel, inputCls } from '@/components/ui';
+import { Alert, Badge, Card, Check, DemoPhoneNote, Disclosure, Empty, Field, PageTitle, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
 import { AREA_LABEL, FACILITY_STATUS_LABEL, FACILITY_TYPE_LABEL } from '@/lib/constants';
@@ -46,9 +46,12 @@ function Identity({ f }: { f: AdminFacility }) {
 
 function Owner({ f }: { f: AdminFacility }) {
   return (
-    <p className="text-base text-ink">
-      Chủ: {f.owner_name} · <Tel phone={f.owner_phone} />
-    </p>
+    <div>
+      <p className="text-base text-ink">
+        Chủ: {f.owner_name} · <Tel phone={f.owner_phone} />
+      </p>
+      <DemoPhoneNote />
+    </div>
   );
 }
 

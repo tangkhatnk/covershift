@@ -164,7 +164,7 @@ const PIN: Record<MapTone, { bg: string; fg: string; bd: string }> = {
 };
 const PIN_ON = { bg: 'bg-wall', fg: 'text-ink', bd: 'border-shutter-deep' };
 
-// Chữ rút gọn cho pin chồng nhau: giờ "18:00" -> "18h"; nhiều từ -> từ cuối ("Quán Demo 2" -> "2"); còn lại cắt 3 ký tự.
+// Chữ rút gọn cho pin chồng nhau: giờ "18:00" -> "18h"; nhiều từ -> từ cuối ("Phê La Vũng Tàu" -> "Tàu"); còn lại cắt 3 ký tự.
 // Tên đầy đủ vẫn ở aria-label, và hiện lại khi pin được chọn.
 function shortText(t: string) {
   const h = /^(\d{1,2}):\d{2}$/.exec(t);

@@ -202,7 +202,7 @@ Chỉ thị: thêm "tuyển dụng lâu dài" (tin + đơn ứng tuyển) và ch
 |---|---|---|
 | P1 | Chủ dự án cho dùng **tên, địa chỉ và hotline công khai** của 9 quán thật ở Vũng Tàu (SOHO Coffee, Phê La Vũng Tàu, OASIS SEA Coffee & Tea, An Coffee Bean, KATINAT, Quán Ốc Thiên Nhiên 2, Bọt, Phuc Long Coffee & Tea, Texas Chicken) trong `seed.sql`, thay "Quán Demo 1–5" | 9 cơ sở, 9 chủ quán demo (`quan1–9@`; chủ `quan6–9@` mới), seed tạo 20 user demo. 5 cơ sở cũ giữ id và trạng thái (số 4 bị test 10j gỡ, số 5 chờ xác minh) |
 | P2 | Hotline nằm ở `private_contacts.phone` của chủ quán tương ứng; SĐT người làm và phụ huynh vẫn là số giả `0900000…` | Cả 9 quán có hotline thật. Phê La (8 chữ số), Phuc Long và Texas Chicken (11 chữ số) chỉ qua được ràng buộc đã nới ở `0004` (`0001` chỉ nhận đúng 10 số): **seed này cần `0004` đã áp** trước khi chạy |
-| P3 | Hotline hiện cho người làm qua `get_shift_contacts()` | Giao diện cần dòng nhắc "Dữ liệu mô phỏng. Không gọi số này để hỏi về ca." (làm ở PR sau, chưa có) |
+| P3 | Hotline hiện cho người làm qua `get_shift_contacts()` | Giao diện hiện dòng nhắc "Dữ liệu mô phỏng. Không gọi số này để hỏi về ca." (`DEMO_PHONE_NOTE`, thành phần `DemoPhoneNote`) cạnh SĐT quán ở `/shifts/[id]`, `/admin`, `/admin/facilities`, `/admin/reports` |
 | P4 | Tọa độ ghim lấy từ OpenStreetMap, gần đúng (chỉ quán OASIS SEA ra đúng số nhà); `area` gán theo khu gần nhất trong enum | Chủ quán hoặc nhóm vận hành sửa ghim bằng `set_facility_location` |
 
 Việc sau khi merge: chạy lại `seed.sql` trên Supabase thật (không trong 21–22/11).

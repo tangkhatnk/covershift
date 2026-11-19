@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { resolveReport } from '@/app/actions';
 import { ActionForm, SubmitButton } from '@/components/client';
-import { Alert, Badge, Card, Empty, Field, PageTitle, Tel, inputCls } from '@/components/ui';
+import { Alert, Badge, Card, DemoPhoneNote, Empty, Field, PageTitle, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
 import { REPORT_KIND_LABEL } from '@/lib/constants';
@@ -50,7 +50,10 @@ function Related({ r }: { r: AdminReport }) {
         <p>Người gửi: {r.reporter_name} · <Tel phone={r.reporter_phone} /></p>
       ) : null}
       {r.subject_name ? (
-        <p>Người liên quan: {r.subject_name} · <Tel phone={r.subject_phone} /></p>
+        <>
+          <p>Người liên quan: {r.subject_name} · <Tel phone={r.subject_phone} /></p>
+          <DemoPhoneNote />
+        </>
       ) : null}
     </div>
   );

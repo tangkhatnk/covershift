@@ -4,6 +4,8 @@ export const TZ = 'Asia/Ho_Chi_Minh';
 
 export const DISCLAIMER = `${APP_NAME} chỉ kết nối người làm và nơi thuê. Lương, hợp đồng và điều kiện làm việc do hai bên tự thỏa thuận.`;
 export const NO_FEE = 'Không bao giờ thu phí người làm.';
+// Theo chỉ thị chủ dự án 19/11/2026: đặt cạnh mọi SĐT liên hệ của quán (hotline công khai của quán thật trong seed).
+export const DEMO_PHONE_NOTE = 'Dữ liệu mô phỏng. Không gọi số này để hỏi về ca.';
 
 export const JOB_LABEL = {
   phuc_vu: 'Phục vụ',
