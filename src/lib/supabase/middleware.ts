@@ -18,6 +18,8 @@ export async function updateSession(request: NextRequest) {
       },
     },
   );
-  await supabase.auth.getUser();
+  // getClaims() kiểm chữ ký JWT cục bộ (khóa ES256 trong JWKS đã cache) và vẫn làm mới token hết hạn qua refresh token,
+  // nên không tốn một vòng gọi mạng tới Auth ở mỗi request như getUser().
+  await supabase.auth.getClaims();
   return response;
 }

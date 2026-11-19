@@ -138,6 +138,8 @@ Kỳ vọng: `358/358 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM`, 
 
 Đã deploy production tại https://safeshift-beta.vercel.app (Vercel project `safeshift`, team `safeshift`, nối GitHub: merge vào `main` là tự deploy; biến `NEXT_PUBLIC_*` đã đặt). Các bước dưới là cách dựng lại từ đầu.
 
+Vùng chạy function đặt trong `vercel.json` (`regions: ["sin1"]`, Singapore) cho gần database Supabase (cũng Singapore, mục 2); mặc định của Vercel là Mỹ Đông (`iad1`), mỗi truy vấn tới Supabase sẽ tốn thêm ~200 ms. Đổi vùng Supabase thì đổi cả hai.
+
 1. https://vercel.com/new → kết nối GitHub → chọn repo (framework tự nhận Next.js). Node lấy theo `package.json` (**24.x**; Vercel mặc định 26.x, chưa thử với Next 15.5).
 2. **Environment Variables**: thêm 3 biến ở mục 4, loại *Config* (đều là giá trị công khai), môi trường Production. Lần đầu chưa biết domain: đặt `NEXT_PUBLIC_SITE_URL` tạm là `https://<tên-project>.vercel.app`.
 3. **Deploy** → xem domain thật ở **Settings → Domains**. Khác giá trị tạm thì sửa `NEXT_PUBLIC_SITE_URL` rồi **Redeploy**.

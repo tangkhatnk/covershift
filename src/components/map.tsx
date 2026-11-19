@@ -346,7 +346,8 @@ function toPoint(s: Shift): MapPoint | null {
   };
 }
 
-export function ShiftExplorer({ shifts }: { shifts: Shift[] }) {
+/** `now` (ms) do server tính một lần: render ở server và hydrate dùng cùng mốc giờ, tránh lệch trạng thái ca (React #418). */
+export function ShiftExplorer({ shifts, now }: { shifts: Shift[]; now: number }) {
   const [sel, setSel] = useState<string | null>(null);
   const [hover, setHover] = useState<string | null>(null);
   const [tab, setTab] = useState<'list' | 'map'>('list');
@@ -376,7 +377,7 @@ export function ShiftExplorer({ shifts }: { shifts: Shift[] }) {
               onMouseEnter={() => setHover(s.id)} onMouseLeave={() => setHover(null)}
               onFocusCapture={() => setHover(s.id)} onBlurCapture={() => setHover(null)}>
               <div className={`rounded-ui ${s.id === sel ? 'ring-2 ring-shutter-deep ring-offset-2 ring-offset-chalk' : ''}`}>
-                <ShiftCard shift={s} href={`/shifts/${s.id}`}
+                <ShiftCard shift={s} href={`/shifts/${s.id}`} now={now}
                   extra={s.my_role ? (
                     <Badge tone={s.my_role === 'primary' ? 'green' : 'amber'}>
                       Bạn là {s.my_role === 'primary' ? 'người chính' : 'người dự phòng'}
@@ -413,9 +414,15 @@ export function LiveRefresh({ intervalMs = 30000 }: { intervalMs?: number }) {
   const runRef = useRef(run);
   runRef.current = run;
   useEffect(() => setLast(Date.now()), []);
+  // Chỉ làm mới khi tab đang hiện; tab ẩn thì bỏ qua, và khi quay lại mà đã quá một chu kỳ thì làm mới một lần.
+  const lastRef = useRef(0);
+  lastRef.current = last ?? lastRef.current;
   useEffect(() => {
-    const t = setInterval(() => { if (document.visibilityState === 'visible') runRef.current(); }, intervalMs);
-    return () => clearInterval(t);
+    const tick = () => { if (document.visibilityState === 'visible') runRef.current(); };
+    const onVisible = () => { if (document.visibilityState === 'visible' && Date.now() - lastRef.current >= intervalMs) runRef.current(); };
+    const t = setInterval(tick, intervalMs);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(t); document.removeEventListener('visibilitychange', onVisible); };
   }, [intervalMs]);
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
