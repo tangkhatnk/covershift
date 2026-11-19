@@ -33,17 +33,15 @@ export const inputCls =
   'block w-full min-h-[3rem] rounded-ui border-2 border-rule-strong bg-white px-4 py-2 text-lg text-ink placeholder:text-ink-soft/80 focus:border-brand';
 
 /**
- * Tiêu đề trang: nền vàng nhạt, dải nắng đặc (`h-1`) ở mép trên làm điểm nhấn; một việc chính của trang nằm ngay dưới.
- * Chiều cao là bội ổn định theo số dòng chữ phụ; `SKELETON_TITLE` bên dưới khớp với nó (CLS 0).
+ * Tiêu đề trang: chữ trên nền vôi, không có khối nền; một gạch nắng ngắn (3rem x 4,5px) dưới tiêu đề làm điểm nhấn.
+ * Chiều cao ổn định theo số dòng chữ phụ; `SKELETON_TITLE` bên dưới khớp với nó (CLS 0).
  */
 export function PageTitle({ children, sub }: { children: ReactNode; sub?: ReactNode }) {
   return (
-    <div className="mb-6 overflow-hidden rounded-ui bg-accent-tint">
-      <div className="h-1 bg-accent" aria-hidden="true" />
-      <div className="px-4 py-4">
-        <h1 className="text-2xl font-bold leading-tight text-ink">{children}</h1>
-        {sub ? <p className="mt-2 text-base text-ink-soft">{sub}</p> : null}
-      </div>
+    <div className="mb-6">
+      <h1 className="text-2xl font-bold leading-tight text-ink">{children}</h1>
+      <div className="mt-2 h-1 w-12 rounded-sm bg-accent" aria-hidden="true" />
+      {sub ? <p className="mt-2 text-base text-ink-soft">{sub}</p> : null}
     </div>
   );
 }
@@ -65,7 +63,7 @@ export function Card({ children, className = '', tab }: { children: ReactNode; c
 }
 
 // 0, 1, 2 dòng chữ phụ (khớp `PageTitle`, đo ở 360–1440px: 74,25 / 110,25 / 137,25px; 2 dòng chỉ ở điện thoại)
-const SKELETON_TITLE = ['h-[4.125rem]', 'h-[6.125rem]', 'h-[7.625rem] lg:h-[6.125rem]'] as const;
+const SKELETON_TITLE = ['h-[2.625rem]', 'h-[4.625rem]', 'h-[6.125rem] lg:h-[4.625rem]'] as const;
 
 /**
  * Khung chờ cho `loading.tsx`. Mỗi khối có chiều cao xấp xỉ khối thật cùng vị trí (đo theo `PageTitle`, bộ lọc,
@@ -91,8 +89,12 @@ export function PageSkeleton({ gap = 4, lead, sub = 1, action = false, form = fa
     <div role="status" aria-busy="true" className="min-h-dvh">
       <span className="sr-only">Đang tải…</span>
       <div aria-hidden="true" className={`${gap === 6 ? 'space-y-6' : 'space-y-4'} motion-safe:animate-pulse`}>
-        {lead ? <div className={`rounded-ui bg-chalk ${lead === 'back' ? 'h-12 w-40' : 'h-14'}`} /> : null}
-        <div className={`mb-6 rounded-ui bg-accent-tint ${SKELETON_TITLE[sub]}`} />
+        {lead === 'back' ? <div className="h-12 w-40 rounded-ui bg-white" /> : null}
+        <div className={`mb-6 space-y-2 ${SKELETON_TITLE[sub]}`}>
+          <div className="h-7 w-2/3 rounded-ui bg-white" />
+          <div className="h-1 w-12 rounded-sm bg-accent-tint" />
+        </div>
+        {lead === 'refresh' ? <div className="h-12 rounded-ui bg-white" /> : null}
         {action ? <div className="h-[3.75rem] w-full rounded-ui bg-brand-tint sm:w-56" /> : null}
         {form ? <div className="h-[17rem] rounded-ui border border-rule bg-white lg:h-28" /> : null}
         {map ? <div className="h-72 rounded-ui border border-rule bg-chalk lg:h-96" /> : null}
@@ -110,7 +112,7 @@ export function PageSkeleton({ gap = 4, lead, sub = 1, action = false, form = fa
 export type Tone = 'green' | 'amber' | 'red' | 'gray' | 'blue';
 const TONE: Record<Tone, string> = {
   green: 'bg-ok-tint text-ok',
-  amber: 'bg-accent-tint text-ink',
+  amber: 'border border-accent bg-white text-ink', // nền trắng + viền nắng: vẫn rõ khi nằm trên dải đầu thẻ `accent-tint`
   red: 'bg-danger-tint text-danger',
   gray: 'border border-rule bg-chalk text-ink-soft',
   blue: 'bg-info-tint text-info',

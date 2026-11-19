@@ -39,7 +39,13 @@ export default async function ConfirmPage({ params }: { params: Promise<{ token:
             <span className="text-lg">Link đã hết hạn (quá 72 giờ sau ca). Vui lòng liên hệ nhóm vận hành.</span>
           </Alert>
         ) : (
-          <Alert tone="red"><span className="text-lg">Link không hợp lệ.</span></Alert>
+          <>
+            <Alert tone="red"><span className="text-lg">Link không hợp lệ.</span></Alert>
+            <p className="text-base text-ink">
+              Link có thể bị sai, đã dùng hoặc đã hết hạn. Anh/chị kiểm lại link trong tin nhắn đã nhận. Nếu vẫn không mở được,
+              anh/chị liên hệ nhóm vận hành qua kênh đã được thông báo khi đăng ký.
+            </p>
+          </>
         )}
       </div>
     );

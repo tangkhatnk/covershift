@@ -110,11 +110,9 @@ components:
     padding: "0.5rem 1rem"
     height: "{spacing.touch}"
   page-title:
-    backgroundColor: "{colors.accent-tint}"
     textColor: "{colors.ink}"
     typography: "{typography.headline}"
-    rounded: "{rounded.ui}"
-    padding: "1rem"
+    padding: "0"
   card:
     backgroundColor: "{colors.white}"
     textColor: "{colors.ink}"
@@ -131,7 +129,7 @@ components:
     padding: "0 0.5rem"
     height: "2rem"
   badge-amber:
-    backgroundColor: "{colors.accent-tint}"
+    backgroundColor: "{colors.white}"
     textColor: "{colors.ink}"
     typography: "{typography.label}"
     padding: "0 0.5rem"
@@ -196,11 +194,11 @@ Bãi biển Vũng Tàu lúc sáng: nước xanh biển, nắng vàng, cát vôi 
 
 Mật độ vừa phải, chữ to, một việc chính mỗi màn hình, vì người đọc là chủ quán lớn tuổi mở link từ Zalo ngoài nắng. Mọi thứ phẳng: không bóng, không gradient, không kính mờ, ngoại lệ duy nhất là bóng mềm của pin bản đồ. Hình dạng là chữ nhật viền hairline bo 6px; khung chrome xanh biển đậm (thanh trên, rail, nav dưới, chân trang) bao quanh nền vôi. Chuyển động chỉ CSS, ngắn, tắt dịch chuyển khi người dùng chọn giảm chuyển động (mục Motion).
 
-Nhận ra được dù xóa hết chữ: tiêu đề trang nền vàng nhạt có dải nắng đặc ở mép trên, mô-đun viền mảnh có dải đầu nhạt, rail xanh biển, mục đang chọn màu nắng, và các ô cửa.
+Nhận ra được dù xóa hết chữ: tiêu đề trang chữ đậm trên nền vôi với một gạch nắng ngắn bên dưới, mô-đun viền mảnh có dải đầu nhạt, rail xanh biển, mục đang chọn màu nắng, và các ô cửa.
 
 **Key Characteristics:**
 - Bảng màu: xanh biển (`brand`), vàng nắng (`accent`), thành công (`ok`), lỗi (`danger`), thông tin (`info`), mỗi họ có sắc đậm/chuẩn/nhạt khi cần; nền vôi và mực.
-- Vàng đặc là điểm nhấn thật (mục đang chọn, nút "Đăng nhập" trên thanh trên, dải nắng mảnh của tiêu đề, pin đang chọn); vàng nhạt (`accent-tint`) cho tiêu đề trang, dải đầu mô-đun, cảnh báo nhẹ; `danger` chỉ cho lỗi và nguy hiểm; `info` chỉ cho thông tin; `ok` chỉ cho thành công.
+- Vàng đặc là điểm nhấn thật (mục đang chọn, nút "Đăng nhập" trên thanh trên, gạch nắng ngắn dưới tiêu đề, pin đang chọn); vàng nhạt (`accent-tint`) cho dải đầu mô-đun, cảnh báo nhẹ (không còn nền kín cho tiêu đề trang); `danger` chỉ cho lỗi và nguy hiểm; `info` chỉ cho thông tin; `ok` chỉ cho thành công.
 - Số giờ ca là con số lớn nhất trên màn hình, Barlow Condensed với chữ số bảng cố định.
 - Mỗi trạng thái ca là một cặp icon + chữ + tông, không bao giờ chỉ màu.
 - Phẳng, viền hairline, 6px, khoảng cách là bội của 0,5rem.
@@ -213,7 +211,7 @@ Bảng màu khai ở `tailwind.config.ts`; trang chỉ dùng tên token. Tên d�
 - **Xanh biển** (`brand`, `brand-deep`, `brand-tint`): `brand` cho nút chính, liên kết, tiêu đề phụ, tick; `brand-deep` cho toàn bộ khung chrome (thanh trên, rail, nav dưới, chân trang), hover của nút chính, vòng focus trên nền sáng, `themeColor`; `brand-tint` cho nền hover, hàng được chọn.
 
 ### Secondary
-- **Vàng nắng** (`accent`, `accent-tint`): `accent` cho mục nav đang chọn, nút "Đăng nhập" trên thanh trên, dải nắng mảnh ở mép trên `PageTitle`, vùng chọn văn bản (`::selection`), khối nổi bật của trang chủ, pin đang chọn; `accent-tint` cho nền `PageTitle`, dải đầu mô-đun (`Card tab`, đầu `ShiftCard`), Badge vàng, nền cảnh báo nhẹ.
+- **Vàng nắng** (`accent`, `accent-tint`): `accent` cho mục nav đang chọn, nút "Đăng nhập" trên thanh trên, gạch nắng 3rem x 4,5px dưới `PageTitle`, vùng chọn văn bản (`::selection`), khối nổi bật của trang chủ, pin đang chọn; `accent-tint` cho dải đầu mô-đun (`Card tab`, đầu `ShiftCard`), Badge vàng, nền cảnh báo nhẹ.
 
 ### Tertiary
 - **Thành công** (`ok`, `ok-tint`): Badge xanh lá (`Tone` `green`), thông báo thành công, nhãn "Nhận dưới 18 tuổi".
@@ -234,7 +232,7 @@ Bảng màu khai ở `tailwind.config.ts`; trang chỉ dùng tên token. Tên d�
 | `ink` / `white` | 16,26 | chữ trong mô-đun, ô nhập | AA, AAA |
 | `ink-soft` / `chalk` | 7,28 | gợi ý, chữ phụ, Badge xám | AA, AAA |
 | `ink-soft` / `white` | 8,08 | nhãn phụ trong mô-đun | AA, AAA |
-| `ink-soft` / `accent-tint` | 7,20 | phụ đề `PageTitle` | AA, AAA |
+| `ink-soft` / `chalk` | 7,28 | phụ đề `PageTitle` (nay trên nền vôi) | AA, AAA |
 | placeholder (`ink-soft` 80% trên trắng = `#68757E`) | 4,74 | `placeholder` ô nhập | AA |
 | trắng / `brand` | 7,21 | nút chính | AA, AAA |
 | trắng / `brand-deep` | 11,13 | chữ trên khung chrome, nút chính khi hover | AA, AAA |
@@ -244,7 +242,9 @@ Bảng màu khai ở `tailwind.config.ts`; trang chỉ dùng tên token. Tên d�
 | `brand` / `brand-tint` | 5,92 | nút phụ và ghost khi hover | AA |
 | `ink` / `brand-tint` | 13,35 | hàng `Check` được chọn | AA, AAA |
 | `ink` / `accent` | 10,11 | mục nav đang chọn, nút "Đăng nhập" | AA, AAA |
-| `ink` / `accent-tint` | 14,50 | tiêu đề `PageTitle`, Badge vàng, dải đầu mô-đun | AA, AAA |
+| `ink` / `accent-tint` | 14,50 | dải đầu mô-đun | AA, AAA |
+| `ink` / trắng | 16,26 | Badge `amber` (nền trắng, viền `accent`; vẫn rõ khi nằm trên dải đầu `accent-tint`) | AA, AAA |
+| trắng / `brand-deep` | 11,13 | tên và chữ trên đầu hồ sơ công khai `/p/[slug]` (`brand-deep`; chữ phụ `brand-tint` 9,14) | AA, AAA |
 | `accent` / `brand-deep` | 6,92 | `NO_FEE` ở chân trang, nav dưới đang chọn | AA |
 | `brand-tint` / `brand-deep` | 9,14 | dòng miễn trừ ở chân trang | AA, AAA |
 | `ok` / `ok-tint` | 5,46 | Badge xanh lá, icon thông báo thành công | AA |
@@ -256,7 +256,7 @@ Bảng màu khai ở `tailwind.config.ts`; trang chỉ dùng tên token. Tên d�
 | `brand-deep` / `chalk` | 10,03 | vòng focus trên nền sáng | đạt 3:1 |
 | `accent` / `brand-deep` | 6,92 | vòng focus trên nền xanh đậm | đạt 3:1 |
 | `rule` / `chalk` | 1,38 | viền hairline mô-đun | **dưới 3:1, chủ ý**: chỉ là đường ngăn cách trang trí, ranh giới còn do nền trắng trên nền vôi |
-| `accent` / `chalk` | 1,45 | (không dùng) | **không bao giờ làm chữ hoặc viền chỉ dẫn trên nền sáng** (chỉ dải nắng trang trí ở mép `PageTitle`) |
+| `accent` / `chalk` | 1,45 | (không dùng) | **không bao giờ làm chữ hoặc viền chỉ dẫn trên nền sáng** (chỉ gạch nắng trang trí dưới `PageTitle`) |
 
 Pin bản đồ (tính trên nền bản đồ ghi đè `MAP_COLOR`: land `#F1EEE3`, water `#BDDCEA`, park `#D6E4CE`, road `#FFFFFF`, major `#FFD97A`): chữ trên pin `open` 7,21, `urgent` 5,98, `full` 7,21, `pending` và đang chọn 10,11, `removed` 5,28; viền pin so với từng nền bản đồ thấp nhất là `open`/`full` `brand` 5,01 (trên nước), `urgent` `danger` 4,15 (trên nước), `pending`/đang chọn `brand-deep` 7,73, `removed` `ink-soft` 5,61. Nhãn bản đồ: `label` / land 11,04, `waterLabel` / water 5,91.
 
@@ -281,7 +281,7 @@ Cỡ chữ gốc `html { font-size: 18px }`, nên `rem` lớn hơn mặc định
 
 ### Hierarchy
 - **Display** (700, `text-4xl`, `lg:text-5xl`, `leading-tight`): tiêu đề trang chủ.
-- **Headline** (700, `text-2xl`, `leading-tight`): `PageTitle` trên nền `accent-tint`; chữ đậm `ink`.
+- **Headline** (700, `text-2xl`, `leading-tight`): `PageTitle` trên nền vôi; chữ đậm `ink`.
 - **Title** (700, `text-xl`): tiêu đề mục (`DocSection`, `Point` ở trang chủ, tên thương hiệu ở thanh trên).
 - **Body** (400, `text-base`): nội dung. Tờ đọc (`Doc`) dùng `leading-relaxed` và cột rộng 40rem.
 - **Body-strong** (600, `text-lg`): chữ trên nút, ô nhập, giá `…/giờ` trong thẻ ca.
@@ -345,12 +345,12 @@ Nút gửi form dùng `SubmitButton`: tự khóa và đổi nhãn "Đang gửi�
 
 ### Cards / Containers (`Card`, `PageTitle`, `Empty`, `Disclosure`)
 - **Card**: trắng, viền hairline `rule`, `rounded-ui`, `p-4`. Prop `tab` thêm dải đầu `accent-tint` (viền dưới `rule`, `px-4 py-2`) chứa **dữ liệu thật** của mô-đun (trạng thái, loại việc, "GẤP"), không phải nhãn trang trí.
-- **PageTitle**: nền `accent-tint` `rounded-ui px-4 py-4`, dải nắng đặc `h-1 bg-accent` ở mép trên (cắt theo góc bo) (điểm nhấn, không phải chỉ dẫn), `h1` `text-2xl font-bold ink`, phụ đề `text-base ink-soft`. Chiều cao ổn định theo số dòng phụ đề (74,25 / 110,25 / 137,25px ở 0 / 1 / 2 dòng); `PageSkeleton` khớp các số này (CLS 0).
+- **PageTitle**: không có khối nền, chữ trên nền vôi: `h1` `text-2xl font-bold ink`, dưới là gạch nắng ngắn `h-1 w-12 bg-accent rounded-sm` (3rem x 4,5px, `aria-hidden`), phụ đề `text-base ink-soft`. Chiều cao ổn định theo số dòng phụ đề (47,25 / 83,25 / 110,25px ở 0 / 1 / 2 dòng, đo ở 360–1440px; 2 dòng chỉ ở điện thoại); `PageSkeleton` khớp các số này (CLS 0).
 - **Empty**: viền nét đứt 2px `rule-strong`, `text-base ink-soft`, căn giữa.
 - **Disclosure**: `<details>`; dòng tóm tắt cao `3rem`, chữ `brand font-semibold`, mũi tên `ChevronDown` xoay khi mở; chạy bằng bàn phím.
 
 ### Badges (`Badge`, `StateBadge`)
-`min-h-[2rem]`, `px-2`, `text-sm font-semibold`, `whitespace-nowrap`, bo `rounded` mặc định. Tông: `green` (`ok-tint`/`ok`), `amber` (`accent-tint`/`ink`), `red` (`danger-tint`/`danger`), `blue` (`info-tint`/`info`), `gray` (`chalk` + viền `rule`/`ink-soft`). `StateBadge` là từ điển đóng của trạng thái ca: mỗi trạng thái đúng một icon Lucide + nhãn + tông (nhãn và tông lấy từ `format.ts`): `open` DoorOpen, `filled` DoorClosed, `in_progress` CirclePlay, `awaiting_confirm` Hourglass, `expired` TriangleAlert, `unfilled` CircleAlert, `confirmed` CircleCheck, `cancelled` Ban. Không tự ghép Badge trạng thái ca ở trang khác.
+`min-h-[2rem]`, `px-2`, `text-sm font-semibold`, `whitespace-nowrap`, bo `rounded` mặc định. Tông: `green` (`ok-tint`/`ok`), `amber` (nền trắng, viền 1px `accent`, chữ `ink`), `red` (`danger-tint`/`danger`), `blue` (`info-tint`/`info`), `gray` (`chalk` + viền `rule`/`ink-soft`). `StateBadge` là từ điển đóng của trạng thái ca: mỗi trạng thái đúng một icon Lucide + nhãn + tông (nhãn và tông lấy từ `format.ts`): `open` DoorOpen, `filled` DoorClosed, `in_progress` CirclePlay, `awaiting_confirm` Hourglass, `expired` TriangleAlert, `unfilled` CircleAlert, `confirmed` CircleCheck, `cancelled` Ban. Không tự ghép Badge trạng thái ca ở trang khác.
 
 ### Alert
 Nền tint + viền 1px + icon `h-6 w-6` (CircleCheck, TriangleAlert, OctagonAlert, Info) + chữ `ink`, `rounded-ui px-4 py-2`. Tông đỏ là `role="alert"`, còn lại `role="status"`; `ActionForm` truyền rõ theo lỗi/thành công và thêm `scroll-my-4`.
@@ -368,8 +368,8 @@ Mô-đun hairline (viền `danger` khi gấp và còn sắp diễn ra, `hover:bo
 ### Navigation
 Nền `brand-deep`, chữ trắng, mục đang chọn mang `aria-current="page"`.
 - **Rail (lg)**: mục `min-h-[3rem] px-4 rounded-ui text-lg font-semibold`, icon `h-6 w-6`; đang chọn nền `accent` chữ `ink`; hover `brand`. Dưới có Tài khoản (nếu chưa nằm trong nav) và nút Đăng xuất.
-- **Nav dưới (điện thoại)**: ô cao `4.5rem`, icon `h-6 w-6` trên nhãn `text-sm leading-tight` căn giữa; đang chọn `border-t-4 border-accent text-accent`. "Thêm" của nhóm vận hành là `<details>`: đóng bằng Esc, chạm ra ngoài hoặc khi đổi trang; danh sách thả `w-60` trắng viền hairline.
-- **Thanh trên**: logo `Mark` (ô trắng bo, mặt trời `accent`, hai làn sóng `brand`; chữ "Safe" trắng + "Shift" `accent`) trong liên kết về trang chủ; bên phải tên người dùng (tới `/account`) hoặc nút vàng "Đăng nhập".
+- **Nav dưới (điện thoại)**: ô cao `4.5rem`, icon `h-6 w-6` trên nhãn `text-sm leading-tight` căn giữa; đang chọn `border-t-4 border-accent text-accent`. Mục chia theo độ rộng nhãn (`flex-auto`, `whitespace-nowrap`) nên nhãn như "Điều phối", "Người làm" không xuống dòng ở 360–414px (4 mục + "Thêm" vừa vặn ở 360px, nhãn sát lề). Nav không có viền trên: chân trang cùng màu `brand-deep` nên khi vừa lộ ra phía trên nav hai khối liền nhau, không có đường kẻ. "Thêm" của nhóm vận hành là `<details>`: đóng bằng Esc, chạm ra ngoài hoặc khi đổi trang; danh sách thả `w-60` trắng viền hairline.
+- **Thanh trên**: logo `Mark` (ô trắng bo, mặt trời `accent`, hai làn sóng `brand`; chữ "Safe" trắng + "Shift" `accent`) trong liên kết về trang chủ; bên phải tên người dùng (tới `/account`) hoặc nút vàng "Đăng nhập" (ẩn ở chính `/login`).
 
 ### Doc, DocSection, DocList (chế độ Read)
 Tờ đọc: `PageTitle`, khối thông báo, mục lục (dính bên phải ở `lg`, trong `<details>` ở điện thoại, mục cao `3rem`), bài `rounded-ui border border-rule bg-white px-4 sm:px-8`. `DocSection` có tiêu đề đánh số `text-xl font-bold`, kẻ trên `border-rule`, `scroll-mt-4`; `DocList` chấm `marker:text-brand`.
@@ -392,7 +392,7 @@ Tờ đọc: `PageTitle`, khối thông báo, mục lục (dính bên phải ở
 - **Pin chồng**: nhiều ca cùng tọa độ (một quán) xếp dọc cách nhau 60px (offset pixel, không đổi khi zoom; pin dưới cùng vẫn chỉ đúng điểm). Pin của các quán khác nhau mà chồng nhau trên màn hình (đo sau mỗi `moveend`/`zoomend`) rút gọn chữ (`18:00` thành `18h`, tên nhiều từ lấy từ cuối, còn lại cắt 3 ký tự; `min-w-[2.5rem]`) cho tới khi được chọn hoặc zoom đủ gần; tên đầy đủ ở `aria-label`.
 - **`ShiftMap`**: khung `rounded-ui border border-rule`; lazy bằng `IntersectionObserver` (`rootMargin` 200px) rồi mới `import('maplibre-gl')`; trung tâm `[107.09, 10.36]` zoom 12,5; `maxBounds` quanh Vũng Tàu; `cooperativeGestures` (một ngón cuộn trang, hai ngón kéo bản đồ; chú thích tiếng Việt); nút +/- và chữ ghi nguồn `text-sm` to `3rem`; khung nhìn ôm các điểm (`fitBounds`, lề `top 64, bottom 64, left 56, right 100`), người dùng đã kéo thì không giật lại; Esc bỏ chọn; chưa tải được thì hiện chữ "Chưa tải được bản đồ. Danh sách ca vẫn ở bên dưới."; ghim được chọn hiện dòng tóm tắt + nút "Xem ca" bên dưới. Điểm chỉ mang `id, lat, lng, text, label, href, tone`: **không có số điện thoại**.
 - **`ShiftExplorer`**: danh sách ca + bản đồ; điện thoại có hai nút "Danh sách"/"Bản đồ" (`aria-pressed`), từ `lg` hai cột, bản đồ dính (`sticky`). Chọn pin thì cuộn thẻ vào tầm nhìn (giảm chuyển động thì không mượt); hover/focus thẻ thì pin sáng lên.
-- **`LiveRefresh`**: tự `router.refresh()` mỗi **30 giây** (chỉ khi tab đang hiện, `document.visibilityState === 'visible'`) kèm nút "Làm mới" và dòng "Tự cập nhật mỗi 30 giây · lần cuối hh:mm" (`text-sm`, giờ `tabular`). Khung cao cố định `3.5rem` để đổi "--:--" thành giờ thật không làm trang nhảy (CLS). Khung bản đồ của `ShiftExplorer` cao cố định: `h-[28rem]` trên điện thoại, `lg:h-[min(36rem,calc(100dvh-8rem))]` từ `lg`.
+- **`LiveRefresh`**: nằm ngay dưới tiêu đề trang (`/shifts`, `/admin`); tự `router.refresh()` mỗi **30 giây** (chỉ khi tab đang hiện, `document.visibilityState === 'visible'`). Một dòng cao cố định `3rem` (`h-12`): chữ `text-sm` "Tự cập nhật · hh:mm" (giờ `tabular`, "--:--" trước khi hydrate không đổi chiều cao) và nút ghost "Làm mới" có icon `RefreshCw` (vùng chạm `3rem`, quay khi đang làm mới và không giảm chuyển động). Khung bản đồ của `ShiftExplorer` cao cố định: `h-[28rem]` trên điện thoại, `lg:h-[min(36rem,calc(100dvh-8rem))]` từ `lg`.
 - **`LocationPicker`** (chủ quán, nhóm vận hành): bấm bản đồ hoặc kéo chấm ghim (tròn `1.5rem`, nền `danger`, viền trắng 3px) để chọn; nút "Dùng vị trí hiện tại", "Xóa ghim", mục "Nhập tọa độ" (`<details>`, vĩ độ/kinh độ); báo sớm nếu ngoài khung Vũng Tàu (database mới là nơi chặn). Tọa độ nằm trong input ẩn, chỉ gửi khi form được lưu; không lưu hay gửi vị trí người dùng đi đâu khác.
 - Chuyển động: `prefers-reduced-motion` thì `fitBounds` tắt hoạt ảnh và `easeTo` thành `jumpTo`.
 - Kết nối ngoài `tiles.openfreemap.org` đã được chủ dự án duyệt; không thêm nguồn khác.
@@ -450,7 +450,7 @@ Chỉ CSS, không thư viện, không JS để chạy hiệu ứng. Hằng số:
 Ghi nhận hiện trạng, không phải quy tắc cho trang mới. Mục (a)-(e) do người rà soát giao diện nêu; tài liệu này chưa tự kiểm lại bằng trình duyệt.
 
 - (a) Ô số liệu lớn ở `/p/[slug]`, `/profile`, `/admin/workers` còn là hạng mục chưa làm lại (theo người rà soát; chưa tự kiểm).
-- (b) Nhãn nav dưới có thể xuống 2 dòng ở màn hình hẹp (`text-sm leading-tight`, ô chia đều 3-5 mục).
+- (b) Nhãn nav dưới của nhóm vận hành (4 mục + "Thêm") vừa vặn ở 360px nhưng sát lề trái/phải; không còn xuống 2 dòng.
 - (c) Có khối trống ở `/login` ở bề rộng 1280px.
 - (d) Pin dạng số ở bản đồ cơ sở (`/admin/facilities`) chưa có chú giải.
 - (e) Chưa thử trong trình duyệt nhúng thật của Zalo/Facebook.

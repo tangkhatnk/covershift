@@ -720,12 +720,12 @@ Khung do `AppShell` (`src/components/client.tsx`) dựng, `layout.tsx` chỉ tru
   - `chalk` `#F6F3EA`: nền vôi của cả app.
   - `ink` `#0F2230` (chữ chính) và `ink-soft` `#42525E` (chữ phụ).
   - `brand` `#0B5C8A`, `brand-deep` `#083F5F`, `brand-tint` `#DCEBF5`: xanh biển, dùng cho khung (thanh trên, rail, chân trang), nút chính, liên kết.
-  - `accent` `#FFC247`, `accent-tint` `#FFF1CE`: vàng nắng. `accent` đặc chỉ cho điểm nhấn thật (mục nav đang chọn, nút "Đăng nhập" trên thanh trên, dải nắng `h-1` ở mép `PageTitle`, pin đang chọn); `accent-tint` cho nền `PageTitle`, dải đầu mô-đun, cảnh báo nhẹ.
+  - `accent` `#FFC247`, `accent-tint` `#FFF1CE`: vàng nắng. `accent` đặc chỉ cho điểm nhấn thật (mục nav đang chọn, nút "Đăng nhập" trên thanh trên, gạch nắng ngắn dưới `PageTitle`, pin đang chọn); `accent-tint` cho dải đầu mô-đun, cảnh báo nhẹ. `PageTitle` không có khối nền (chữ trên `chalk` kèm gạch nắng ngắn).
   - `ok` `#146B45`, `ok-tint` `#DAF0E4`: thành công.
   - `danger` `#B8321F`, `danger-tint` `#FBDFD8`: lỗi và hành động nguy hiểm.
   - `info` `#0F6F7E`, `info-tint` `#D4EDEF`: thông tin.
   - `rule` `#D6D1BE` (viền hairline) và `rule-strong` `#6F7C86` (viền ô nhập, ô tick).
-  - Trạng thái qua `Tone`: `green` = ok, `amber` = accent-tint, `red` = danger, `blue` = info, `gray` = chalk có viền `rule`.
+  - Trạng thái qua `Tone`: `green` = ok, `amber` = nền trắng viền `accent`, `red` = danger, `blue` = info, `gray` = chalk có viền `rule`.
 - Bo góc duy nhất là `rounded-ui` (6px). Không đổ bóng, không gradient, không kính mờ (glass), không viền trái màu; ngoại lệ duy nhất là bóng mềm của pin trên bản đồ (`src/components/map.tsx`), để pin nổi lên khỏi nền bản đồ; không dùng bóng ở chỗ khác. Không đưa vào bảng màu, font, bo góc hay đổ bóng thứ hai. Cần sắc độ mới thì thêm vào `tailwind.config.ts`.
 - Bố cục nội dung là các mô-đun chữ nhật viền hairline (`Card`, `ShiftCard`). Dải đầu của mô-đun (`Card tab`, đầu `ShiftCard`) chứa dữ liệu thật (loại việc, trạng thái, nhãn "GẤP"), không phải nhãn trang trí. Không dùng nhãn kicker hoặc eyebrow (dòng chữ nhỏ viết hoa phía trên tiêu đề). Không bọc từng dòng trong thẻ, không lồng thẻ trong thẻ.
 - Dãy ô cửa (`SlotStrip`) là hình minh họa đặc trưng của ca làm; logo là mặt trời nhô trên hai làn sóng (`Mark` ở `client.tsx`, favicon `src/app/icon.svg`). `SlotStrip`: mỗi người chính là một ô cửa (đóng = đã có người, trống = còn chỗ), có một ô dự phòng nét đứt tách bằng một trụ. Hình chỉ là minh họa (`aria-hidden`); luôn kèm câu chữ đọc được ("2/3 người chính · chưa có dự phòng") và chữ "Dự phòng" đầy đủ, không rút gọn, không chỉ dựa vào hình và màu.
