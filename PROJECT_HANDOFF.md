@@ -20,8 +20,8 @@ Nguồn của tài liệu này chỉ là **một phiên làm việc duy nhất**
 |---|---|
 | Thư mục dự án | `/Users/macpro/Desktop/Project/startup` |
 | Hạn chót | Deploy ổn định **trước 20/11/2026**. Chạy **21–22/11**. Demo **26/11**. Theo quyết định 17/11/2026, app là **bản mô phỏng**: đợt 21–22/11 không dùng người thật, chỉ dữ liệu mẫu. |
-| Hiện trạng | **17/11: migration đã áp lên Supabase thật (85/85 test đạt trên Supabase lúc đó; nay có 86 test).** Web đã deploy production tại https://safeshift-beta.vercel.app (Vercel project `safeshift`, team `safeshift`, nối GitHub: merge vào `main` là tự deploy; biến `NEXT_PUBLIC_*` đã đặt). Đăng nhập chỉ bằng 3 nút demo ở `/login` (server action `demoLogin`, mật khẩu chung công khai đặt bởi `seed.sql`); đã bỏ Google OAuth và magic link. **19/11: `0003` và `0004` đã áp, seed mới đã chạy (xem mục 7). 18/11: đã chạy lại `seed.sql` trên Supabase thật (16/16 user demo có mật khẩu; 3 tài khoản của nút demo đăng nhập được qua Supabase Auth). Chưa chạy tay `TESTING.md` mục B trên trình duyệt.** |
-| Việc gấp nhất | Chạy lại `seed.sql` trên Supabase thật (để có mật khẩu demo) → chạy tay `TESTING.md` mục B → chuẩn bị demo 26/11. |
+| Hiện trạng | **Tạm dừng 19/11/2026: production ở `main` = `d5eaeef`; việc tiếp theo ở đầu mục 7.** **17/11: migration đã áp lên Supabase thật (85/85 test đạt trên Supabase lúc đó; nay có 86 test).** Web đã deploy production tại https://safeshift-beta.vercel.app (Vercel project `safeshift`, team `safeshift`, nối GitHub: merge vào `main` là tự deploy; biến `NEXT_PUBLIC_*` đã đặt). Đăng nhập chỉ bằng 3 nút demo ở `/login` (server action `demoLogin`, mật khẩu chung công khai đặt bởi `seed.sql`); đã bỏ Google OAuth và magic link. **19/11: `0003` và `0004` đã áp, seed mới đã chạy (xem mục 7). 18/11: đã chạy lại `seed.sql` trên Supabase thật (16/16 user demo có mật khẩu; 3 tài khoản của nút demo đăng nhập được qua Supabase Auth). Chưa chạy tay `TESTING.md` mục B trên trình duyệt.** |
+| Việc gấp nhất | Làm theo khối "Tạm dừng 19/11/2026" ở đầu mục 7 (hoàn tất #25, giao diện người làm và chủ quán, tuyển dụng lâu dài); chủ dự án kiểm tay `TESTING.md` mục B trên điện thoại thật → chuẩn bị demo 26/11. |
 
 Lệnh kiểm tra nhanh trạng thái (đều đã chạy đạt lúc bàn giao):
 
@@ -348,6 +348,52 @@ Chức năng: đăng ca / nhân bản / đổi thứ tự chính–dự phòng �
 ---
 
 ## 7. NEXT STEPS
+
+### Tạm dừng 19/11/2026: trạng thái và việc tiếp theo
+Ngày 19/11/2026 chủ dự án tạm dừng toàn bộ công việc để sao lưu; lần sau mở Claude làm tiếp từ khối này.
+
+**Trạng thái**
+- Production đang ở `main` = `d5eaeef`.
+- PR đã merge trong phiên 19/11: #16, #17, #18, #20, #21, #22, #23, #24, #26, #27. Nội dung: đường dẫn web tiếng Anh (link cũ redirect 308); tăng tốc (`getClaims`, `Promise.all`, `loading.tsx`, vùng `sin1`); 9 quán thật Vũng Tàu làm dữ liệu mẫu và dòng nhắc "Dữ liệu mô phỏng" cạnh SĐT quán; đăng xuất cục bộ (`signOut({ scope: 'local' })`); server action và nhãn cho tuyển dụng lâu dài, thông báo, đánh giá quán; migration `0003` và `0004` đã áp lên Supabase thật ngày 19/11 (chủ dự án dán SQL Editor, `privileges_check` 0 SAI/KIỂM theo chủ dự án, đã chạy lại seed).
+- Test tự động trên Postgres nhúng: 358/358.
+
+**PR đang mở (đều draft)**
+- #25: hệ thiết kế "Biển & Nắng", nhánh `feat/he-thiet-ke-bien-nang`. Commit cuối là `wip:`, chưa kiểm lại sau lượt sửa critique. **Không merge khi chưa kiểm lại.**
+- #28: trang chủ mới, nhánh `feat/trang-chu-moi`; mới có tài nguyên effect và ảnh.
+- #19: script `apply-remote.mjs`, chờ chủ dự án quyết.
+
+**Issue, theo thứ tự làm**
+1. #29: hoàn tất #25.
+2. #30: P3b-2, giao diện người làm.
+3. #31: P3b-3, giao diện chủ quán và nhóm vận hành.
+4. #33: P4, tuyển dụng lâu dài (giao diện).
+5. #34: P6, thông báo, trang quán công khai, chia sẻ ca, đánh giá.
+6. #35: PR-Nav, làm sau #33 và #34.
+7. #32: P3b-4, trang chủ WebGL; chạy khi có người rảnh (nhánh WIP là #28).
+8. #36: quyết định về #19.
+9. #37: lỗi và quan sát còn mở.
+10. #38: câu hỏi chờ chủ dự án quyết.
+11. #39: kiểm tay trên điện thoại thật và Zalo (chủ dự án làm).
+12. #40: số đo hiệu năng tham chiếu.
+
+**Lịch đã chốt**
+- Không merge PR giao diện hoặc đường dẫn trong 21–22/11 (đợt chạy), trừ sửa lỗi.
+- PR giao diện nào agent chính đã `APPROVE`, đã merge và deploy xong trước 20/11 18:00 thì lên production trước đợt chạy.
+- PR chỉ phía server merge được lúc nào cũng được.
+- 23–25/11: merge các tính năng còn lại. 25/11: chỉ kiểm production và sửa lỗi. 26/11: demo.
+
+**Quy trình phiên sau**
+- Agent chính `safeshift-lead` → `execution-manager` → tối đa 2 `worker` (`AGENTS.md` mục 5). Mỗi worker một git worktree riêng; hai worker không sửa chung file.
+- Mỗi PR giao diện có Playwright chạy trên preview Vercel (công cụ ở `/Users/macpro/safeshift-tools`, ngoài repo, có `READY`; Vercel Authentication của preview đã tắt). Chỉ đọc và dùng nút demo.
+- Không bấm Đăng xuất bằng tài khoản demo khi kiểm (đã sửa thành đăng xuất cục bộ, vẫn tránh).
+- Không ai chạy SQL lên Supabase thật ngoài chủ dự án.
+- Tách file: chỉ một PR sửa `actions.ts` (đã xong, #27) và chỉ một PR sửa nav trong `client.tsx` (PR-Nav, #35).
+
+**Lưu ý kỹ thuật**
+- Nút Đăng xuất từng thu hồi phiên toàn cục, làm hỏng phiên demo dùng chung; đã sửa ở #24.
+- `getClaims()` thay `getUser()`: phiên bị thu hồi ở thiết bị khác vẫn qua bước giao diện đến khi token hết hạn (tối đa 1 giờ). Quyền thật vẫn ở RLS và RPC.
+- Hotline 9 quán thật nằm trong seed theo duyệt của chủ dự án (`AGENTS.md` mục 14).
+- `design-taste-frontend` chỉ dùng cho trang chủ; trang chủ được phép dùng WebGL/3D.
 
 ### Đã xong
 - Migration `0001_init.sql` đã áp lên Supabase thật (17/11).
