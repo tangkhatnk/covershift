@@ -155,7 +155,7 @@ SafeShift: web app kết nối ca làm ngắn hạn giữa cơ sở dịch vụ 
 | D1 | App chỉ là **bản mô phỏng**; đợt 21–22/11 không dùng người thật, chỉ dữ liệu mẫu | Không cần đưa người dùng thật vào; quy tắc migration (không sửa `0001`) giữ nguyên |
 | D2 | **Bỏ Google OAuth và magic link.** `/dang-nhap` có 3 nút một chạm (người làm `nguoilam1@`, chủ quán `quan1@`, nhóm vận hành `admin@`, đều `@demo.safeshift.test`). Server action `demoLogin` gọi `signInWithPassword` với mật khẩu chung công khai `safeshift-demo` (đặt trong `seed.sql` bằng `extensions.crypt`) | `demoLogin` là ngoại lệ duy nhất của quy tắc "1 action = 1 RPC", chỉ nhận vai trò, không nhận email tùy ý. Không cần Google Cloud, SMTP, Redirect URL. Confirm email vẫn BẬT trên Supabase. Không đưa dữ liệu thật vào project |
 | D3 | Test 10m đổi thành "mọi user demo đều có mật khẩu" | Số test vẫn 86 |
-| D4 | Khôi phục dữ liệu mẫu bằng cách chạy lại `seed.sql` trong SQL Editor (seed tự xóa và tạo lại 16 user demo) | **Không chạy** `xoa_du_lieu_demo.sql`: xóa user demo thì nút đăng nhập hỏng |
+| D4 | Khôi phục dữ liệu mẫu bằng cách chạy lại `seed.sql` trong SQL Editor (seed tự xóa và tạo lại 20 user demo) | **Không chạy** `xoa_du_lieu_demo.sql`: xóa user demo thì nút đăng nhập hỏng |
 | D5 | Web đã deploy production tại https://safeshift-beta.vercel.app (Vercel project `safeshift`, team `safeshift`, nối GitHub, merge vào `main` là tự deploy; biến `NEXT_PUBLIC_*` đã đặt) | Deploy web không cần hỏi trước (`AGENTS.md` mục 5) |
 
 ### Quyết định do agent tự đưa ra [TỰ QUYẾT] — chủ dự án chưa xác nhận từng điểm
@@ -195,6 +195,16 @@ Chỉ thị: thêm "tuyển dụng lâu dài" (tin + đơn ứng tuyển) và ch
 | H4 | Chủ quán xem thống kê hồ sơ ca làm của người ứng tuyển **không cần** họ bật chia sẻ; không có ngày sinh, trường, lớp, SĐT | Ngoại lệ so với "mặc định tắt chia sẻ" (mục 13 `AGENTS.md`) |
 | H5 | **Ngoại lệ SĐT mới:** `get_job_contacts()` trả SĐT hai bên khi đơn ở `shortlisted`/`hired` (chủ quán, người nộp hoặc admin); chặn nếu cơ sở bị gỡ hoặc người làm bị khóa (trừ admin) | Ghi ở `AGENTS.md` mục 13, `CLAUDE.md` |
 | H6 | Người bị loại (`rejected`) vẫn nộp lại được vào cùng tin (đơn cũ không còn hiệu lực) | Chưa chặn nộp lại, có thể cần giới hạn nếu bị làm phiền |
+
+### Quyết định của chủ dự án ngày 19/11/2026: dữ liệu quán thật trong bản mô phỏng [CHỦ DỰ ÁN]
+| # | Quyết định | Hệ quả |
+|---|---|---|
+| P1 | Chủ dự án cho dùng **tên, địa chỉ và hotline công khai** của 9 quán thật ở Vũng Tàu (SOHO Coffee, Phê La Vũng Tàu, OASIS SEA Coffee & Tea, An Coffee Bean, KATINAT, Quán Ốc Thiên Nhiên 2, Bọt, Phuc Long Coffee & Tea, Texas Chicken) trong `seed.sql`, thay "Quán Demo 1–5" | 9 cơ sở, 9 chủ quán demo (`quan1–9@`; chủ `quan6–9@` mới), seed tạo 20 user demo. 5 cơ sở cũ giữ id và trạng thái (số 4 bị test 10j gỡ, số 5 chờ xác minh) |
+| P2 | Hotline nằm ở `private_contacts.phone` của chủ quán tương ứng; SĐT người làm và phụ huynh vẫn là số giả `0900000…` | 6 quán có hotline qua được `^0[0-9]{9}$`; Phê La (8 chữ số), Phuc Long và Texas Chicken (11 chữ số) dùng số giả vì ràng buộc của `0001`. Muốn hiện đủ 9 hotline cần migration mới nới ràng buộc (chưa làm) |
+| P3 | Hotline hiện cho người làm qua `get_shift_contacts()` | Giao diện cần dòng nhắc "Dữ liệu mô phỏng. Không gọi số này để hỏi về ca." (làm ở PR sau, chưa có) |
+| P4 | Tọa độ ghim lấy từ OpenStreetMap, gần đúng (chỉ quán OASIS SEA ra đúng số nhà); `area` gán theo khu gần nhất trong enum | Chủ quán hoặc nhóm vận hành sửa ghim bằng `set_facility_location` |
+
+Việc sau khi merge: chạy lại `seed.sql` trên Supabase thật (không trong 21–22/11).
 
 ### Giả định chưa được kiểm chứng [CHƯA KIỂM]
 - Migration chạy được trên **Supabase thật**. Mới chỉ chạy trên Postgres 18 nhúng với schema `auth` giả lập. Điểm rủi ro cụ thể:
@@ -335,7 +345,7 @@ Chức năng: đăng ca / nhân bản / đổi thứ tự chính–dự phòng �
 - Giao diện đã làm lại theo hướng "Phố cửa chớp" (`PRODUCT.md`, `DESIGN.md`): PR #10 (khung trang, thành phần, trang công khai), #12 (người làm, hồ sơ ca làm, phiếu phụ huynh), #13 (chủ quán, xác nhận sau ca, nhóm vận hành), #14 (bản đồ ca và cơ sở, ghim vị trí quán; cần migration 0002, đã áp) và PR hoàn thiện (dọn lớp màu cũ và bí danh `brand`, link trong đoạn văn, biểu tượng trình duyệt `src/app/icon.svg`, thẻ vị trí quán ở `/quan` thu gọn).
 - Bản đồ: MapLibre + OpenFreeMap (`src/components/map.tsx`): `/` (minh họa, dữ liệu mẫu), `/ca`, `/ca/[id]`, `/quan` (ghim vị trí), `/admin`, `/admin/co-so`. Kịch bản kiểm tay: `TESTING.md` B11.
 
-- Migration `0003_viec_lam_dai_han.sql` (tin tuyển dụng lâu dài, đơn ứng tuyển) viết xong kèm 125 test (nay 229/229 trên Postgres nhúng), **chưa áp lên Supabase thật**. Chủ dự án cần: dán `0003` bằng SQL Editor → chạy `privileges_check.sql` → chạy lại `seed.sql`. Giao diện cho tính năng này chưa có; mã web gọi RPC mới chỉ merge sau khi `0003` đã áp (`AGENTS.md` mục 6, cổng 5).
+- Migration `0003_viec_lam_dai_han.sql` (tin tuyển dụng lâu dài, đơn ứng tuyển) viết xong kèm 125 test (nay 230/230 trên Postgres nhúng), **chưa áp lên Supabase thật**. Chủ dự án cần: dán `0003` bằng SQL Editor → chạy `privileges_check.sql` → chạy lại `seed.sql`. Giao diện cho tính năng này chưa có; mã web gọi RPC mới chỉ merge sau khi `0003` đã áp (`AGENTS.md` mục 6, cổng 5).
 
 ### Còn lại, theo thứ tự
 1. ~~Chạy lại `supabase/seed.sql` trên Supabase thật~~ — đã xong (18/11). Còn lại: thử bấm 3 nút ở `/dang-nhap` trên bản deploy.

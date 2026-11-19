@@ -45,7 +45,7 @@ Kết nối ca làm ngắn hạn an toàn giữa cơ sở dịch vụ nhỏ và 
 Tên SafeShift. Cam kết "Không bao giờ thu phí người làm." (`NO_FEE`) và dòng miễn trừ (`DISCLAIMER`) là nguyên văn bất biến. Chủ dự án đã cho phép đổi một số quy tắc giao diện hiện tại (nền sáng được giữ; thêm `lucide-react`, font `next/font`, bố cục desktop rộng, thanh điều hướng dưới trên điện thoại); các quy tắc đó sẽ được cập nhật trong `AGENTS.md` khi build.
 
 ## Evidence on Hand
-**Chưa có bằng chứng thật.** App là bản mô phỏng chỉ dùng dữ liệu mẫu (16 tài khoản `@demo.safeshift.test`, seed ở `supabase/seed.sql`). Không có khách hàng, số liệu sử dụng, lời chứng thực hay báo chí. Tuyệt đối không bịa những thứ đó; dữ liệu minh họa phải là dữ liệu mẫu và được nhận ra là mẫu.
+**Chưa có bằng chứng thật.** App là bản mô phỏng chỉ dùng dữ liệu mẫu (20 tài khoản `@demo.safeshift.test`, seed ở `supabase/seed.sql`). Không có khách hàng, số liệu sử dụng, lời chứng thực hay báo chí. Tuyệt đối không bịa những thứ đó; dữ liệu minh họa phải là dữ liệu mẫu và được nhận ra là mẫu.
 
 ## Product Principles
 1. An toàn của người làm trẻ đứng trên tiện lợi; rào an toàn phải thấy được trên giao diện, nhưng thật sự nằm ở database.

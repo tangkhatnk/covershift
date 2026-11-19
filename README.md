@@ -53,7 +53,7 @@ supabase/migrations/0001_init.sql   toàn bộ schema, trigger, RPC, RLS, quyề
 supabase/migrations/0002_toa_do_co_so.sql  cột lat/lng của cơ sở (bản đồ) + RPC set_facility_location
 supabase/migrations/0003_viec_lam_dai_han.sql  tin tuyển dụng lâu dài + đơn ứng tuyển, RPC get_job_contacts (SĐT chỉ khi đơn được chọn)
 supabase/seed.sql                   dữ liệu demo (chạy lại được nhiều lần)
-supabase/tests/edge_cases.sql       229 test biên ở tầng database
+supabase/tests/edge_cases.sql       230 test biên ở tầng database
 supabase/tests/check_before_migration.sql  kiểm project Supabase mới TRƯỚC khi dán migration (chỉ đọc)
 supabase/tests/privileges_check.sql kiểm quyền bảng/hàm của anon/authenticated SAU migration (chỉ đọc)
 supabase/xoa_du_lieu_demo.sql       xóa dữ liệu demo/test (KHÔNG chạy khi app còn là bản mô phỏng, xem mục 7)
@@ -76,7 +76,7 @@ Giao diện theo hướng "Phố cửa chớp": tường vàng, cửa chớp xan
 3. **SQL Editor** → dán toàn bộ `supabase/migrations/0001_init.sql` → **Run**.
    Rồi dán toàn bộ `supabase/migrations/0002_toa_do_co_so.sql` → **Run**, rồi `supabase/migrations/0003_viec_lam_dai_han.sql` → **Run** (theo thứ tự, trước seed).
 4. Dán `supabase/tests/privileges_check.sql` → **Run** → không có dòng nào cột `ket_luan` bắt đầu bằng `SAI` hoặc `KIỂM` (các dòng đó được xếp lên đầu). Project mới có sẵn hàm `rls_auto_enable()` (event trigger `ensure_rls` của Supabase, tự bật RLS cho bảng mới) — bình thường, câu kiểm coi là đúng.
-5. Dán `supabase/seed.sql` → **Run**. Seed tạo 16 tài khoản demo có mật khẩu (mục 3) và dữ liệu mẫu; app là bản mô phỏng nên bước này bắt buộc. Chạy seed bằng **SQL Editor**, không dùng CLI: `_bypass()` chỉ bật khi phiên là `postgres`/`supabase_admin`.
+5. Dán `supabase/seed.sql` → **Run**. Seed tạo 20 tài khoản demo có mật khẩu (mục 3) và dữ liệu mẫu; app là bản mô phỏng nên bước này bắt buộc. Chạy seed bằng **SQL Editor**, không dùng CLI: `_bypass()` chỉ bật khi phiên là `postgres`/`supabase_admin`.
 6. Nút **Connect** (hoặc **Project Settings → API Keys**): chép `Project URL` và key công khai — *publishable key* (`sb_publishable_…`) hoặc *anon key* kiểu cũ. **Không** dùng key `secret` / `service_role`.
 
 Gặp lỗi `PGRST202` (không tìm thấy hàm) ngay sau khi dán migration: chạy `notify pgrst, 'reload schema';`.
@@ -92,8 +92,8 @@ Không cần tạo tay: `seed.sql` đã tạo `admin@demo.safeshift.test`, nút 
 App là bản mô phỏng (quyết định 17/11/2026): không có người thật, chỉ dữ liệu mẫu. Đã bỏ Google OAuth và magic link nên không cần cấu hình Google Cloud, SMTP hay Redirect URL.
 
 - `/dang-nhap` có 3 nút một chạm: người làm (`nguoilam1@`), chủ quán (`quan1@`), nhóm vận hành (`admin@`), đều đuôi `@demo.safeshift.test`. Mỗi nút gọi server action `demoLogin`, action này đăng nhập bằng mật khẩu chung công khai `safeshift-demo`.
-- Mật khẩu do `supabase/seed.sql` đặt cho cả 16 user demo. Project Supabase thật cần **chạy lại `seed.sql`** trong SQL Editor ít nhất một lần sau khi có thay đổi này, nếu không nút đăng nhập báo lỗi.
-- Khôi phục dữ liệu mẫu (ca bị hủy, tài khoản demo bị xóa, dữ liệu lộn xộn sau khi thử): chạy lại `seed.sql`. Seed tự xóa và tạo lại 16 user demo, đưa lương tối thiểu và giới hạn giờ/tuần về mặc định, chạy lại nhiều lần không sao.
+- Mật khẩu do `supabase/seed.sql` đặt cho cả 20 user demo. Project Supabase thật cần **chạy lại `seed.sql`** trong SQL Editor ít nhất một lần sau khi có thay đổi này, nếu không nút đăng nhập báo lỗi.
+- Khôi phục dữ liệu mẫu (ca bị hủy, tài khoản demo bị xóa, dữ liệu lộn xộn sau khi thử): chạy lại `seed.sql`. Seed tự xóa và tạo lại 20 user demo, đưa lương tối thiểu và giới hạn giờ/tuần về mặc định, chạy lại nhiều lần không sao.
 - **Authentication → Sign In / Providers → Email**: giữ **Confirm email BẬT**. Nếu tắt, ai cầm anon key (công khai trong web) cũng tạo được tài khoản email + mật khẩu qua API.
 - Mật khẩu demo công khai có chủ đích, nên **không đưa dữ liệu thật** vào project này.
 
@@ -129,7 +129,7 @@ Kiểm tra tầng database mà không cần Supabase/Docker (Postgres nhúng, t�
 npm run test:db
 ```
 
-Kỳ vọng: `229/229 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM`, dòng `tái chạy … ĐẠT`, 5 dòng `✔ chạy đua` và dòng `dọn dữ liệu demo … ĐẠT`.
+Kỳ vọng: `230/230 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM`, dòng `tái chạy … ĐẠT`, 5 dòng `✔ chạy đua` và dòng `dọn dữ liệu demo … ĐẠT`.
 
 ## 6. Deploy Vercel
 

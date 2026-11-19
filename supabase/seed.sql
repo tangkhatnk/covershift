@@ -1,9 +1,11 @@
 -- =====================================================================
 -- SafeShift — seed demo. Chạy lại bao nhiêu lần cũng được (tự xóa dữ liệu demo cũ).
--- 1 admin, 5 chủ quán ("Quán Demo 1…5"), 10 người làm (3 người dưới 18), 12 ca đủ trạng thái,
+-- 1 admin, 9 chủ quán (mỗi chủ một quán; 9 quán thật ở Vũng Tàu, chỉ dùng tên, địa chỉ và hotline công khai của quán,
+-- theo chỉ thị chủ dự án 19/11/2026; tên chủ quán là tên giả), 10 người làm (3 người dưới 18), 12 ca đủ trạng thái,
 -- 6 tin tuyển dụng lâu dài và 7 đơn ứng tuyển (cần migration 0003: chạy 0003 trước seed).
 -- Mọi tài khoản demo có email @demo.safeshift.test và dùng chung mật khẩu công khai `safeshift-demo`
--- (lưu bằng crypt + gen_salt('bf')), cho nút đăng nhập demo ở /dang-nhap. App chỉ là bản mô phỏng, không có dữ liệu thật.
+-- (lưu bằng crypt + gen_salt('bf')), cho nút đăng nhập demo ở /dang-nhap. App chỉ là bản mô phỏng: SĐT người làm và
+-- phụ huynh là số giả 0900000xxx; ngoài hotline công khai của quán ở trên không có dữ liệu thật nào.
 -- Chạy lại seed để khôi phục dữ liệu mẫu. Không xóa user demo bằng tay (lỗi khóa ngoại 23503);
 -- nếu cần dọn, dùng supabase/xoa_du_lieu_demo.sql.
 -- =====================================================================
@@ -40,6 +42,10 @@ with u(id, email) as (values
   ('e0000000-0000-4000-a000-000000000003', 'quan3@demo.safeshift.test'),
   ('e0000000-0000-4000-a000-000000000004', 'quan4@demo.safeshift.test'),
   ('e0000000-0000-4000-a000-000000000005', 'quan5@demo.safeshift.test'),
+  ('e0000000-0000-4000-a000-000000000006', 'quan6@demo.safeshift.test'),
+  ('e0000000-0000-4000-a000-000000000007', 'quan7@demo.safeshift.test'),
+  ('e0000000-0000-4000-a000-000000000008', 'quan8@demo.safeshift.test'),
+  ('e0000000-0000-4000-a000-000000000009', 'quan9@demo.safeshift.test'),
   ('a0000000-0000-4000-a000-000000000001', 'nguoilam1@demo.safeshift.test'),
   ('a0000000-0000-4000-a000-000000000002', 'nguoilam2@demo.safeshift.test'),
   ('a0000000-0000-4000-a000-000000000003', 'nguoilam3@demo.safeshift.test'),
@@ -72,6 +78,10 @@ insert into public.profiles (id, role, full_name, consent_at) values
   ('e0000000-0000-4000-a000-000000000003', 'employer', 'Chị Lê Mỹ Duyên',   now()),
   ('e0000000-0000-4000-a000-000000000004', 'employer', 'Anh Phạm Quốc Việt', now()),
   ('e0000000-0000-4000-a000-000000000005', 'employer', 'Cô Võ Thị Sáu',     now()),
+  ('e0000000-0000-4000-a000-000000000006', 'employer', 'Chị Hoàng Thị Lan',  now()),
+  ('e0000000-0000-4000-a000-000000000007', 'employer', 'Anh Đinh Văn Khoa',  now()),
+  ('e0000000-0000-4000-a000-000000000008', 'employer', 'Cô Lý Thị Mai',      now()),
+  ('e0000000-0000-4000-a000-000000000009', 'employer', 'Chú Ngô Văn Bình',   now()),
   ('a0000000-0000-4000-a000-000000000001', 'worker', 'Nguyễn Minh Anh',  now()),
   ('a0000000-0000-4000-a000-000000000002', 'worker', 'Trần Quốc Bảo',    now()),
   ('a0000000-0000-4000-a000-000000000003', 'worker', 'Lê Thu Hà',        now()),
@@ -83,12 +93,18 @@ insert into public.profiles (id, role, full_name, consent_at) values
   ('a0000000-0000-4000-a000-000000000009', 'worker', 'Đỗ Bảo Ngọc',      now()),
   ('a0000000-0000-4000-a000-000000000010', 'worker', 'Mai Đức Phúc',     now());
 
+-- SĐT chủ quán là hotline công khai của quán (chủ dự án duyệt 19/11/2026). Ba quán (Phê La, Phuc Long, Texas Chicken) có hotline
+-- 8 hoặc 11 chữ số, không qua được ràng buộc phone ~ '^0[0-9]{9}$' của 0001 nên dùng số giả 0900000xxx.
 insert into public.private_contacts (user_id, phone) values
-  ('e0000000-0000-4000-a000-000000000001', '0900000101'),
+  ('e0000000-0000-4000-a000-000000000001', '0982931487'),
   ('e0000000-0000-4000-a000-000000000002', '0900000102'),
-  ('e0000000-0000-4000-a000-000000000003', '0900000103'),
-  ('e0000000-0000-4000-a000-000000000004', '0900000104'),
-  ('e0000000-0000-4000-a000-000000000005', '0900000105'),
+  ('e0000000-0000-4000-a000-000000000003', '0827794599'),
+  ('e0000000-0000-4000-a000-000000000004', '0785337339'),
+  ('e0000000-0000-4000-a000-000000000005', '0846659460'),
+  ('e0000000-0000-4000-a000-000000000006', '0933528978'),
+  ('e0000000-0000-4000-a000-000000000007', '0785330124'),
+  ('e0000000-0000-4000-a000-000000000008', '0900000108'),
+  ('e0000000-0000-4000-a000-000000000009', '0900000109'),
   ('a0000000-0000-4000-a000-000000000001', '0900000201'),
   ('a0000000-0000-4000-a000-000000000002', '0900000202'),
   ('a0000000-0000-4000-a000-000000000003', '0900000203'),
@@ -119,14 +135,20 @@ insert into public.parental_consents (worker_id, token, status, parent_name, par
   ('a0000000-0000-4000-a000-000000000008', 'demo-consent-08', 'approved',  'Hồ Thị Mai',    '0900000308', now() - interval '5 days', '00000000-0000-4000-a000-000000000001', now() - interval '4 days'),
   ('a0000000-0000-4000-a000-000000000009', 'demo-consent-09', 'submitted', 'Đỗ Thanh Tùng', '0900000309', now() - interval '1 day', null, null);
 
--- ---------- cơ sở: 1–4 đã xác minh, 5 chờ xác minh ----------
--- lat/lng: tọa độ lấy từ OpenStreetMap, gần đúng theo tên đường (cột có từ migration 0002: chạy 0002 trước seed).
+-- ---------- cơ sở: 1–4 và 6–9 đã xác minh, 5 chờ xác minh ----------
+-- 9 quán thật ở Vũng Tàu (tên, địa chỉ công khai; chủ dự án duyệt 19/11/2026). lat/lng lấy từ OpenStreetMap (cột có từ
+-- migration 0002: chạy 0002 trước seed): chỉ quán 3 (OASIS SEA) tra được đúng số nhà; 8 quán còn lại chỉ ra được đoạn đường hoặc số nhà gần đó nên GẦN ĐÚNG.
+-- area gán theo khu gần nhất trong enum, không phải địa giới hành chính.
 insert into public.facilities (id, owner_id, name, type, address, area, maps_url, not_prohibited_ack, verified, status, lat, lng) values
-  ('f0000000-0000-4000-a000-000000000001', 'e0000000-0000-4000-a000-000000000001', 'Quán Demo 1', 'cafe',        '12 Quang Trung, Phường 1, Vũng Tàu',      'bai_truoc', 'https://maps.google.com/?q=12+Quang+Trung+Vung+Tau', true, true,  'active', 10.3441, 107.0749),
-  ('f0000000-0000-4000-a000-000000000002', 'e0000000-0000-4000-a000-000000000002', 'Quán Demo 2', 'restaurant',  '45 Thùy Vân, Phường 2, Vũng Tàu',         'bai_sau',   'https://maps.google.com/?q=45+Thuy+Van+Vung+Tau',    true, true,  'active', 10.3318, 107.089),
-  ('f0000000-0000-4000-a000-000000000003', 'e0000000-0000-4000-a000-000000000003', 'Quán Demo 3', 'homestay',    '8 Hoàng Hoa Thám, Thắng Tam, Vũng Tàu',   'thang_tam', 'https://maps.google.com/?q=8+Hoang+Hoa+Tham+Vung+Tau', true, true,  'active', 10.338, 107.0853),
-  ('f0000000-0000-4000-a000-000000000004', 'e0000000-0000-4000-a000-000000000004', 'Quán Demo 4', 'small_hotel', '101 Lê Hồng Phong, Phường 7, Vũng Tàu',   'trung_tam', 'https://maps.google.com/?q=101+Le+Hong+Phong+Vung+Tau', true, true,  'active', 10.3524, 107.0881),
-  ('f0000000-0000-4000-a000-000000000005', 'e0000000-0000-4000-a000-000000000005', 'Quán Demo 5', 'cafe',        '230 Đường 30/4, Rạch Dừa, Vũng Tàu',      'rach_dua',  null,                                                 true, false, 'pending', 10.3964, 107.1081);
+  ('f0000000-0000-4000-a000-000000000001', 'e0000000-0000-4000-a000-000000000001', 'SOHO Coffee',            'cafe',       '66 Hạ Long, Phường 2, Thành phố Vũng Tàu (TPHCM)',          'bai_truoc', 'https://maps.google.com/?q=SOHO+Coffee+66+Ha+Long+Vung+Tau',                  true, true,  'active',  10.3306, 107.0768),
+  ('f0000000-0000-4000-a000-000000000002', 'e0000000-0000-4000-a000-000000000002', 'Phê La Vũng Tàu',        'cafe',       '2 Lê Lợi, Thành phố Vũng Tàu',                              'bai_truoc', 'https://maps.google.com/?q=Phe+La+Vung+Tau+2+Le+Loi',                         true, true,  'active',  10.3477, 107.0743),
+  ('f0000000-0000-4000-a000-000000000003', 'e0000000-0000-4000-a000-000000000003', 'OASIS SEA Coffee & Tea', 'cafe',       '1A Trần Phú, Vũng Tàu, TPHCM',                              'khac',      'https://maps.google.com/?q=OASIS+SEA+Coffee+Tea+1A+Tran+Phu+Vung+Tau',        true, true,  'active',  10.3553, 107.0614),
+  ('f0000000-0000-4000-a000-000000000004', 'e0000000-0000-4000-a000-000000000004', 'An Coffee Bean',         'cafe',       '488 Thống Nhất, Tam Thắng, Hồ Chí Minh',                    'thang_tam', 'https://maps.google.com/?q=An+Coffee+Bean+488+Thong+Nhat+Vung+Tau',           true, true,  'active',  10.3511, 107.0849),
+  ('f0000000-0000-4000-a000-000000000005', 'e0000000-0000-4000-a000-000000000005', 'KATINAT',                'cafe',       '01 Trần Phú',                                               'khac',      'https://maps.google.com/?q=KATINAT+01+Tran+Phu+Vung+Tau',                     true, false, 'pending', 10.3556, 107.0617),
+  ('f0000000-0000-4000-a000-000000000006', 'e0000000-0000-4000-a000-000000000006', 'Quán Ốc Thiên Nhiên 2',  'restaurant', '245 Trương Công Định, Vũng Tàu, Hồ Chí Minh',               'trung_tam', 'https://maps.google.com/?q=Quan+Oc+Thien+Nhien+2+245+Truong+Cong+Dinh+Vung+Tau', true, true, 'active', 10.3500, 107.0824),
+  ('f0000000-0000-4000-a000-000000000007', 'e0000000-0000-4000-a000-000000000007', 'Bọt',                    'cafe',       '56 Trần Hưng Đạo, Vũng Tàu, Hồ Chí Minh',                   'bai_truoc', 'https://maps.google.com/?q=Bot+56+Tran+Hung+Dao+Vung+Tau',                    true, true,  'active',  10.3464, 107.0764),
+  ('f0000000-0000-4000-a000-000000000008', 'e0000000-0000-4000-a000-000000000008', 'Phuc Long Coffee & Tea', 'cafe',       '76 Trần Hưng Đạo, Vũng Tàu, Hồ Chí Minh',                   'bai_truoc', 'https://maps.google.com/?q=Phuc+Long+Coffee+Tea+76+Tran+Hung+Dao+Vung+Tau',   true, true,  'active',  10.3459, 107.0764),
+  ('f0000000-0000-4000-a000-000000000009', 'e0000000-0000-4000-a000-000000000009', 'Texas Chicken',          'restaurant', '376 – 378 Lê Hồng Phong, Vũng Tàu, Thành Phố Hồ Chí Minh',  'trung_tam', 'https://maps.google.com/?q=Texas+Chicken+376+Le+Hong+Phong+Vung+Tau',         true, true,  'active',  10.3531, 107.0871);
 
 insert into public.facility_verifications (facility_id, address_ok, contact_ok, has_business_license, verified_on, verified_by, verifier_name, note)
 select id, true, true, id <> 'f0000000-0000-4000-a000-000000000003', current_date - 7,
@@ -147,15 +169,15 @@ insert into public.shifts (id, facility_id, job_type, starts_at, ends_at, headco
   -- 03 có người chính, còn chỗ dự phòng; kết thúc 23:00 (không dành cho dưới 18)
   ('50000000-0000-4000-a000-000000000003', 'f0000000-0000-4000-a000-000000000002', 'phuc_vu',  pg_temp.vn(2, '18:00'), pg_temp.vn(2, '23:00'), 1, 30000, 'Phục vụ tiệc tối.', false, false, true, 'open', now() - interval '1 day', now() - interval '20 hours'),
   -- 04 đủ người: chính + dự phòng
-  ('50000000-0000-4000-a000-000000000004', 'f0000000-0000-4000-a000-000000000004', 'le_tan',   pg_temp.vn(1, '08:00'), pg_temp.vn(1, '12:00'), 1, 28000, 'Lễ tân ca sáng, đón khách trả phòng.', false, false, true, 'open', now() - interval '2 days', now() - interval '47 hours'),
+  ('50000000-0000-4000-a000-000000000004', 'f0000000-0000-4000-a000-000000000004', 'le_tan',   pg_temp.vn(1, '08:00'), pg_temp.vn(1, '12:00'), 1, 28000, 'Đón khách và hỗ trợ quầy ca sáng.', false, false, true, 'open', now() - interval '2 days', now() - interval '47 hours'),
   -- 05 đủ người, cả hai đều dưới 18
   ('50000000-0000-4000-a000-000000000005', 'f0000000-0000-4000-a000-000000000002', 'phu_bep_nhe', pg_temp.vn(3, '14:00'), pg_temp.vn(3, '18:00'), 1, 26000, 'Sơ chế rau củ, không dùng dao lớn, không đứng bếp nóng.', false, true, true, 'open', now() - interval '1 day', now() - interval '23 hours'),
   -- 06 đã hủy
-  ('50000000-0000-4000-a000-000000000006', 'f0000000-0000-4000-a000-000000000003', 'don_phong', pg_temp.vn(4, '09:00'), pg_temp.vn(4, '13:00'), 1, 27000, 'Khách hủy đặt phòng nên hủy ca.', false, true, true, 'cancelled', now() - interval '1 day', null),
+  ('50000000-0000-4000-a000-000000000006', 'f0000000-0000-4000-a000-000000000003', 'don_phong', pg_temp.vn(4, '09:00'), pg_temp.vn(4, '13:00'), 1, 27000, 'Quán đổi lịch nên hủy ca.', false, true, true, 'cancelled', now() - interval '1 day', null),
   -- 07 đang diễn ra
   ('50000000-0000-4000-a000-000000000007', 'f0000000-0000-4000-a000-000000000001', 'thu_ngan', now() - interval '1 hour', now() + interval '3 hours', 1, 29000, 'Thu ngân.', false, false, true, 'open', now() - interval '2 days', now() - interval '40 hours'),
   -- 08 vừa hết giờ, chờ chủ quán xác nhận (token còn hạn)
-  ('50000000-0000-4000-a000-000000000008', 'f0000000-0000-4000-a000-000000000003', 'don_phong', now() - interval '6 hours', now() - interval '2 hours', 1, 27000, 'Dọn 4 phòng.', false, false, true, 'open', now() - interval '3 days', now() - interval '70 hours'),
+  ('50000000-0000-4000-a000-000000000008', 'f0000000-0000-4000-a000-000000000003', 'don_phong', now() - interval '6 hours', now() - interval '2 hours', 1, 27000, 'Dọn dẹp bàn ghế và quầy sau giờ cao điểm.', false, false, true, 'open', now() - interval '3 days', now() - interval '70 hours'),
   -- 09 quá 72 giờ chưa xác nhận (token hết hạn)
   ('50000000-0000-4000-a000-000000000009', 'f0000000-0000-4000-a000-000000000004', 'le_tan',   pg_temp.vn(-5, '08:00'), pg_temp.vn(-5, '12:00'), 1, 28000, null, false, false, true, 'open', now() - interval '8 days', now() - interval '7 days'),
   -- 10 đã xác nhận: đúng giờ, 5 sao, trả đủ (người dự phòng vào thay)
@@ -205,7 +227,7 @@ insert into public.payment_feedback (shift_id, worker_id, answer) values
 insert into public.reports (kind, shift_id, subject_id, body) values
   ('no_show', '50000000-0000-4000-a000-000000000012', 'a0000000-0000-4000-a000-000000000005', 'Chủ quán xác nhận: người làm KHÔNG ĐẾN ca.');
 
--- Báo cáo đã xử lý, gắn với quán demo 3 (chủ quán e…03) để test 11b kiểm tra luồng "chủ quán tự xóa tài khoản":
+-- Báo cáo đã xử lý, gắn với cơ sở số 3 (chủ quán e…03) để test 11b kiểm tra luồng "chủ quán tự xóa tài khoản":
 -- dòng trỏ tới chính chủ quán (người báo / người bị báo) và tới ca của họ. Phải nằm trong seed (đã commit) vì
 -- Postgres chỉ kiểm lại khóa ngoại kiểu này với dòng do chính giao dịch tạo ra, nên test không tự dựng được trong cùng giao dịch.
 insert into public.reports (kind, status, shift_id, reporter_id, subject_id, body) values
@@ -215,17 +237,17 @@ insert into public.reports (kind, status, shift_id, reporter_id, subject_id, bod
   ('primary_busy', 'resolved', '50000000-0000-4000-a000-000000000012', '00000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000005', 'Demo-11b: admin ghi sự cố người chính báo bận.');
 
 -- ---------- tuyển dụng lâu dài (migration 0003) ----------
--- Tin 04 (Quán Demo 4) đang mở; test 10j gỡ cơ sở này nên tin tự đóng (trigger). Tin 05 hết hạn, tin 06 đã đóng.
+-- Tin 04 (An Coffee Bean, cơ sở số 4) đang mở; test 10j gỡ cơ sở này nên tin tự đóng (trigger). Tin 05 hết hạn, tin 06 đã đóng.
 insert into public.job_posts (id, facility_id, title, job_type, employment, wage_type, wage_min, wage_max, hours_per_week,
                               schedule_note, description, openings, status, expires_at, commitment_ack, created_at, closed_at) values
   ('c0000000-0000-4000-a000-000000000001', 'f0000000-0000-4000-a000-000000000001', 'Nhân viên pha chế toàn thời gian', 'pha_che', 'full_time', 'monthly', 7000000, 9000000, 48,
    'Sáng 7h–15h hoặc chiều 14h–22h, nghỉ một ngày giữa tuần.', 'Pha chế cà phê, trà và nước ép, có người hướng dẫn tuần đầu. Ưu tiên bạn đã làm quán.', 2, 'open', now() + interval '25 days', true, now(), null),
   ('c0000000-0000-4000-a000-000000000002', 'f0000000-0000-4000-a000-000000000002', 'Phục vụ bàn bán thời gian', 'phuc_vu', 'part_time', 'hourly', 28000, 32000, 24,
    'Tối thứ Sáu đến Chủ nhật, 17h–22h.', 'Phục vụ khách buổi tối, bê món, dọn bàn. Có ăn nhẹ giữa ca.', 3, 'open', now() + interval '20 days', true, now(), null),
-  ('c0000000-0000-4000-a000-000000000003', 'f0000000-0000-4000-a000-000000000003', 'Lễ tân homestay', 'le_tan', 'full_time', 'monthly', 6500000, null, 44,
-   'Ca sáng hoặc ca tối luân phiên theo tuần.', 'Đón khách nhận và trả phòng, trả lời tin nhắn đặt phòng, giữ quầy gọn gàng.', 1, 'open', now() + interval '15 days', true, now(), null),
-  ('c0000000-0000-4000-a000-000000000004', 'f0000000-0000-4000-a000-000000000004', 'Dọn phòng khách sạn (bán thời gian)', 'don_phong', 'part_time', 'hourly', 27000, null, 20,
-   'Sáng 8h–12h, 5 buổi mỗi tuần.', 'Dọn và thay đồ vải cho khoảng 8 phòng mỗi buổi.', 1, 'open', now() + interval '18 days', true, now(), null),
+  ('c0000000-0000-4000-a000-000000000003', 'f0000000-0000-4000-a000-000000000003', 'Nhân viên đón khách và hỗ trợ quầy', 'le_tan', 'full_time', 'monthly', 6500000, null, 44,
+   'Ca sáng hoặc ca tối luân phiên theo tuần.', 'Đón khách, hướng dẫn chọn món, trả lời tin nhắn đặt bàn, giữ quầy gọn gàng.', 1, 'open', now() + interval '15 days', true, now(), null),
+  ('c0000000-0000-4000-a000-000000000004', 'f0000000-0000-4000-a000-000000000004', 'Dọn dẹp quán (bán thời gian)', 'don_phong', 'part_time', 'hourly', 27000, null, 20,
+   'Sáng 8h–12h, 5 buổi mỗi tuần.', 'Dọn bàn ghế, quầy và khu vệ sinh trước giờ mở cửa.', 1, 'open', now() + interval '18 days', true, now(), null),
   ('c0000000-0000-4000-a000-000000000005', 'f0000000-0000-4000-a000-000000000001', 'Phụ bếp (tin cũ, đã hết hạn)', 'phu_bep_nhe', 'part_time', 'hourly', 26000, null, 16,
    null, 'Tin này đã hết hạn nhận đơn.', 1, 'open', now() - interval '10 days', true, now() - interval '40 days', null),
   ('c0000000-0000-4000-a000-000000000006', 'f0000000-0000-4000-a000-000000000002', 'Thu ngân cuối tuần (đã đóng)', 'thu_ngan', 'part_time', 'hourly', 29000, null, 12,
