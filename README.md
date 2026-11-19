@@ -68,7 +68,7 @@ src/lib, src/components             hằng số, định dạng giờ VN, kiểu
 
 ### Thiết kế
 
-Giao diện theo hướng "Phố cửa chớp": tường vàng, cửa chớp xanh, nền vôi; chỉ có giao diện sáng, chữ gốc 18px, vùng chạm tối thiểu 48px. Font Be Vietnam Pro (chữ) và Barlow Condensed (số giờ ca), tự host qua `next/font`; icon `lucide-react`. Điện thoại 360–414px là bề mặt chính, desktop cũng phải đẹp (rail trái từ 1024px). Bản đồ dùng MapLibre với nền OpenFreeMap, tải trên trình duyệt người dùng (xem mục 1). Mô tả hệ hình ảnh đang chạy: `DESIGN.md`; hướng sản phẩm và người dùng: `PRODUCT.md`; quy tắc bắt buộc: `AGENTS.md` mục 18–24.
+Giao diện theo hướng "Biển & Nắng": xanh biển, vàng nắng, nền vôi; chỉ có giao diện sáng, chữ gốc 18px, vùng chạm tối thiểu 48px. Font Be Vietnam Pro (chữ) và Barlow Condensed (số giờ ca), tự host qua `next/font`; icon `lucide-react`. Điện thoại 360–414px là bề mặt chính, desktop cũng phải đẹp (rail trái từ 1024px). Bản đồ dùng MapLibre với nền OpenFreeMap, tải trên trình duyệt người dùng (xem mục 1). Mô tả hệ hình ảnh đang chạy: `DESIGN.md`; hướng sản phẩm và người dùng: `PRODUCT.md`; quy tắc bắt buộc: `AGENTS.md` mục 18–24.
 
 ---
 

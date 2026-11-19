@@ -22,7 +22,7 @@ type WorkerRow = {
 };
 type ConsentRow = { token: string; status: keyof typeof CONSENT_LABEL; expires_at: string };
 
-const linkCls = 'font-semibold text-shutter underline underline-offset-4';
+const linkCls = 'font-semibold text-brand underline underline-offset-4';
 const APPROVAL_TONE: Record<WorkerRow['approval'], Tone> = { pending: 'amber', approved: 'green', rejected: 'red' };
 const CONSENT_TONE: Record<ConsentRow['status'], Tone> = { pending: 'amber', submitted: 'blue', approved: 'green', rejected: 'red' };
 const urlBox = 'break-all rounded-ui border-2 border-rule-strong bg-chalk px-4 py-2 text-base text-ink';
@@ -77,7 +77,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           </p>
         ) : null}
         {wp.approval === 'rejected' ? (
-          <p className="text-base text-roof">
+          <p className="text-base text-danger">
             {wp.review_note ? `Lý do: ${wp.review_note}` : 'Hồ sơ chưa được duyệt. Vui lòng liên hệ nhóm vận hành để biết lý do.'}
           </p>
         ) : null}
@@ -151,11 +151,11 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         <dl className="mt-4 grid grid-cols-2 gap-4 text-center">
           <div className="flex flex-col-reverse rounded-ui border border-rule bg-chalk p-4">
             <dt className="text-base text-ink-soft">lần hủy sát giờ</dt>
-            <dd className={`tabular font-num text-4xl font-bold ${lateCancels ? 'text-roof' : 'text-ink'}`}>{lateCancels}</dd>
+            <dd className={`tabular font-num text-4xl font-bold ${lateCancels ? 'text-danger' : 'text-ink'}`}>{lateCancels}</dd>
           </div>
           <div className="flex flex-col-reverse rounded-ui border border-rule bg-chalk p-4">
             <dt className="text-base text-ink-soft">lần không đến</dt>
-            <dd className={`tabular font-num text-4xl font-bold ${noShows ? 'text-roof' : 'text-ink'}`}>{noShows}</dd>
+            <dd className={`tabular font-num text-4xl font-bold ${noShows ? 'text-danger' : 'text-ink'}`}>{noShows}</dd>
           </div>
         </dl>
         <p className="mt-4 text-base text-ink-soft">Hủy khi còn dưới 2 tiếng trước ca được tính là hủy sát giờ.</p>

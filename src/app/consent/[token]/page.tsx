@@ -59,7 +59,7 @@ export default async function ParentalConsentPage({ params }: { params: Promise<
       </PageTitle>
 
       <Card tab={<h2 className="text-lg font-bold text-ink">Anh/chị cần biết</h2>}>
-        <ul className="list-disc space-y-2 pl-6 text-base text-ink marker:text-shutter">
+        <ul className="list-disc space-y-2 pl-6 text-base text-ink marker:text-brand">
           <li>{DISCLAIMER}</li>
           <li>Con chỉ nhận được ca <b>trong khung 06:00–22:00</b>, tối đa <b>8 giờ một ca</b> và <b>40 giờ một tuần</b>.</li>
           <li>Chỉ có 7 loại việc nhẹ: {jobs}. Không có việc liên quan đến: {PROHIBITED_TEXT}.</li>
@@ -90,8 +90,8 @@ export default async function ParentalConsentPage({ params }: { params: Promise<
 
       <p className="text-base text-ink-soft">
         Anh/chị có thể đọc thêm{' '}
-        <Link href="/terms" className="font-semibold text-shutter underline underline-offset-4">Điều khoản sử dụng</Link> và{' '}
-        <Link href="/privacy" className="font-semibold text-shutter underline underline-offset-4">Chính sách dữ liệu</Link>.
+        <Link href="/terms" className="font-semibold text-brand underline underline-offset-4">Điều khoản sử dụng</Link> và{' '}
+        <Link href="/privacy" className="font-semibold text-brand underline underline-offset-4">Chính sách dữ liệu</Link>.
       </p>
     </div>
   );
