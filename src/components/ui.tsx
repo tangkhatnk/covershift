@@ -57,23 +57,43 @@ export function Card({ children, className = '', tab }: { children: ReactNode; c
   return <section className={`rounded-ui border border-rule bg-white p-4 ${className}`}>{children}</section>;
 }
 
+const SKELETON_TITLE = ['h-[3.875rem]', 'h-[5.875rem]', 'h-[7.5rem] lg:h-24'] as const; // 0, 1, 2 dòng chữ phụ (khớp `PageTitle`)
+
 /**
- * Khung chờ cho `loading.tsx`: băng tiêu đề + vài mô-đun cao gần bằng thật để bố cục không nhảy khi dữ liệu về.
+ * Khung chờ cho `loading.tsx`. Mỗi khối có chiều cao xấp xỉ khối thật cùng vị trí (đo theo `PageTitle`, bộ lọc,
+ * `ShiftCard`...) để khi dữ liệu về nội dung không nhảy (CLS); cả khung cao tối thiểu một màn hình nên chân trang
+ * không chui vào tầm nhìn rồi bị đẩy xuống. Cấu hình theo trang thật, không có khối thừa "để dành".
+ * - `gap`: `space-y-4` hay `space-y-6` của trang thật. `lead`: khối trước tiêu đề (`back` = link quay lại, `refresh` = dòng LiveRefresh).
+ * - `sub`: số dòng chữ phụ của tiêu đề. `action`: nút chính to. `form`: ô lọc. `map`: bản đồ.
+ * - `boxes`: chiều cao (lớp Tailwind) của từng mô-đun; `side`: mô-đun cột phải từ `lg` (xếp dưới cùng trên điện thoại).
  * Chỉ nhấp nháy khi người dùng không chọn giảm chuyển động.
  */
-export function PageSkeleton({ cards = 3 }: { cards?: number }) {
+export function PageSkeleton({ gap = 4, lead, sub = 1, action = false, form = false, map = false, boxes = [], side }: {
+  gap?: 4 | 6; lead?: 'back' | 'refresh'; sub?: 0 | 1 | 2; action?: boolean; form?: boolean; map?: boolean; boxes?: string[]; side?: string;
+}) {
+  const box = (h: string, key: string | number) => (
+    <div key={key} className={`${h} space-y-4 rounded-ui border border-rule bg-white p-4`}>
+      <div className="h-6 w-2/3 rounded-ui bg-chalk" />
+      <div className="h-4 w-1/2 rounded-ui bg-chalk" />
+      <div className="h-4 w-1/3 rounded-ui bg-chalk" />
+    </div>
+  );
+  const left = boxes.map((h, i) => box(h, i));
   return (
-    <div role="status" aria-busy="true" className="space-y-6">
+    <div role="status" aria-busy="true" className="min-h-dvh">
       <span className="sr-only">Đang tải…</span>
-      <div aria-hidden="true" className="space-y-6 motion-safe:animate-pulse">
-        <div className="h-24 rounded-ui bg-wall-tint" />
-        {Array.from({ length: cards }, (_, i) => (
-          <div key={i} className="h-40 space-y-4 rounded-ui border border-rule bg-white p-4">
-            <div className="h-6 w-2/3 rounded-ui bg-chalk" />
-            <div className="h-4 w-1/2 rounded-ui bg-chalk" />
-            <div className="h-4 w-1/3 rounded-ui bg-chalk" />
+      <div aria-hidden="true" className={`${gap === 6 ? 'space-y-6' : 'space-y-4'} motion-safe:animate-pulse`}>
+        {lead ? <div className={`rounded-ui bg-chalk ${lead === 'back' ? 'h-12 w-40' : 'h-14 lg:h-12'}`} /> : null}
+        <div className={`mb-6 rounded-ui bg-wall-tint ${SKELETON_TITLE[sub]}`} />
+        {action ? <div className="h-[3.75rem] w-full rounded-ui bg-shutter-tint sm:w-56" /> : null}
+        {form ? <div className="h-[17rem] rounded-ui border border-rule bg-white lg:h-28" /> : null}
+        {map ? <div className="h-72 rounded-ui border border-rule bg-chalk lg:h-96" /> : null}
+        {side ? (
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
+            <div className="space-y-4">{left}</div>
+            {box(side, 'side')}
           </div>
-        ))}
+        ) : left}
       </div>
     </div>
   );
@@ -251,8 +271,9 @@ export function SlotStrip({ headcount, primary, backup }: { headcount: number; p
 }
 
 /** Thẻ tóm tắt một ca. `href` có thì cả thẻ là link. `extra` hiện dưới cùng (vd. nhãn "Bạn là người chính"). */
-export function ShiftCard({ shift, href, extra, showState = false }: { shift: Shift; href?: string; extra?: ReactNode; showState?: boolean }) {
-  const state = shiftState(shift);
+/** `now` (ms): Client Component phải nhận từ server để lần render đầu ở server và lúc hydrate cho cùng trạng thái ca. */
+export function ShiftCard({ shift, href, extra, showState = false, now }: { shift: Shift; href?: string; extra?: ReactNode; showState?: boolean; now?: number }) {
+  const state = shiftState(shift, now);
   const upcoming = state === 'open' || state === 'filled';
   const urgent = shift.urgent && upcoming;
   const body = (

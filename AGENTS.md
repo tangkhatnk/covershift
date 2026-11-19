@@ -663,6 +663,7 @@ Tốc độ (theo chỉ thị chủ dự án 19/11/2026):
 - Mỗi request chỉ một lượt xác thực và một lượt đọc `profiles`: layout và trang đều đi qua `getContext()`/`requireRole()` (bọc `cache()`); không tự gọi `auth.getUser()`/`getClaims()` hay `profiles` thêm trong trang. Project dùng khóa ký JWT bất đối xứng (ES256), nên `getContext()` và `middleware.ts` dùng `getClaims()` (kiểm chữ ký cục bộ bằng JWKS cache trong bộ nhớ, không gọi mạng tới Auth). Đổi sang khóa HS256 thì `getClaims()` quay về gọi mạng; xem lại ở đó. Quyền thật vẫn ở RLS/RPC (`auth.uid()`, `_require_user()` từ chối tài khoản bị khóa); `requireRole` vẫn đọc `profiles.status` để chuyển người bị khóa.
 - Truy vấn độc lập trong một trang chạy song song bằng `Promise.all`; chỉ nối tiếp khi truy vấn sau cần kết quả của truy vấn trước.
 - Trang có dữ liệu (đứng sau đăng nhập) có `loading.tsx` dùng `PageSkeleton` (`ui.tsx`). Trang token `/confirm`, `/consent` mở từ Zalo không có `loading.tsx`. `admin/loading.tsx` phủ cả `/admin/*`.
+- Client Component không gọi `Date.now()`/`new Date()` khi render: server tính `now` một lần và truyền xuống làm prop (vd. `ShiftExplorer now`), để render ở server và hydrate cho cùng kết quả (tránh hydration mismatch, React #418); nếu cần đổi theo thời gian thì cập nhật trong `useEffect` sau khi mount.
 - `LiveRefresh` chỉ gọi `router.refresh()` khi tab đang hiển thị, và làm mới một lần khi tab hiện lại sau hơn một chu kỳ.
 - `vercel.json` đặt `regions: ["sin1"]` để function gần Supabase (Singapore); đổi vùng Supabase thì đổi cả hai.
 

@@ -104,7 +104,7 @@ export default async function FeedPage({ searchParams }: {
           {filtering ? 'Không có ca nào khớp bộ lọc. Thử bỏ lọc xem sao.' : 'Hiện chưa có ca nào đang tìm người. Bạn quay lại sau nhé.'}
         </Empty>
       ) : (
-        <ShiftExplorer shifts={shifts} />
+        <ShiftExplorer shifts={shifts} now={Date.now()} />
       )}
     </div>
   );
