@@ -16,16 +16,16 @@ function sampleShift(): Shift {
     id: 'minh-hoa', facility_id: 'minh-hoa', job_type: 'pha_che',
     starts_at: `${day}T08:00:00+07:00`, ends_at: `${day}T12:00:00+07:00`,
     headcount: 3, hourly_wage: 27000, description: null, urgent: false, allow_minor: false, status: 'open',
-    created_at: `${day}T00:00:00+07:00`, facility_name: 'SOHO Coffee', facility_type: 'cafe', area: 'bai_truoc',
+    created_at: `${day}T00:00:00+07:00`, facility_name: 'Phê La Vũng Tàu', facility_type: 'cafe', area: 'bai_truoc',
     address: '', maps_url: null, lat: null, lng: null, primary_count: 2, backup_count: 0, my_role: null,
   };
 }
 
-/** Ghim minh họa: tọa độ bốn quán đã xác minh trong supabase/seed.sql (gần đúng, không phải ca thật). */
+/** Ghim minh họa: tọa độ bốn quán đã xác minh trong supabase/seed.sql (gần đúng, không phải ca thật), gom ở khu trung tâm. */
 const DEMO_PINS: MapPoint[] = [
-  { id: 'd1', lat: 10.3306, lng: 107.0768, text: '1', label: 'SOHO Coffee, quán cà phê', tone: 'open' },
-  { id: 'd2', lat: 10.3477, lng: 107.0743, text: '2', label: 'Phê La Vũng Tàu, quán cà phê', tone: 'open' },
-  { id: 'd3', lat: 10.3553, lng: 107.0614, text: '3', label: 'OASIS SEA Coffee & Tea, quán cà phê', tone: 'open' },
+  { id: 'd1', lat: 10.3477, lng: 107.0743, text: '1', label: 'Phê La Vũng Tàu, quán cà phê', tone: 'open' },
+  { id: 'd2', lat: 10.3500, lng: 107.0824, text: '2', label: 'Quán Ốc Thiên Nhiên 2, nhà hàng', tone: 'open' },
+  { id: 'd3', lat: 10.3511, lng: 107.0849, text: '3', label: 'An Coffee Bean, quán cà phê', tone: 'open' },
   { id: 'd4', lat: 10.3531, lng: 107.0871, text: '4', label: 'Texas Chicken, nhà hàng', tone: 'open' },
 ];
 
