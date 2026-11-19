@@ -4,7 +4,7 @@ import { ChevronLeft, Flag } from 'lucide-react';
 import { cancelClaim, claimShift, createReport, submitPayment } from '@/app/actions';
 import { ActionForm, SubmitButton } from '@/components/client';
 import { ShiftMap } from '@/components/map';
-import { Alert, Badge, Card, PageTitle, SlotStrip, StateBadge, Stars, Tel, inputCls } from '@/components/ui';
+import { Alert, Badge, Card, DemoPhoneNote, PageTitle, SlotStrip, StateBadge, Stars, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { AREA_LABEL, FACILITY_TYPE_LABEL, JOB_LABEL, PAYMENT_LABEL, type PaymentAnswer } from '@/lib/constants';
 import { friendlyError } from '@/lib/errors';
@@ -211,9 +211,12 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
                   <p className="mt-2 text-base text-ink">Nếu người chính hủy, bạn sẽ được lên thay. Hãy để ý điện thoại.</p>
                 ) : null}
                 {contact ? (
-                  <p className="mt-4 text-lg">
-                    Liên hệ quán: <b>{contact.contact_name}</b> · <Tel phone={contact.phone} />
-                  </p>
+                  <div className="mt-4">
+                    <p className="text-lg">
+                      Liên hệ quán: <b>{contact.contact_name}</b> · <Tel phone={contact.phone} />
+                    </p>
+                    <DemoPhoneNote />
+                  </div>
                 ) : null}
                 {upcoming ? (
                   <div className="mt-4 space-y-4 border-t border-rule pt-4">
