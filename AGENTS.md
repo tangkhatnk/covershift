@@ -59,7 +59,7 @@ Dùng ranh giới sở hữu sẵn có trước khi tạo ranh giới mới. Đ�
 
 - `supabase/migrations/`
   - schema, trigger, constraint, RLS, RPC;
-  - hiện có `0001_init.sql` (đã áp lên Supabase thật ngày 17/11/2026), `0002_toa_do_co_so.sql` (cột `lat`/`lng` của cơ sở, đã áp ngày 18/11/2026) `0003_viec_lam_dai_han.sql` (tuyển dụng lâu dài) và `0004_thong_bao_quan_cong_khai.sql` (thông báo, trang quán công khai, đánh giá quán, chia sẻ ca, nới SĐT chủ quán), hai file sau **chưa áp** lên Supabase thật: `0001` và `0002` không sửa nữa; thay đổi mới là file migration mới (`0005_...sql`).
+  - hiện có `0001_init.sql` (đã áp lên Supabase thật ngày 17/11/2026), `0002_toa_do_co_so.sql` (cột `lat`/`lng` của cơ sở, đã áp ngày 18/11/2026), `0003_viec_lam_dai_han.sql` (tuyển dụng lâu dài) và `0004_thong_bao_quan_cong_khai.sql` (thông báo, trang quán công khai, đánh giá quán, chia sẻ ca, nới SĐT chủ quán), hai file sau đã áp ngày 19/11/2026: cả bốn file không sửa nữa; thay đổi mới là file migration mới (`0005_...sql`).
 - `supabase/seed.sql`
   - dữ liệu mẫu; phải chạy lại được nhiều lần.
 - `supabase/tests/`
@@ -263,7 +263,7 @@ Không force-push. Mở PR `revert` bằng `git revert` (không dùng `git reset
 Không merge và không tự làm các việc sau. Ghi lại (PR draft hoặc issue, nêu rõ cần chủ dự án quyết gì) rồi chuyển sang việc kế tiếp, không dừng cả phiên:
 
 - đổi quy tắc nghiệp vụ (mục 10);
-- đổi schema hoặc quyền trên Supabase thật (agent không áp lên Supabase; chủ dự án dán SQL), xóa dữ liệu, sửa `0001_init.sql` hoặc `0002_toa_do_co_so.sql` (mục 12);
+- đổi schema hoặc quyền trên Supabase thật (agent không áp lên Supabase; chủ dự án dán SQL), xóa dữ liệu, sửa `0001_init.sql`, `0002_toa_do_co_so.sql`, `0003_viec_lam_dai_han.sql` hoặc `0004_thong_bao_quan_cong_khai.sql` (mục 12);
 - mọi chỗ khác trong file này ghi là cần chủ dự án duyệt: mở rộng phạm vi công khai của dữ liệu cá nhân, CORS và header bảo mật, dịch vụ bên thứ ba mới, phụ thuộc mới (mục 13–17);
 - mọi việc không hoàn tác được.
 
@@ -482,7 +482,7 @@ grant execute on function public.ten_ham(...) to authenticated;
 
 ## 12. Migration và dữ liệu thật
 
-- `supabase/migrations/0001_init.sql` đã áp lên Supabase thật ngày 17/11/2026, và `supabase/migrations/0002_toa_do_co_so.sql` ngày 18/11/2026 (chủ dự án dán bằng SQL Editor; theo chủ dự án `privileges_check` ra 0 dòng `SAI`/`KIỂM`; đã chạy lại seed). **Không sửa hai file này.**
+- `supabase/migrations/0001_init.sql` đã áp lên Supabase thật ngày 17/11/2026, và `supabase/migrations/0002_toa_do_co_so.sql` ngày 18/11/2026 (chủ dự án dán bằng SQL Editor; theo chủ dự án `privileges_check` ra 0 dòng `SAI`/`KIỂM`; đã chạy lại seed). **Không sửa hai file này.** `0003` và `0004` đã áp ngày 19/11/2026 (xem hai dòng dưới).
 - Thay đổi schema (bảng, cột, hàm, trigger, policy, grant) là một file mới `supabase/migrations/000N_ten_ngan.sql` (số tiếp theo, tên ngắn không dấu). Mỗi file có thể chạy sau các migration đã có mà không cần xóa gì.
 - Một thay đổi schema gồm đủ các phần:
   - file migration;
@@ -493,9 +493,9 @@ grant execute on function public.ten_ham(...) to authenticated;
 - Chủ dự án dán migration vào Supabase SQL Editor, rồi chạy `supabase/tests/privileges_check.sql` trên project thật. Agent không tự chạy DDL hay ghi dữ liệu lên project Supabase thật, kể cả khi máy có kết nối MCP tới đó.
 - Không dùng đường tắt bỏ qua file migration: `supabase db push`, `supabase db reset`, sửa bảng bằng Table Editor, hay sinh schema bằng diff/pull rồi áp thẳng. Mọi thay đổi phải truy vết được trong `supabase/migrations/`.
 - `supabase/tests/check_before_migration.sql` chỉ dùng cho project mới, trước khi dán `0001`. Không dùng nó để kiểm thay đổi sau này.
-- `supabase/migrations/0004_thong_bao_quan_cong_khai.sql` (theo chỉ thị chủ dự án 19/11/2026) **chưa áp lên Supabase thật**. Chủ dự án phải: dán `0004` bằng SQL Editor (sau `0003`), chạy `supabase/tests/privileges_check.sql` (kỳ vọng 0 dòng `SAI`/`KIỂM`; hai hàm `get_public_facility`, `get_public_shift` phải ra "đúng (RPC công khai)"), rồi chạy lại `supabase/seed.sql` (seed mới có thông báo, đánh giá quán và mã trang quán cố định `demo-quan-1`…`demo-quan-5`). Mã web gọi RPC của `0004` chỉ merge sau khi bước đó xong (mục 6, cổng 5). Từ khi áp, `0004` cũng không sửa nữa.
-- `supabase/migrations/0003_viec_lam_dai_han.sql` (tuyển dụng lâu dài, theo chỉ thị chủ dự án 19/11/2026) **chưa áp lên Supabase thật**. Chủ dự án phải: dán `0003` bằng SQL Editor (sau `0001`, `0002`), chạy `supabase/tests/privileges_check.sql`, rồi chạy lại `supabase/seed.sql` (seed mới có tin và đơn mẫu, và khóa `min_monthly_wage`). Mã web gọi RPC của `0003` chỉ được merge sau khi bước đó xong (mục 6, cổng 5). Từ khi áp, `0003` cũng không sửa nữa.
-- Theo quyết định ngày 17/11/2026, app là bản mô phỏng: đợt 21–22/11 không dùng người thật, chỉ dữ liệu mẫu. Dù vậy quy tắc migration không đổi: không sửa `0001` và `0002`, thay đổi schema là file mới, và nếu sau này có dữ liệu thật thì giữ nguyên dữ liệu đó:
+- `supabase/migrations/0004_thong_bao_quan_cong_khai.sql` **đã áp lên Supabase thật ngày 19/11/2026** (chủ dự án dán bằng SQL Editor sau `0003`, chạy `supabase/tests/privileges_check.sql` ra 0 dòng `SAI`/`KIỂM`, rồi chạy lại `supabase/seed.sql`; seed mới có thông báo, đánh giá quán, mã trang quán cố định `demo-quan-1`…`demo-quan-9` và hotline 9 quán thật). **Không sửa file này nữa.** Mã web gọi RPC của `0004` được phép merge (mục 6, cổng 5 đã đạt).
+- `supabase/migrations/0003_viec_lam_dai_han.sql` (tuyển dụng lâu dài, theo chỉ thị chủ dự án 19/11/2026) **đã áp lên Supabase thật ngày 19/11/2026**, cùng đợt với `0004` (dán `0003` trước, rồi `0004`; seed có tin và đơn mẫu, và khóa `min_monthly_wage`). **Không sửa file này nữa.** Mã web gọi RPC của `0003` được phép merge (mục 6, cổng 5 đã đạt). Sau đợt áp, kiểm production: ba nút demo đăng nhập được (tài khoản `quan1@` từng mất, seed đã khôi phục), `/admin/facilities` có 9 quán thật. Chưa có số test chạy trên Supabase thật ngoài `privileges_check`.
+- Theo quyết định ngày 17/11/2026, app là bản mô phỏng: đợt 21–22/11 không dùng người thật, chỉ dữ liệu mẫu. Dù vậy quy tắc migration không đổi: không sửa `0001` đến `0004`, thay đổi schema là file mới, và nếu sau này có dữ liệu thật thì giữ nguyên dữ liệu đó:
   - không xóa hay đổi nghĩa dữ liệu hiện có nếu task không yêu cầu;
   - cột `not null` mới phải có `default` hoặc bước backfill rõ ràng;
   - không `drop` bảng hoặc cột đang chứa dữ liệu.
@@ -968,7 +968,7 @@ Trước khi đánh dấu PR sẵn sàng, đọc toàn bộ diff cuối (`git di
 - mã chết, `console.log` gỡ lỗi, TODO tạm;
 - khóa bí mật hoặc dữ liệu cá nhân thật (kể cả service-role key);
 - quyền hoặc RLS bị nới; test bị yếu đi;
-- migration cũ bị sửa (`0001_init.sql` và `0002_toa_do_co_so.sql` không được đổi; `0003` và `0004` chưa áp nên còn sửa được, đã áp thì không);
+- migration cũ bị sửa (`0001_init.sql`, `0002_toa_do_co_so.sql`, `0003_viec_lam_dai_han.sql` và `0004_thong_bao_quan_cong_khai.sql` không được đổi);
 - tài liệu (`CLAUDE.md`, `README.md`, `TESTING.md`, con số test) lệch với hành vi mới;
 - phụ thuộc đổi mà task không cần.
 
@@ -995,7 +995,7 @@ Không báo xong khi kiểm tra liên quan chưa chạy. Không khẳng định 
 - merge PR khi chưa đủ các cổng ở mục 6;
 - agent chính tự viết mã, sửa file hay chạy test thay cho `execution-manager` và `worker` (mục 5);
 - force-push `main`;
-- sửa `supabase/migrations/0001_init.sql` hoặc `0002_toa_do_co_so.sql` đã áp lên Supabase thật;
+- sửa `supabase/migrations/0001_init.sql` đến `0004_thong_bao_quan_cong_khai.sql` đã áp lên Supabase thật;
 - tắt, bỏ qua hoặc nới test để cho qua;
 - bịa kết quả test hoặc khẳng định đã xem giao diện khi chưa xem;
 - commit bí mật, `.env*` (trừ `.env.example`), dữ liệu người thật;
