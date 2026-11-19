@@ -21,12 +21,11 @@ function sampleShift(): Shift {
   };
 }
 
-/** Ghim minh họa: tọa độ bốn quán đã xác minh trong supabase/seed.sql (gần đúng, không phải ca thật), gom ở khu trung tâm. */
+/** Ghim minh họa: tọa độ ba quán đã xác minh trong supabase/seed.sql (gần đúng, không phải ca thật), trải rộng theo kinh độ để không chồng nhau ở 360px. */
 const DEMO_PINS: MapPoint[] = [
   { id: 'd1', lat: 10.3477, lng: 107.0743, text: '1', label: 'Phê La Vũng Tàu, quán cà phê', tone: 'open' },
-  { id: 'd2', lat: 10.3500, lng: 107.0824, text: '2', label: 'Quán Ốc Thiên Nhiên 2, nhà hàng', tone: 'open' },
-  { id: 'd3', lat: 10.3511, lng: 107.0849, text: '3', label: 'An Coffee Bean, quán cà phê', tone: 'open' },
-  { id: 'd4', lat: 10.3531, lng: 107.0871, text: '4', label: 'Texas Chicken, nhà hàng', tone: 'open' },
+  { id: 'd2', lat: 10.3553, lng: 107.0614, text: '2', label: 'OASIS SEA Coffee & Tea, quán cà phê', tone: 'open' },
+  { id: 'd3', lat: 10.3531, lng: 107.0871, text: '3', label: 'Texas Chicken, nhà hàng', tone: 'open' },
 ];
 
 function Point({ title, children }: { title: string; children: ReactNode }) {

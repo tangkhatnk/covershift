@@ -163,7 +163,7 @@ Dùng ca seed "vừa hết giờ" (OASIS SEA Coffee & Tea, dọn dẹp) — link
 
 Cần `0002_toa_do_co_so.sql` đã áp và `seed.sql` đã chạy lại (seed ghi tọa độ). Bản đồ tải nền từ `tiles.openfreemap.org`: máy test cần có mạng.
 
-1. Trang chủ `/` (chưa đăng nhập): dưới băng đầu có bản đồ minh họa, chú thích "Bản đồ minh họa, dữ liệu mẫu" hiện rõ, ✔ 4 ghim (Phê La Vũng Tàu, Quán Ốc Thiên Nhiên 2, An Coffee Bean, Texas Chicken; các quán đã xác minh), bản đồ vẽ đầy đủ đến mép dưới, không có dải nền kem trống, không chồng lên nhau ở 360–414px. Cuộn tới bản đồ mới tải (không chặn phần đầu trang).
+1. Trang chủ `/` (chưa đăng nhập): dưới băng đầu có bản đồ minh họa, chú thích "Bản đồ minh họa, dữ liệu mẫu" hiện rõ, ✔ 3 ghim (Phê La Vũng Tàu, OASIS SEA Coffee & Tea, Texas Chicken; các quán đã xác minh), không chồng lên nhau ở 360–414px, bản đồ vẽ đầy đủ đến mép dưới (không có dải nền kem trống). Cuộn tới bản đồ mới tải (không chặn phần đầu trang).
 2. N vào `/shifts`: ✔ bản đồ chỉ hiện ghim cho ca còn chỗ ở quán số 1–4 (SOHO Coffee, Phê La, OASIS SEA, An Coffee Bean; KATINAT chưa xác minh nên không có ca); chạm một ghim → ✔ thẻ ca tương ứng được chọn và cuộn tới; chạm một thẻ ca → ✔ ghim tương ứng nổi lên. Lọc khu vực/loại việc → ✔ bản đồ và danh sách cùng đổi. Ca không có tọa độ (nếu có) vẫn hiện trong danh sách.
 3. Tự làm mới: Q đăng thêm một ca (hoặc N nhận ca) ở tab khác, N để `/shifts` mở ≥ 30 giây ✔ danh sách và ghim tự cập nhật, không nhảy mất vị trí cuộn.
 4. N mở một ca ở `/shifts/[id]`: ✔ bản đồ nhỏ một ghim; "Chỉ đường" mở Google Maps tới đúng tọa độ ghim; không có số điện thoại ở bản đồ hay popup.
