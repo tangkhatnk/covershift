@@ -79,8 +79,8 @@ function Stats({ w }: { w: AdminWorker }) {
         ['Hủy sát giờ', w.late_cancels, w.late_cancels > 0],
         ['Không đến', w.no_shows, w.no_shows > 0],
       ] as const).map(([label, n, bad]) => (
-        <div key={label} className={`rounded-ui p-2 lg:flex lg:items-baseline lg:gap-2 lg:p-0 ${bad ? 'bg-roof-tint lg:bg-transparent' : 'bg-chalk lg:bg-transparent'}`}>
-          <dd className={`tabular text-xl font-bold lg:order-2 ${bad ? 'text-roof' : 'text-ink'}`}>{n}</dd>
+        <div key={label} className={`rounded-ui p-2 lg:flex lg:items-baseline lg:gap-2 lg:p-0 ${bad ? 'bg-danger-tint lg:bg-transparent' : 'bg-chalk lg:bg-transparent'}`}>
+          <dd className={`tabular text-xl font-bold lg:order-2 ${bad ? 'text-danger' : 'text-ink'}`}>{n}</dd>
           <dt className="text-base text-ink-soft lg:order-1">{label}</dt>
         </div>
       ))}
@@ -180,8 +180,8 @@ export default async function WorkersPage({ searchParams }: { searchParams: Prom
             aria-current={f === filter ? 'page' : undefined}
             className={`inline-flex min-h-[3rem] items-center rounded-ui border-2 px-4 text-base font-semibold ${
               f === filter
-                ? 'border-shutter bg-shutter text-white'
-                : 'border-rule-strong bg-white text-ink hover:bg-shutter-tint'
+                ? 'border-brand bg-brand text-white'
+                : 'border-rule-strong bg-white text-ink hover:bg-brand-tint'
             }`}>
             {FILTER_LABEL[f]} ({count[f]})
           </Link>

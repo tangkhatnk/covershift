@@ -11,7 +11,7 @@ import type { DispatchBoard, DispatchShift, PendingConfirmation } from '@/lib/ty
 
 export const metadata = { title: 'Điều phối' };
 
-const linkCls = 'inline-flex min-h-[3rem] items-center font-semibold text-shutter underline underline-offset-4';
+const linkCls = 'inline-flex min-h-[3rem] items-center font-semibold text-brand underline underline-offset-4';
 
 function reminderText(s: DispatchShift) {
   const maps =

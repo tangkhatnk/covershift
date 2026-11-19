@@ -47,7 +47,7 @@ export default async function AccountPage() {
         </dl>
         {profile && profile.status === 'active' ? (
           <p className="mt-2 text-base">
-            <Link href={profile.role === 'worker' ? '/profile' : homeFor(profile.role)} className="inline-flex min-h-[3rem] items-center font-semibold text-shutter underline underline-offset-4">
+            <Link href={profile.role === 'worker' ? '/profile' : homeFor(profile.role)} className="inline-flex min-h-[3rem] items-center font-semibold text-brand underline underline-offset-4">
               {profile.role === 'worker' ? 'Xem và sửa hồ sơ' : 'Về trang chính'}
             </Link>
           </p>
@@ -76,7 +76,7 @@ export default async function AccountPage() {
             <p className="mt-2 text-base text-ink">Nhóm vận hành sẽ đến tận nơi xác minh. Xác minh xong anh/chị mới đăng ca được.</p>
           ) : null}
           {facility.status === 'removed' ? (
-            <p className="mt-2 text-base text-roof">Cơ sở đã bị gỡ nên không đăng ca được. Vui lòng liên hệ nhóm vận hành.</p>
+            <p className="mt-2 text-base text-danger">Cơ sở đã bị gỡ nên không đăng ca được. Vui lòng liên hệ nhóm vận hành.</p>
           ) : null}
         </Card>
       ) : null}
@@ -89,8 +89,8 @@ export default async function AccountPage() {
       </form>
 
       {profile && profile.role !== 'admin' ? (
-        <Card className="!border-roof">
-          <h2 className="text-xl font-bold text-roof">Xóa tài khoản</h2>
+        <Card className="!border-danger">
+          <h2 className="text-xl font-bold text-danger">Xóa tài khoản</h2>
           <ul className="mt-2 list-disc space-y-2 pl-6 text-base text-ink">
             <li>Xóa <b>vĩnh viễn</b> toàn bộ dữ liệu của bạn: hồ sơ, số điện thoại, lịch sử ca, đánh giá.</li>
             <li>Các ca sắp tới của bạn sẽ bị hủy.</li>
