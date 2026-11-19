@@ -119,7 +119,7 @@ export async function deleteAccount(_: ActionState, fd: FormData): Promise<Actio
   const supabase = await createClient();
   const { error } = await supabase.rpc('delete_my_account');
   if (error) return { error: friendly(error) };
-  await supabase.auth.signOut();
+  await supabase.auth.signOut({ scope: 'local' });
   redirect('/?da-xoa=1');
 }
 
