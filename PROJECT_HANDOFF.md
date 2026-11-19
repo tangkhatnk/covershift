@@ -20,7 +20,7 @@ Nguồn của tài liệu này chỉ là **một phiên làm việc duy nhất**
 |---|---|
 | Thư mục dự án | `/Users/macpro/Desktop/Project/startup` |
 | Hạn chót | Deploy ổn định **trước 20/11/2026**. Chạy **21–22/11**. Demo **26/11**. Theo quyết định 17/11/2026, app là **bản mô phỏng**: đợt 21–22/11 không dùng người thật, chỉ dữ liệu mẫu. |
-| Hiện trạng | **17/11: migration đã áp lên Supabase thật (85/85 test đạt trên Supabase lúc đó; nay có 86 test).** Web đã deploy production tại https://safeshift-beta.vercel.app (Vercel project `safeshift`, team `safeshift`, nối GitHub: merge vào `main` là tự deploy; biến `NEXT_PUBLIC_*` đã đặt). Đăng nhập chỉ bằng 3 nút demo ở `/login` (server action `demoLogin`, mật khẩu chung công khai đặt bởi `seed.sql`); đã bỏ Google OAuth và magic link. **18/11: đã chạy lại `seed.sql` trên Supabase thật (16/16 user demo có mật khẩu; 3 tài khoản của nút demo đăng nhập được qua Supabase Auth). Chưa chạy tay `TESTING.md` mục B trên trình duyệt.** |
+| Hiện trạng | **17/11: migration đã áp lên Supabase thật (85/85 test đạt trên Supabase lúc đó; nay có 86 test).** Web đã deploy production tại https://safeshift-beta.vercel.app (Vercel project `safeshift`, team `safeshift`, nối GitHub: merge vào `main` là tự deploy; biến `NEXT_PUBLIC_*` đã đặt). Đăng nhập chỉ bằng 3 nút demo ở `/login` (server action `demoLogin`, mật khẩu chung công khai đặt bởi `seed.sql`); đã bỏ Google OAuth và magic link. **19/11: `0003` và `0004` đã áp, seed mới đã chạy (xem mục 7). 18/11: đã chạy lại `seed.sql` trên Supabase thật (16/16 user demo có mật khẩu; 3 tài khoản của nút demo đăng nhập được qua Supabase Auth). Chưa chạy tay `TESTING.md` mục B trên trình duyệt.** |
 | Việc gấp nhất | Chạy lại `seed.sql` trên Supabase thật (để có mật khẩu demo) → chạy tay `TESTING.md` mục B → chuẩn bị demo 26/11. |
 
 Lệnh kiểm tra nhanh trạng thái (đều đã chạy đạt lúc bàn giao):
@@ -201,7 +201,7 @@ Chỉ thị: thêm "tuyển dụng lâu dài" (tin + đơn ứng tuyển) và ch
 | # | Quyết định | Hệ quả |
 |---|---|---|
 | P1 | Chủ dự án cho dùng **tên, địa chỉ và hotline công khai** của 9 quán thật ở Vũng Tàu (SOHO Coffee, Phê La Vũng Tàu, OASIS SEA Coffee & Tea, An Coffee Bean, KATINAT, Quán Ốc Thiên Nhiên 2, Bọt, Phuc Long Coffee & Tea, Texas Chicken) trong `seed.sql`, thay "Quán Demo 1–5" | 9 cơ sở, 9 chủ quán demo (`quan1–9@`; chủ `quan6–9@` mới), seed tạo 20 user demo. 5 cơ sở cũ giữ id và trạng thái (số 4 bị test 10j gỡ, số 5 chờ xác minh) |
-| P2 | Hotline nằm ở `private_contacts.phone` của chủ quán tương ứng; SĐT người làm và phụ huynh vẫn là số giả `0900000…` | Cả 9 quán có hotline thật. Phê La (8 chữ số), Phuc Long và Texas Chicken (11 chữ số) chỉ qua được ràng buộc đã nới ở `0004` (`0001` chỉ nhận đúng 10 số): **seed này cần `0004` đã áp** trước khi chạy |
+| P2 | Hotline nằm ở `private_contacts.phone` của chủ quán tương ứng; SĐT người làm và phụ huynh vẫn là số giả `0900000…` | Cả 9 quán có hotline thật. Phê La (8 chữ số), Phuc Long và Texas Chicken (11 chữ số) chỉ qua được ràng buộc đã nới ở `0004` (`0001` chỉ nhận đúng 10 số): **seed này cần `0004` đã áp** trước khi chạy (`0004` đã áp ngày 19/11/2026) |
 | P3 | Hotline hiện cho người làm qua `get_shift_contacts()` | Giao diện hiện dòng nhắc "Dữ liệu mô phỏng. Không gọi số này để hỏi về ca." (`DEMO_PHONE_NOTE`, thành phần `DemoPhoneNote`) cạnh SĐT quán ở `/shifts/[id]`, `/admin`, `/admin/facilities`, `/admin/reports` |
 | P4 | Tọa độ ghim lấy từ OpenStreetMap, gần đúng (chỉ quán OASIS SEA ra đúng số nhà); `area` gán theo khu gần nhất trong enum | Chủ quán hoặc nhóm vận hành sửa ghim bằng `set_facility_location` |
 
@@ -306,7 +306,7 @@ TESTING.md                        A: test tự động · B: kịch bản tay tr
 - Server chạy UTC: mọi hiển thị giờ phải qua `src/lib/format.ts`.
 - Next 15: `params` / `searchParams` là `Promise`.
 - `_bypass()` (bỏ qua trigger khi seed) chỉ bật khi `app.seed_mode = 'on'` **và** `session_user` là `postgres`/`supabase_admin`. Không nới điều kiện này.
-- **`0001_init.sql` (17/11/2026) và `0002_toa_do_co_so.sql` (18/11/2026) đã áp lên Supabase thật → không sửa hai file này nữa.** Mọi thay đổi schema là file migration mới (`0003_...sql`) kèm test.
+- **`0001_init.sql` (17/11/2026), `0002_toa_do_co_so.sql` (18/11/2026), `0003_viec_lam_dai_han.sql` và `0004_thong_bao_quan_cong_khai.sql` (19/11/2026) đã áp lên Supabase thật → không sửa bốn file này nữa.** Mọi thay đổi schema là file migration mới (`0005_...sql`) kèm test.
 - `next build` và `next dev` dùng chung `.next/` — đừng chạy song song.
 
 ---
@@ -358,8 +358,10 @@ Chức năng: đăng ca / nhân bản / đổi thứ tự chính–dự phòng �
 - Giao diện đã làm lại theo hướng "Phố cửa chớp" (`PRODUCT.md`, `DESIGN.md`): PR #10 (khung trang, thành phần, trang công khai), #12 (người làm, hồ sơ ca làm, phiếu phụ huynh), #13 (chủ quán, xác nhận sau ca, nhóm vận hành), #14 (bản đồ ca và cơ sở, ghim vị trí quán; cần migration 0002, đã áp) và PR hoàn thiện (dọn lớp màu cũ và bí danh `brand`, link trong đoạn văn, biểu tượng trình duyệt `src/app/icon.svg`, thẻ vị trí quán ở `/employer` thu gọn).
 - Bản đồ: MapLibre + OpenFreeMap (`src/components/map.tsx`): `/` (minh họa, dữ liệu mẫu), `/shifts`, `/shifts/[id]`, `/employer` (ghim vị trí), `/admin`, `/admin/facilities`. Kịch bản kiểm tay: `TESTING.md` B11.
 
-- Migration `0004_thong_bao_quan_cong_khai.sql` (thông báo, trang quán công khai, đánh giá quán, chia sẻ ca, nới SĐT chủ quán) viết xong kèm 128 test (nay 358/358 trên Postgres nhúng), **chưa áp lên Supabase thật**. Chủ dự án cần: dán `0004` bằng SQL Editor (sau `0003`) → chạy `privileges_check.sql` → chạy lại `seed.sql`. Giao diện cho các tính năng này chưa có; mã web gọi RPC mới chỉ merge sau khi `0004` đã áp.
-- Migration `0003_viec_lam_dai_han.sql` (tin tuyển dụng lâu dài, đơn ứng tuyển) viết xong kèm 125 test, **chưa áp lên Supabase thật**. Chủ dự án cần: dán `0003` bằng SQL Editor → chạy `privileges_check.sql` → chạy lại `seed.sql`. Giao diện cho tính năng này chưa có; mã web gọi RPC mới chỉ merge sau khi `0003` đã áp (`AGENTS.md` mục 6, cổng 5).
+- Migration `0004_thong_bao_quan_cong_khai.sql` (thông báo, trang quán công khai, đánh giá quán, chia sẻ ca, nới SĐT chủ quán) viết xong kèm 128 test (nay 358/358 trên Postgres nhúng), **đã áp lên Supabase thật ngày 19/11/2026** (xem dòng dưới). Giao diện cho các tính năng này chưa có.
+- Migration `0003_viec_lam_dai_han.sql` (tin tuyển dụng lâu dài, đơn ứng tuyển) viết xong kèm 125 test, **đã áp lên Supabase thật ngày 19/11/2026**.
+- **19/11/2026: `0003` rồi `0004` đã được áp lên Supabase thật** (chủ dự án dán bằng SQL Editor). `privileges_check.sql` ra 0 dòng SAI/KIỂM (theo chủ dự án), rồi chạy lại `seed.sql` (seed mới: 9 quán thật Vũng Tàu, 20 user demo, hotline 9 quán, slug `demo-quan-1…9`, thông báo và đánh giá mẫu, tin tuyển dụng mẫu). Kiểm production sau đó: ba nút demo đều đăng nhập được (nút chủ quán trước đó lỗi `invalid_credentials` vì tài khoản `quan1@` mất; seed đã khôi phục), `/admin/facilities` có đúng 9 quán thật kèm dòng nhắc dữ liệu mô phỏng, không còn "Quán Demo". Chưa có số test chạy trên Supabase thật ngoài `privileges_check`. Từ nay `0003` và `0004` không sửa nữa; thay đổi schema là `0005_...sql` trở đi.
+- Từ 19/11 mã web gọi RPC của `0003`/`0004` hết bị chặn bởi cổng 5 (`AGENTS.md` mục 6): giao diện tuyển dụng lâu dài, thông báo, đánh giá quán, trang quán công khai và chia sẻ ca được merge thẳng thay vì để PR draft; làm thật sau các PR đang mở.
 
 ### Còn lại, theo thứ tự
 1. ~~Chạy lại `supabase/seed.sql` trên Supabase thật~~ — đã xong (18/11). Còn lại: thử bấm 3 nút ở `/login` trên bản deploy.
