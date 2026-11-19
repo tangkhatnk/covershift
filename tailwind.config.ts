@@ -4,7 +4,7 @@ import type { Config } from 'tailwindcss';
 // vàng nắng làm điểm nhấn. Mọi cặp chữ/nền đã tính WCAG AA (xem DESIGN.md). Không viết mã hex trong trang, chỉ dùng tên ở đây.
 export default {
   content: ['./src/**/*.{ts,tsx}'],
-  // `hover:` chỉ chạy trên thiết bị có con trỏ thật (@media (hover: hover)): chạm trên điện thoại không bị kẹt trạng thái hover.
+  // `hover:` chỉ chạy trên thiết bị có con trỏ thật (@media (hover: hover) and (pointer: fine)): chạm trên điện thoại không bị kẹt trạng thái hover.
   future: { hoverOnlyWhenSupported: true },
   theme: {
     extend: {
