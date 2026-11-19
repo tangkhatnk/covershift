@@ -403,7 +403,7 @@ Chỉ CSS, không thư viện, không JS để chạy hiệu ứng. Hằng số:
 - **Vào trang** (`.page-enter` ở `<main>`, `key` theo đường dẫn nên chạy lại khi đổi trang): mờ dần + trượt lên 4px, 200ms. Không áp ở trang token và hồ sơ công khai (`/confirm`, `/consent`, `/p`): không thêm hiệu ứng ở trang mở trong trình duyệt nhúng của Zalo.
 - **Danh sách** (`.stagger` ở phần tử cha): sáu mục đầu vào lần lượt cách nhau 40ms, từ mục thứ bảy hiện luôn. Chỉ gắn cho danh sách tải một lần; không gắn cho thứ đổi qua lại (tab, bộ lọc) hay tự làm mới.
 - **Nhấn nút**: `scale(0.97)` trong 120ms, chỉ khi không giảm chuyển động và không khi nút bị khóa. Không animate nav dưới và hành động lặp nhiều lần.
-- **Không `transition: all`**: liệt kê thuộc tính (`color`, `background-color`, `border-color`, `opacity`, `transform`). `hover:` chỉ chạy trên thiết bị có con trỏ (`future.hoverOnlyWhenSupported` = `@media (hover: hover)`).
+- **Không `transition: all`**: liệt kê thuộc tính (`color`, `background-color`, `border-color`, `opacity`, `transform`). `hover:` chỉ chạy trên thiết bị có con trỏ (`future.hoverOnlyWhenSupported` sinh `@media (hover: hover) and (pointer: fine)`, đã kiểm trong CSS build).
 - **Giảm chuyển động** (`prefers-reduced-motion: reduce`): giữ mờ dần và đổi màu, bỏ trượt và co giãn; cuộn mượt về `auto`. Khung chờ `PageSkeleton` nhấp nháy bằng `motion-safe:animate-pulse`. Không dùng chuyển động để che việc đang tải.
 
 ## Do's and Don'ts
