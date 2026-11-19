@@ -596,7 +596,7 @@ Repo `tangkhatnk/covershift` là **PUBLIC**. Mọi thứ đã commit, kể cả 
   - Tài khoản admin không tự xóa hay tự khóa được trong app.
 - Phân quyền thật nằm ở RLS và RPC. `requireRole()` trong `src/lib/auth.ts` và `middleware.ts` chỉ để điều hướng và làm mới cookie phiên. Không coi chúng là lớp bảo vệ, và không bỏ kiểm tra ở database vì "trang đã chặn rồi".
 - Tài khoản bị khóa (`status = 'locked'`) bị `_require_user()` từ chối ở mọi RPC. Giữ nguyên hành vi này.
-- Đăng xuất chỉ cục bộ (`signOut({ scope: 'local' })`, ở `/auth/logout` và sau `delete_my_account`): ba tài khoản demo dùng chung, nên đăng xuất không được thu hồi phiên của người khác đang thử (chỉ thị chủ dự án 19/11/2026, qua agent chính).
+- Đăng xuất chỉ cục bộ (`signOut({ scope: 'local' })`, ở `/auth/logout` và sau `delete_my_account`): ba tài khoản demo dùng chung, nên đăng xuất không được thu hồi phiên của người khác đang thử (quyết định của agent chính 19/11/2026).
 
 ---
 
