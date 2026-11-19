@@ -1,5 +1,5 @@
-import { TZ } from './constants';
-import type { Shift } from './types';
+import { JOB_LABEL, TZ } from './constants';
+import type { AppNotification, ApplicationStatus, JobPost, Shift } from './types';
 
 // Server Vercel chạy giờ UTC => LUÔN định dạng theo múi giờ Việt Nam.
 // Mọi chữ hiển thị tự ghép từ SỐ (Intl chỉ cho ra chữ số), không dùng tên thứ/tháng của Intl: ICU của Node và của từng
@@ -71,6 +71,55 @@ export const SHIFT_STATE_TONE: Record<ShiftState, 'green' | 'amber' | 'red' | 'g
   confirmed: 'green',
   cancelled: 'gray',
 };
+
+export const APPLICATION_STATUS_LABEL: Record<ApplicationStatus, string> = {
+  applied: 'Đã nộp',
+  shortlisted: 'Được chọn vào vòng tiếp',
+  rejected: 'Chưa phù hợp',
+  hired: 'Đã nhận',
+  withdrawn: 'Đã rút',
+};
+
+export const APPLICATION_STATUS_TONE: Record<ApplicationStatus, 'green' | 'amber' | 'red' | 'gray' | 'blue'> = {
+  applied: 'blue',
+  shortlisted: 'amber',
+  rejected: 'gray',
+  hired: 'green',
+  withdrawn: 'gray',
+};
+
+/** "từ 6.000.000đ/tháng" hoặc "25.500–30.000đ/giờ" (không có mức cao nhất, hoặc bằng mức thấp nhất, thì ghi "từ"). */
+export function fmtWageRange(p: Pick<JobPost, 'wage_type' | 'wage_min' | 'wage_max'>) {
+  const unit = p.wage_type === 'monthly' ? 'tháng' : 'giờ';
+  if (p.wage_max == null || p.wage_max === p.wage_min) return `từ ${fmtMoney(p.wage_min)}/${unit}`;
+  return `${fmtMoney(p.wage_min).slice(0, -1)}–${fmtMoney(p.wage_max)}/${unit}`;
+}
+
+/** Tiêu đề và dòng mô tả của một thông báo, chỉ từ kind và các trường có trong payload (migration 0004). */
+export function notificationText(n: Pick<AppNotification, 'kind' | 'payload'>): { title: string; body: string } {
+  const { job_type, facility_name, status } = n.payload;
+  const job = job_type ? JOB_LABEL[job_type].toLowerCase() : 'làm việc';
+  const place = facility_name ?? 'quán';
+  switch (n.kind) {
+    case 'shift_promoted':
+      return { title: 'Bạn đã lên làm người chính', body: `Bạn đã được lên làm người chính của ca ${job} tại ${place}.` };
+    case 'shift_cancelled':
+      return { title: 'Ca đã bị hủy', body: `Ca ${job} tại ${place} đã bị hủy. Suất của bạn không còn hiệu lực.` };
+    case 'application_new':
+      return { title: 'Có đơn ứng tuyển mới', body: `Có người vừa ứng tuyển vị trí ${job} tại ${place}.` };
+    case 'application_status':
+      if (status === 'hired') return { title: 'Bạn đã được nhận', body: `${place} đã nhận bạn vào vị trí ${job}.` };
+      if (status === 'shortlisted') return { title: 'Đơn của bạn được chọn', body: `${place} đã chọn đơn của bạn vào vòng tiếp theo cho vị trí ${job}.` };
+      if (status === 'rejected') return { title: 'Đơn chưa phù hợp', body: `${place} chưa chọn đơn của bạn cho vị trí ${job}.` };
+      return { title: 'Đơn ứng tuyển có thay đổi', body: `Đơn của bạn cho vị trí ${job} tại ${place} vừa được cập nhật.` };
+    case 'profile_reviewed':
+      return status === 'approved'
+        ? { title: 'Hồ sơ đã được duyệt', body: 'Hồ sơ của bạn đã được nhóm vận hành duyệt.' }
+        : { title: 'Hồ sơ chưa được duyệt', body: 'Hồ sơ của bạn chưa được nhóm vận hành duyệt.' };
+    case 'parental_consent_submitted':
+      return { title: 'Phụ huynh đã gửi phiếu', body: 'Phụ huynh đã gửi phiếu đồng ý. Nhóm vận hành sẽ xem và duyệt hồ sơ của bạn.' };
+  }
+}
 
 /** Chuẩn hóa số điện thoại người dùng gõ: bỏ dấu cách/chấm, +84 → 0. */
 export function normalizePhone(raw: string) {
