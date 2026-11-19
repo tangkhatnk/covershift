@@ -107,6 +107,7 @@ try {
 
   await runFile(client, 'supabase/migrations/0001_init.sql');
   await runFile(client, 'supabase/migrations/0002_toa_do_co_so.sql');
+  await runFile(client, 'supabase/migrations/0003_viec_lam_dai_han.sql');
   console.log('✔ migration');
   await runFile(client, 'supabase/seed.sql');
   const cleanSnapshot = JSON.stringify(await snapshot(client));
@@ -155,7 +156,7 @@ try {
   // Dọn dữ liệu demo: giả lập người dùng THẬT (gmail) cùng dữ liệu liên quan tới ca demo, rồi chạy xoa_du_lieu_demo.sql 2 lần.
   try {
     const uid = () => randomUUID();
-    const [rw, re, rf, rs] = [uid(), uid(), uid(), uid()];
+    const [rw, re, rf, rs, rj] = [uid(), uid(), uid(), uid(), uid()];
     await client.query(`
       begin;
       set local app.seed_mode = 'on';
@@ -171,6 +172,8 @@ try {
         values ('${rf}', '${re}', 'Quán Thật Của Chủ Dự Án', 'cafe', '1 Đường Thật, Vũng Tàu', 'trung_tam', true, true, 'active');
       insert into public.shifts (id, facility_id, job_type, starts_at, ends_at, hourly_wage, commitment_ack)
         values ('${rs}', '${rf}', 'phuc_vu', now() + interval '3 days', now() + interval '3 days 4 hours', 30000, true);
+      insert into public.job_posts (id, facility_id, title, job_type, employment, wage_type, wage_min, hours_per_week, expires_at, commitment_ack)
+        values ('${rj}', '${rf}', 'Tin tuyển dụng của quán thật', 'phuc_vu', 'part_time', 'hourly', 30000, 20, now() + interval '10 days', true);
       commit;`);
     const asRealWorker = async (sql, params) => {
       await client.query('begin');
@@ -184,6 +187,8 @@ try {
     await asRealWorker(`select create_report('50000000-0000-4000-a000-000000000001', 'Báo cáo thật về ca demo')`);
     await asRealWorker(`select claim_shift($1)`, [rs]);                                 // suất trên ca THẬT
     await asRealWorker(`select create_report($1, 'Báo cáo thật về ca thật')`, [rs]);
+    await asRealWorker(`select apply_job('c0000000-0000-4000-a000-000000000001', 'Đơn thật vào tin demo')`);  // đơn trên tin DEMO
+    await asRealWorker(`select apply_job($1, 'Đơn thật vào tin thật')`, [rj]);                                 // đơn trên tin THẬT
 
     const problems = [];
     for (const lan of [1, 2]) {
@@ -205,12 +210,18 @@ try {
     expect('suất thật còn', await n(`select count(*) c from public.shift_claims where shift_id = $1 and worker_id = $2 and status = 'active'`, [rs, rw]), 1);
     expect('báo cáo thật về ca demo còn (shift_id null)', await n(`select count(*) c from public.reports where reporter_id = $1 and shift_id is null and body = 'Báo cáo thật về ca demo'`, [rw]), 1);
     expect('báo cáo thật về ca thật còn', await n(`select count(*) c from public.reports where reporter_id = $1 and shift_id = $2`, [rw, rs]), 1);
-    expect('app_config', await n(`select count(*) c from public.app_config`), 2);
+    expect('tin tuyển dụng demo còn lại', await n(`select count(*) c from public.job_posts where id::text like 'c0000000-0000-4000-a000-%'`), 0);
+    expect('đơn ứng tuyển trên tin demo còn lại', await n(`select count(*) c from public.job_applications where job_id::text like 'c0000000-0000-4000-a000-%'`), 0);
+    expect('tin tuyển dụng thật còn', await n(`select count(*) c from public.job_posts where id = $1`, [rj]), 1);
+    expect('đơn thật trên tin thật còn', await n(`select count(*) c from public.job_applications where job_id = $1 and worker_id = $2 and status = 'applied'`, [rj, rw]), 1);
+    expect('app_config', await n(`select count(*) c from public.app_config`), 3);
     // seed chạy lại được trên DB đã dọn, và không đụng dữ liệu thật.
     try { await runFile(client, 'supabase/seed.sql'); } catch (e) { problems.push(`seed sau dọn lỗi: ${e.message}`); }
     expect('user demo sau seed lại', await n(`select count(*) c from auth.users where email like '%@demo.safeshift.test'`), 16);
     expect('user thật còn sau seed lại', await n(`select count(*) c from auth.users where id in ($1, $2)`, [rw, re]), 2);
     expect('ca thật còn sau seed lại', await n(`select count(*) c from public.shifts where id = $1`, [rs]), 1);
+    expect('tin thật còn sau seed lại', await n(`select count(*) c from public.job_posts where id = $1`, [rj]), 1);
+    expect('tin demo sau seed lại', await n(`select count(*) c from public.job_posts where id::text like 'c0000000-0000-4000-a000-%'`), 6);
     for (const x of problems) console.log(`✘ (dọn demo) ${x}`);
     console.log(`\ndọn dữ liệu demo (xoa_du_lieu_demo.sql ×2, có người dùng thật giả lập, rồi seed lại): ${problems.length ? 'KHÔNG ĐẠT (' + problems.length + ' lỗi)' : 'ĐẠT — 0 dữ liệu demo, dữ liệu thật còn nguyên, seed chạy lại được'}`);
     if (problems.length) code = 1;

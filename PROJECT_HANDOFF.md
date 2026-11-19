@@ -185,6 +185,17 @@ SafeShift: web app kết nối ca làm ngắn hạn giữa cơ sở dịch vụ 
 | G22 | Khung giờ rảnh: 6 ô (ngày thường/cuối tuần × sáng/chiều/tối) | Đề bài chỉ ghi "khung giờ rảnh" |
 | G23 | Next.js **15.5.29** + Tailwind **3.4.19**, không dùng bản mới hơn | Chọn bản agent nắm chắc; ưu tiên ổn định |
 
+### Giả định mới, chưa xác nhận, theo chỉ thị chủ dự án 19/11/2026 (tuyển dụng lâu dài, migration `0003`)
+Chỉ thị: thêm "tuyển dụng lâu dài" (tin + đơn ứng tuyển) và cho phép SĐT hai bên lộ qua một RPC riêng. Các điểm dưới do agent chính chốt, chủ dự án có thể đổi:
+| # | Giả định | Ghi chú |
+|---|---|---|
+| H1 | Chỉ người làm đã duyệt và **đủ 18 tuổi** ứng tuyển và xem tin; chưa mở cho 15–17 | Cần chủ dự án duyệt nếu muốn mở cho 15–17 (liên quan phụ huynh, giờ làm của người dưới 18) |
+| H2 | Lương thấp nhất bắt buộc: giờ ≥ `min_hourly_wage` (25.500), tháng ≥ khóa mới `min_monthly_wage` (5.310.000, admin đổi được) | Con số tháng do agent chọn |
+| H3 | Tin tối đa 30 ngày, 1–10 chỗ, 1–48 giờ/tuần; không sửa nội dung, chỉ đóng; tin không tự đóng khi đủ người | |
+| H4 | Chủ quán xem thống kê hồ sơ ca làm của người ứng tuyển **không cần** họ bật chia sẻ; không có ngày sinh, trường, lớp, SĐT | Ngoại lệ so với "mặc định tắt chia sẻ" (mục 13 `AGENTS.md`) |
+| H5 | **Ngoại lệ SĐT mới:** `get_job_contacts()` trả SĐT hai bên khi đơn ở `shortlisted`/`hired` (chủ quán, người nộp hoặc admin); chặn nếu cơ sở bị gỡ hoặc người làm bị khóa (trừ admin) | Ghi ở `AGENTS.md` mục 13, `CLAUDE.md` |
+| H6 | Người bị loại (`rejected`) vẫn nộp lại được vào cùng tin (đơn cũ không còn hiệu lực) | Chưa chặn nộp lại, có thể cần giới hạn nếu bị làm phiền |
+
 ### Giả định chưa được kiểm chứng [CHƯA KIỂM]
 - Migration chạy được trên **Supabase thật**. Mới chỉ chạy trên Postgres 18 nhúng với schema `auth` giả lập. Điểm rủi ro cụ thể:
   - `delete from auth.users` trong `delete_my_account()` — giả định role `postgres` của Supabase có quyền này.
@@ -323,6 +334,8 @@ Chức năng: đăng ca / nhân bản / đổi thứ tự chính–dự phòng �
 - Deploy Vercel (https://safeshift-beta.vercel.app).
 - Giao diện đã làm lại theo hướng "Phố cửa chớp" (`PRODUCT.md`, `DESIGN.md`): PR #10 (khung trang, thành phần, trang công khai), #12 (người làm, hồ sơ ca làm, phiếu phụ huynh), #13 (chủ quán, xác nhận sau ca, nhóm vận hành), #14 (bản đồ ca và cơ sở, ghim vị trí quán; cần migration 0002, đã áp) và PR hoàn thiện (dọn lớp màu cũ và bí danh `brand`, link trong đoạn văn, biểu tượng trình duyệt `src/app/icon.svg`, thẻ vị trí quán ở `/quan` thu gọn).
 - Bản đồ: MapLibre + OpenFreeMap (`src/components/map.tsx`): `/` (minh họa, dữ liệu mẫu), `/ca`, `/ca/[id]`, `/quan` (ghim vị trí), `/admin`, `/admin/co-so`. Kịch bản kiểm tay: `TESTING.md` B11.
+
+- Migration `0003_viec_lam_dai_han.sql` (tin tuyển dụng lâu dài, đơn ứng tuyển) viết xong kèm 125 test (nay 229/229 trên Postgres nhúng), **chưa áp lên Supabase thật**. Chủ dự án cần: dán `0003` bằng SQL Editor → chạy `privileges_check.sql` → chạy lại `seed.sql`. Giao diện cho tính năng này chưa có; mã web gọi RPC mới chỉ merge sau khi `0003` đã áp (`AGENTS.md` mục 6, cổng 5).
 
 ### Còn lại, theo thứ tự
 1. ~~Chạy lại `supabase/seed.sql` trên Supabase thật~~ — đã xong (18/11). Còn lại: thử bấm 3 nút ở `/dang-nhap` trên bản deploy.

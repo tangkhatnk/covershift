@@ -51,8 +51,9 @@ Trình duyệt ──► Next.js trên Vercel (Server Component + Server Action,
 ```
 supabase/migrations/0001_init.sql   toàn bộ schema, trigger, RPC, RLS, quyền
 supabase/migrations/0002_toa_do_co_so.sql  cột lat/lng của cơ sở (bản đồ) + RPC set_facility_location
+supabase/migrations/0003_viec_lam_dai_han.sql  tin tuyển dụng lâu dài + đơn ứng tuyển, RPC get_job_contacts (SĐT chỉ khi đơn được chọn)
 supabase/seed.sql                   dữ liệu demo (chạy lại được nhiều lần)
-supabase/tests/edge_cases.sql       104 test biên ở tầng database
+supabase/tests/edge_cases.sql       229 test biên ở tầng database
 supabase/tests/check_before_migration.sql  kiểm project Supabase mới TRƯỚC khi dán migration (chỉ đọc)
 supabase/tests/privileges_check.sql kiểm quyền bảng/hàm của anon/authenticated SAU migration (chỉ đọc)
 supabase/xoa_du_lieu_demo.sql       xóa dữ liệu demo/test (KHÔNG chạy khi app còn là bản mô phỏng, xem mục 7)
@@ -73,7 +74,7 @@ Giao diện theo hướng "Phố cửa chớp": tường vàng, cửa chớp xan
 1. https://supabase.com → **New project** (region Singapore). Lưu mật khẩu database.
 2. **SQL Editor** → dán `supabase/tests/check_before_migration.sql` → **Run** → mọi dòng khớp cột `ky_vong` (chỉ đọc, không ghi gì).
 3. **SQL Editor** → dán toàn bộ `supabase/migrations/0001_init.sql` → **Run**.
-   Rồi dán toàn bộ `supabase/migrations/0002_toa_do_co_so.sql` → **Run** (sau 0001, trước seed).
+   Rồi dán toàn bộ `supabase/migrations/0002_toa_do_co_so.sql` → **Run**, rồi `supabase/migrations/0003_viec_lam_dai_han.sql` → **Run** (theo thứ tự, trước seed).
 4. Dán `supabase/tests/privileges_check.sql` → **Run** → không có dòng nào cột `ket_luan` bắt đầu bằng `SAI` hoặc `KIỂM` (các dòng đó được xếp lên đầu). Project mới có sẵn hàm `rls_auto_enable()` (event trigger `ensure_rls` của Supabase, tự bật RLS cho bảng mới) — bình thường, câu kiểm coi là đúng.
 5. Dán `supabase/seed.sql` → **Run**. Seed tạo 16 tài khoản demo có mật khẩu (mục 3) và dữ liệu mẫu; app là bản mô phỏng nên bước này bắt buộc. Chạy seed bằng **SQL Editor**, không dùng CLI: `_bypass()` chỉ bật khi phiên là `postgres`/`supabase_admin`.
 6. Nút **Connect** (hoặc **Project Settings → API Keys**): chép `Project URL` và key công khai — *publishable key* (`sb_publishable_…`) hoặc *anon key* kiểu cũ. **Không** dùng key `secret` / `service_role`.
@@ -128,7 +129,7 @@ Kiểm tra tầng database mà không cần Supabase/Docker (Postgres nhúng, t�
 npm run test:db
 ```
 
-Kỳ vọng: `104/104 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM`, dòng `tái chạy … ĐẠT`, 5 dòng `✔ chạy đua` và dòng `dọn dữ liệu demo … ĐẠT`.
+Kỳ vọng: `229/229 test đạt`, `privileges_check: … 0 dòng SAI/KIỂM`, dòng `tái chạy … ĐẠT`, 5 dòng `✔ chạy đua` và dòng `dọn dữ liệu demo … ĐẠT`.
 
 ## 6. Deploy Vercel
 

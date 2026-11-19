@@ -59,7 +59,7 @@ Dùng ranh giới sở hữu sẵn có trước khi tạo ranh giới mới. Đ�
 
 - `supabase/migrations/`
   - schema, trigger, constraint, RLS, RPC;
-  - hiện có `0001_init.sql` (đã áp lên Supabase thật ngày 17/11/2026) và `0002_toa_do_co_so.sql` (cột `lat`/`lng` của cơ sở, đã áp ngày 18/11/2026): cả hai không sửa nữa; thay đổi mới là file migration mới (`0003_...sql`).
+  - hiện có `0001_init.sql` (đã áp lên Supabase thật ngày 17/11/2026), `0002_toa_do_co_so.sql` (cột `lat`/`lng` của cơ sở, đã áp ngày 18/11/2026) và `0003_viec_lam_dai_han.sql` (tuyển dụng lâu dài, **chưa áp** lên Supabase thật): `0001` và `0002` không sửa nữa; thay đổi mới là file migration mới (`0004_...sql`).
 - `supabase/seed.sql`
   - dữ liệu mẫu; phải chạy lại được nhiều lần.
 - `supabase/tests/`
@@ -408,6 +408,17 @@ Mọi quy tắc tính theo múi giờ nghiệp vụ `Asia/Ho_Chi_Minh`, không t
   - `cancel_shift()`: chủ quán hoặc admin hủy sát giờ khi đã có người nhận cũng tạo báo cáo.
   - Ca đã bắt đầu thì không tự hủy được. Test 8a–8d.
 
+### Tuyển dụng lâu dài (migration 0003, theo chỉ thị chủ dự án 19/11/2026)
+
+Giả định mới, chưa xác nhận: các con số dưới đây do agent chính chốt theo chỉ thị, chủ dự án có thể đổi (ghi ở `PROJECT_HANDOFF.md` mục 4). Test nhóm 13.
+
+- **Tin tuyển dụng (`job_posts`)**: chỉ cơ sở đã xác minh và đang hoạt động đăng (`create_job_post()`, trigger `_job_posts_validate`). Tiêu đề 1–120 ký tự; giờ/tuần 1–48; cần 1–10 người; mô tả ≤ 2000, ghi chú lịch ≤ 500; hiển thị tối đa 30 ngày (constraint `job_posts_expires`); phải tick cam kết không thu phí/cọc/giữ giấy tờ (`commitment_ack`).
+  - Lương thấp nhất bắt buộc: `hourly` ≥ `app_config.min_hourly_wage`, `monthly` ≥ `app_config.min_monthly_wage` (mặc định 5.310.000, `admin_set_config()` đổi được). Không viết cứng số trong mã.
+  - Tin không sửa nội dung, chỉ đóng (chủ quán `close_job_post()`, admin `admin_close_job_post()` có audit). Cơ sở bị gỡ, về chờ duyệt hoặc tắt `verified` (cách nào cũng được) thì trigger `_facilities_close_job_posts` đóng mọi tin đang mở.
+- **Đơn ứng tuyển (`job_applications`)**: chỉ người làm đã duyệt, tài khoản không khóa và **đủ 18 tuổi tại ngày nộp** (giả định: phiên bản này chưa mở cho 15–17, cần chủ dự án duyệt nếu muốn mở); không nộp vào tin đã đóng hoặc hết hạn; mỗi người một đơn còn hiệu lực cho mỗi tin. Trigger `_job_applications_validate` chặn cả khi ghi thẳng bảng.
+  - Bước chuyển: chủ quán `applied → shortlisted | rejected`, `shortlisted → hired | rejected`; người làm `applied | shortlisted → withdrawn`; `hired`, `rejected`, `withdrawn` là cuối. Số `hired` không vượt `openings`. Tin không tự đóng khi đủ người (giả định).
+- Chủ quán xem người ứng tuyển qua `job_applicants()`: họ tên, lời nhắn và thống kê hồ sơ ca làm (cùng nội dung `get_public_profile`, qua hàm nội bộ `_worker_stats_json`), **không cần người làm bật chia sẻ**; không có ngày sinh, trường, lớp, phụ huynh, SĐT.
+
 ### Link xác nhận
 
 - **Token xác nhận sau ca dùng một lần, hết hạn sau giờ kết thúc ca 72 giờ.**
@@ -476,12 +487,13 @@ grant execute on function public.ten_ham(...) to authenticated;
 - Một thay đổi schema gồm đủ các phần:
   - file migration;
   - test trong `supabase/tests/edge_cases.sql`;
-  - cập nhật `db-test/run.mjs`: file này chạy lần lượt từng migration (hiện `0001`, `0002`) theo danh sách viết tay, nên migration mới không được kiểm nếu không thêm vào;
+  - cập nhật `db-test/run.mjs`: file này chạy lần lượt từng migration (hiện `0001`, `0002`, `0003`) theo danh sách viết tay, nên migration mới không được kiểm nếu không thêm vào;
   - cập nhật số test kỳ vọng ghi trong `CLAUDE.md`, `README.md`, `TESTING.md` (hiện là `104/104`).
 - Chạy `npm run test:db` trước khi báo xong. Kỳ vọng như `CLAUDE.md`: tất cả test đạt, `privileges_check` không có dòng `SAI`/`KIỂM`, `tái chạy` đạt, 5 dòng `✔ chạy đua`, `dọn dữ liệu demo` đạt.
 - Chủ dự án dán migration vào Supabase SQL Editor, rồi chạy `supabase/tests/privileges_check.sql` trên project thật. Agent không tự chạy DDL hay ghi dữ liệu lên project Supabase thật, kể cả khi máy có kết nối MCP tới đó.
 - Không dùng đường tắt bỏ qua file migration: `supabase db push`, `supabase db reset`, sửa bảng bằng Table Editor, hay sinh schema bằng diff/pull rồi áp thẳng. Mọi thay đổi phải truy vết được trong `supabase/migrations/`.
 - `supabase/tests/check_before_migration.sql` chỉ dùng cho project mới, trước khi dán `0001`. Không dùng nó để kiểm thay đổi sau này.
+- `supabase/migrations/0003_viec_lam_dai_han.sql` (tuyển dụng lâu dài, theo chỉ thị chủ dự án 19/11/2026) **chưa áp lên Supabase thật**. Chủ dự án phải: dán `0003` bằng SQL Editor (sau `0001`, `0002`), chạy `supabase/tests/privileges_check.sql`, rồi chạy lại `supabase/seed.sql` (seed mới có tin và đơn mẫu, và khóa `min_monthly_wage`). Mã web gọi RPC của `0003` chỉ được merge sau khi bước đó xong (mục 6, cổng 5). Từ khi áp, `0003` cũng không sửa nữa.
 - Theo quyết định ngày 17/11/2026, app là bản mô phỏng: đợt 21–22/11 không dùng người thật, chỉ dữ liệu mẫu. Dù vậy quy tắc migration không đổi: không sửa `0001` và `0002`, thay đổi schema là file mới, và nếu sau này có dữ liệu thật thì giữ nguyên dữ liệu đó:
   - không xóa hay đổi nghĩa dữ liệu hiện có nếu task không yêu cầu;
   - cột `not null` mới phải có `default` hoặc bước backfill rõ ràng;
@@ -499,9 +511,10 @@ Số điện thoại:
 
 - SĐT người làm và chủ quán chỉ lưu ở `private_contacts.phone`. Không thêm cột SĐT vào bảng khác.
 - Giữa người làm và chủ quán, SĐT chỉ lộ qua `get_shift_contacts()`. Hàm này chỉ trả khi hai bên đang ghép ca (suất còn hiệu lực, hoặc chủ quán của ca), ca chưa hủy, và chưa quá 7 ngày sau giờ kết thúc ca. Test 7a, 7b, 7f, 7g, 8b.
-- Ngoại lệ có chủ đích, chỉ hai loại:
+- Ngoại lệ có chủ đích, chỉ ba loại:
   - chính chủ đọc SĐT của mình (policy `private_contacts_read`);
-  - admin xem SĐT để vận hành, qua `get_shift_contacts()` và các RPC `admin_dispatch_board`, `admin_list_workers`, `admin_list_facilities`, `admin_list_reports`.
+  - admin xem SĐT để vận hành, qua `get_shift_contacts()` và các RPC `admin_dispatch_board`, `admin_list_workers`, `admin_list_facilities`, `admin_list_reports`;
+  - tuyển dụng lâu dài (theo chỉ thị chủ dự án 19/11/2026): `get_job_contacts(application_id)` trả SĐT hai bên (chủ quán và người ứng tuyển) chỉ khi đơn ở `shortlisted` hoặc `hired`, người gọi là chủ cơ sở của tin, chính người nộp hoặc admin, và cơ sở lẫn người làm còn hoạt động (admin không bị điều kiện này). Test 13ax–13bl. Ngoài hàm này, các RPC `feed_job_posts`, `job_post_detail`, `my_applications`, `employer_job_posts`, `job_applicants` và `_job_json()` không trả SĐT (test 13cl–13cn).
 - Bản đồ (`ShiftMap`, `ShiftExplorer`, popup và nhãn ghim) không bao giờ hiện SĐT; chỉ có tên quán, giờ ca và vị trí ghim. `lat`, `lng` của cơ sở đi qua `_shift_json()` và `admin_list_facilities()`: đó là vị trí quán do chủ quán hoặc nhóm vận hành tự ghim, không phải dữ liệu cá nhân của người làm. SafeShift không lưu vị trí người làm.
 - Không trả SĐT ở bất kỳ RPC hay trang nào khác. Đặc biệt `feed_shifts`, `shift_detail`, `my_shifts`, `employer_shifts`, `get_confirmation`, `get_parental_consent`, `get_public_profile`, và `_shift_json()` (hàm dùng chung cho nhiều RPC; thêm trường vào đó là thêm vào mọi nơi dùng). Test 5a, 7h, 7i.
 
@@ -789,14 +802,14 @@ npm run test:db
 Kỳ vọng (theo `CLAUDE.md`, hiện tại):
 
 ```text
-104/104 test đạt
+229/229 test đạt
 privileges_check: ... 0 dòng SAI/KIỂM
 tái chạy ... ĐẠT
 5 dòng ✔ chạy đua
 dọn dữ liệu demo ... ĐẠT
 ```
 
-Thêm test thì số `104` tăng theo; cập nhật con số trong `CLAUDE.md` và `TESTING.md` cùng PR.
+Thêm test thì số `229` tăng theo; cập nhật con số trong `CLAUDE.md` và `TESTING.md` cùng PR.
 
 ### Thay đổi trong `src/` hoặc `middleware.ts`
 
@@ -917,7 +930,7 @@ Trước khi đánh dấu PR sẵn sàng, đọc toàn bộ diff cuối (`git di
 - mã chết, `console.log` gỡ lỗi, TODO tạm;
 - khóa bí mật hoặc dữ liệu cá nhân thật (kể cả service-role key);
 - quyền hoặc RLS bị nới; test bị yếu đi;
-- migration cũ bị sửa (`0001_init.sql` và `0002_toa_do_co_so.sql` không được đổi);
+- migration cũ bị sửa (`0001_init.sql` và `0002_toa_do_co_so.sql` không được đổi; `0003` chưa áp nên còn sửa được, đã áp thì không);
 - tài liệu (`CLAUDE.md`, `README.md`, `TESTING.md`, con số test) lệch với hành vi mới;
 - phụ thuộc đổi mà task không cần.
 

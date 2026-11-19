@@ -392,7 +392,10 @@ select pg_temp.t_do('11b. Chủ quán xóa tài khoản khi ca có báo cáo (la
        and not exists (select 1 from reports where reporter_id = 'e0000000-0000-4000-a000-000000000003' or subject_id = 'e0000000-0000-4000-a000-000000000003')
        and (select count(*) from reports where body like 'Demo-11b:%' and reporter_id is null and subject_id is null) = 2
        and exists (select 1 from worker_events where worker_id = 'a0000000-0000-4000-a000-000000000005' and kind = 'no_show' and shift_id is null)
-       and exists (select 1 from worker_profiles where user_id = 'a0000000-0000-4000-a000-000000000005')$$);
+       and exists (select 1 from worker_profiles where user_id = 'a0000000-0000-4000-a000-000000000005')
+       and not exists (select 1 from job_posts where facility_id = 'f0000000-0000-4000-a000-000000000003')
+       and not exists (select 1 from job_applications where id = 'd0000000-0000-4000-a000-000000000005')
+       and exists (select 1 from worker_profiles where user_id = 'a0000000-0000-4000-a000-000000000003')$$);
 -- Dọn báo cáo mồ côi do chính test này tạo (không để lại rác sau test; chỉ báo cáo mẫu 'Demo-11b:' không còn trỏ tới ai).
 delete from reports where body like 'Demo-11b:%' and reporter_id is null and subject_id is null and shift_id is null;
 
@@ -445,6 +448,298 @@ select pg_temp.t_true('12q. feed_shifts có lat/lng ở mọi ca, vẫn không c
 select pg_temp.t_true('12r. admin_list_facilities trả lat/lng của Quán Demo 1', '00000000-0000-4000-a000-000000000001',
   $$select (e ->> 'lat')::float8 = 10.3441 and (e ->> 'lng')::float8 = 107.0749
     from jsonb_array_elements(admin_list_facilities()) e where e ->> 'id' = 'f0000000-0000-4000-a000-000000000001'$$);
+
+
+-- ---------------------------------------------------------------
+-- 13. Tuyển dụng lâu dài (migration 0003)
+-- ---------------------------------------------------------------
+create or replace function pg_temp.jp(p_title text) returns uuid language sql as $$ select id from public.job_posts where title = p_title $$;
+create or replace function pg_temp.ja(p_title text, p_worker uuid) returns uuid language sql as $$
+  select a.id from public.job_applications a join public.job_posts j on j.id = a.job_id
+  where j.title = p_title and a.worker_id = p_worker order by a.created_at desc limit 1 $$;
+-- Hai người làm đã duyệt, ngày sinh sát mốc 18 tuổi: B16 đủ 18 hôm nay, B17 đủ 18 vào ngày mai.
+do $$
+begin
+  perform set_config('app.seed_mode', 'on', true);
+  insert into auth.users (id, email) values
+    ('b0000000-0000-4000-a000-000000000016', 'test16@demo.safeshift.test'), ('b0000000-0000-4000-a000-000000000017', 'test17@demo.safeshift.test');
+  insert into profiles (id, role, full_name, consent_at) values
+    ('b0000000-0000-4000-a000-000000000016', 'worker', 'Test Mười Tám', now()), ('b0000000-0000-4000-a000-000000000017', 'worker', 'Test Gần Mười Tám', now());
+  insert into private_contacts (user_id, phone) values ('b0000000-0000-4000-a000-000000000016', '0900000816'), ('b0000000-0000-4000-a000-000000000017', '0900000817');
+  insert into worker_profiles (user_id, date_of_birth, school, area, approval, approved_at) values
+    ('b0000000-0000-4000-a000-000000000016', (vn_date(now()) - interval '18 years')::date, 'ĐH Demo', 'trung_tam', 'approved', now()),
+    ('b0000000-0000-4000-a000-000000000017', (vn_date(now()) - interval '18 years')::date + 1, 'ĐH Demo', 'trung_tam', 'approved', now());
+  perform set_config('app.seed_mode', 'off', true);
+end $$;
+
+select pg_temp.t_err('13a. Cơ sở chưa xác minh không đăng được tin tuyển dụng', 'e0000000-0000-4000-a000-000000000005',
+  $$select create_job_post('Test13 chưa xác minh', 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, null, null, 1, 30, true)$$, '%chưa được xác minh%');
+select pg_temp.t_err('13b. Ghi thẳng vào bảng (bỏ qua RPC) cho cơ sở chưa xác minh vẫn bị trigger chặn', null,
+  $$insert into job_posts (facility_id, title, job_type, employment, wage_type, wage_min, hours_per_week, expires_at, commitment_ack) values ('f0000000-0000-4000-a000-000000000005', 'x', 'phuc_vu', 'part_time', 'hourly', 30000, 10, now() + interval '5 days', true)$$, '%chưa được xác minh%');
+select pg_temp.t_err('13c. Lương giờ 25.499đ (dưới mức tối thiểu) bị từ chối', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 x', 'phuc_vu', 'part_time', 'hourly', 25499, null, 20, null, null, 1, 30, true)$$, '%Lương/giờ phải từ 25500%');
+select pg_temp.t_true('13d. Lương giờ đúng 25.500đ: đăng được', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 hourly min', 'phuc_vu', 'part_time', 'hourly', 25500, null, 20, null, null, 1, 30, true) is not null$$ );
+select pg_temp.t_err('13e. Lương tháng 5.309.999đ bị từ chối', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 x', 'phuc_vu', 'full_time', 'monthly', 5309999, null, 44, null, null, 1, 30, true)$$, '%Lương/tháng phải từ 5310000%');
+select pg_temp.t_true('13f. Lương tháng đúng 5.310.000đ: đăng được', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 monthly min', 'phuc_vu', 'full_time', 'monthly', 5310000, null, 44, null, null, 1, 30, true) is not null$$ );
+select pg_temp.t_err('13g. Ghi thẳng bảng với lương giờ thấp vẫn bị trigger chặn', null,
+  $$insert into job_posts (facility_id, title, job_type, employment, wage_type, wage_min, hours_per_week, expires_at, commitment_ack) values ('f0000000-0000-4000-a000-000000000001', 'x', 'phuc_vu', 'part_time', 'hourly', 20000, 10, now() + interval '5 days', true)$$, '%Lương/giờ%');
+select pg_temp.t_err('13h. Lương cao nhất thấp hơn lương thấp nhất bị từ chối', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 x', 'phuc_vu', 'part_time', 'hourly', 30000, 29999, 20, null, null, 1, 30, true)$$, '%cao nhất%');
+select pg_temp.t_true('13i. Lương cao nhất bằng lương thấp nhất: được', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 wage eq', 'phuc_vu', 'part_time', 'hourly', 30000, 30000, 20, null, null, 1, 30, true) is not null$$ );
+select pg_temp.t_err('13j. 0 giờ/tuần bị từ chối', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 x', 'phuc_vu', 'part_time', 'hourly', 26000, null, 0, null, null, 1, 30, true)$$, '%1 đến 48%');
+select pg_temp.t_true('13k. 1 giờ/tuần: được', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 hours1', 'phuc_vu', 'part_time', 'hourly', 26000, null, 1, null, null, 1, 30, true) is not null$$ );
+select pg_temp.t_err('13l. 49 giờ/tuần bị từ chối', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 x', 'phuc_vu', 'part_time', 'hourly', 26000, null, 49, null, null, 1, 30, true)$$, '%1 đến 48%');
+select pg_temp.t_true('13m. 48 giờ/tuần: được', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 hours48', 'phuc_vu', 'part_time', 'hourly', 26000, null, 48, null, null, 1, 30, true) is not null$$ );
+select pg_temp.t_err('13n. Cần tuyển 0 người bị từ chối', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 x', 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, null, null, 0, 30, true)$$, '%từ 1 đến 10%');
+select pg_temp.t_true('13o. Cần tuyển 1 người: được', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 openings1', 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, null, null, 1, 30, true) is not null$$ );
+select pg_temp.t_err('13p. Cần tuyển 11 người bị từ chối', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 x', 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, null, null, 11, 30, true)$$, '%từ 1 đến 10%');
+select pg_temp.t_true('13q. Cần tuyển 10 người: được', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 openings10', 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, null, null, 10, 30, true) is not null$$ );
+select pg_temp.t_err('13r. Tiêu đề 121 ký tự bị từ chối', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post(repeat('a', 121), 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, null, null, 1, 30, true)$$, '%1 đến 120%');
+select pg_temp.t_true('13s. Tiêu đề 120 ký tự: được', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post(repeat('b', 120), 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, null, null, 1, 30, true) is not null$$ );
+select pg_temp.t_err('13t. Tiêu đề toàn khoảng trắng bị từ chối', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('   ', 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, null, null, 1, 30, true)$$, '%1 đến 120%');
+select pg_temp.t_err('13u. Mô tả 2001 ký tự bị từ chối', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 x', 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, null, repeat('x', 2001), 1, 30, true)$$, '%2000 ký tự%');
+select pg_temp.t_true('13v. Mô tả 2000 ký tự: được', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 desc2000', 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, null, repeat('x', 2000), 1, 30, true) is not null$$ );
+select pg_temp.t_err('13w. Ghi chú lịch làm 501 ký tự bị từ chối', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 x', 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, repeat('x', 501), null, 1, 30, true)$$, '%500 ký tự%');
+select pg_temp.t_true('13x. Ghi chú lịch làm 500 ký tự: được', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 sched500', 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, repeat('x', 500), null, 1, 30, true) is not null$$ );
+select pg_temp.t_err('13y. Tin hiển thị 31 ngày bị từ chối', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 x', 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, null, null, 1, 31, true)$$, '%từ 1 đến 30 ngày%');
+select pg_temp.t_err('13z. Tin hiển thị 0 ngày bị từ chối', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 x', 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, null, null, 1, 0, true)$$, '%từ 1 đến 30 ngày%');
+select pg_temp.t_true('13aa. Tin hiển thị đúng 30 ngày: được', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 days30', 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, null, null, 1, 30, true) is not null$$ );
+select pg_temp.t_err('13ab. Ghi thẳng bảng với hạn 31 ngày bị constraint chặn', null,
+  $$insert into job_posts (facility_id, title, job_type, employment, wage_type, wage_min, hours_per_week, expires_at, commitment_ack) values ('f0000000-0000-4000-a000-000000000001', 'x', 'phuc_vu', 'part_time', 'hourly', 30000, 10, now() + interval '31 days', true)$$, '%job_posts_expires%');
+select pg_temp.t_err('13ac. Không tick cam kết thì không đăng được', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 x', 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, null, null, 1, 30, false)$$, '%cam kết%');
+select pg_temp.t_err('13ad. Ghi thẳng bảng với commitment_ack = false bị constraint chặn', null,
+  $$insert into job_posts (facility_id, title, job_type, employment, wage_type, wage_min, hours_per_week, expires_at, commitment_ack) values ('f0000000-0000-4000-a000-000000000001', 'x', 'phuc_vu', 'part_time', 'hourly', 30000, 10, now() + interval '5 days', false)$$, '%job_posts_commitment%');
+select pg_temp.t_err('13ae. Người làm không đăng tin được (không có cơ sở)', 'a0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 x', 'phuc_vu', 'part_time', 'hourly', 26000, null, 20, null, null, 1, 30, true)$$, '%chưa có cơ sở%');
+select pg_temp.t_err('13af. Loại việc ngoài enum không đăng được', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 x', 'giao_hang', 'part_time', 'hourly', 26000, null, 20, null, null, 1, 30, true)$$, '%invalid input value for enum%');
+select pg_temp.t_do('13ag. Admin đổi lương tháng tối thiểu (khóa min_monthly_wage), có audit', '00000000-0000-4000-a000-000000000001',
+  $$select admin_set_config('min_monthly_wage', 5400000)$$,
+  $$select (select value from app_config where key = 'min_monthly_wage') = '5400000'::jsonb and exists (select 1 from admin_audit_log where action = 'set_config' and detail ->> 'key' = 'min_monthly_wage')$$ );
+select pg_temp.t_err('13ah. Lương tháng 5.310000đ bị chặn khi mức tối thiểu đã đổi thành 5.400.000đ', 'e0000000-0000-4000-a000-000000000001',
+  $$select create_job_post('Test13 x', 'phuc_vu', 'full_time', 'monthly', 5310000, null, 44, null, null, 1, 30, true)$$, '%Lương/tháng phải từ 5400000%');
+select pg_temp.t_do('13ai. Admin đặt lại lương tháng tối thiểu 5.310.000đ', '00000000-0000-4000-a000-000000000001',
+  $$select admin_set_config('min_monthly_wage', 5310000)$$,
+  $$select (select value from app_config where key = 'min_monthly_wage') = '5310000'::jsonb$$ );
+select pg_temp.t_err('13aj. Khóa cấu hình lạ vẫn bị từ chối', '00000000-0000-4000-a000-000000000001',
+  $$select admin_set_config('khong_co_khoa_nay', 1)$$, '%Tham số không hợp lệ%');
+select pg_temp.t_true('13ak. Quán Demo 4 bị gỡ ở 10j: tin của quán tự đóng; tin quán khác vẫn mở', null,
+  $$select (select status = 'closed' and closed_at is not null from job_posts where id = 'c0000000-0000-4000-a000-000000000004') and (select status = 'open' from job_posts where id = 'c0000000-0000-4000-a000-000000000001')$$ );
+select pg_temp.t_err('13al. Người làm chưa được duyệt không nộp đơn được', 'a0000000-0000-4000-a000-000000000010',
+  $$select apply_job('c0000000-0000-4000-a000-000000000001', null)$$, '%chưa được duyệt%');
+select pg_temp.t_err('13am. Người 17 tuổi (đã duyệt, có phụ huynh) không nộp đơn được', 'a0000000-0000-4000-a000-000000000007',
+  $$select apply_job('c0000000-0000-4000-a000-000000000001', null)$$, '%từ 18 tuổi%');
+select pg_temp.t_err('13an. Người sinh nhật 18 vào ngày mai: chưa nộp được', 'b0000000-0000-4000-a000-000000000017',
+  $$select apply_job('c0000000-0000-4000-a000-000000000001', null)$$, '%từ 18 tuổi%');
+select pg_temp.t_do('13ao. Người đủ 18 tuổi đúng hôm nay: nộp được', 'b0000000-0000-4000-a000-000000000016',
+  $$select apply_job('c0000000-0000-4000-a000-000000000001', 'Em mới đủ 18 tuổi, muốn làm lâu dài.')$$,
+  $$select exists (select 1 from job_applications where job_id = 'c0000000-0000-4000-a000-000000000001' and worker_id = 'b0000000-0000-4000-a000-000000000016' and status = 'applied' and note is not null)$$ );
+select pg_temp.t_err('13ap. Nộp hai lần vào cùng một tin bị từ chối', 'b0000000-0000-4000-a000-000000000016',
+  $$select apply_job('c0000000-0000-4000-a000-000000000001', null)$$, '%đã ứng tuyển%');
+select pg_temp.t_err('13aq. Tin đã đóng (cơ sở bị gỡ) không nhận đơn', 'a0000000-0000-4000-a000-000000000002',
+  $$select apply_job('c0000000-0000-4000-a000-000000000004', null)$$, '%đã đóng hoặc hết hạn%');
+select pg_temp.t_err('13ar. Tin hết hạn không nhận đơn', 'a0000000-0000-4000-a000-000000000002',
+  $$select apply_job('c0000000-0000-4000-a000-000000000005', null)$$, '%đã đóng hoặc hết hạn%');
+select pg_temp.t_err('13as. Tài khoản bị khóa không nộp đơn được', 'a0000000-0000-4000-a000-000000000004',
+  $$select apply_job('c0000000-0000-4000-a000-000000000002', null)$$, '%bị khóa%');
+select pg_temp.t_err('13at. Chủ quán không nộp đơn được', 'e0000000-0000-4000-a000-000000000002',
+  $$select apply_job('c0000000-0000-4000-a000-000000000001', null)$$, '%Chỉ người làm%');
+select pg_temp.t_err('13au. anon không gọi được apply_job', null,
+  $$select apply_job('c0000000-0000-4000-a000-000000000001', null)$$, '%permission denied%', 'anon');
+select pg_temp.t_err('13av. Ghi thẳng bảng đơn cho người 17 tuổi vẫn bị trigger chặn', null,
+  $$insert into job_applications (job_id, worker_id) values ('c0000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000007')$$, '%từ 18 tuổi%');
+select pg_temp.t_err('13aw. Ghi thẳng bảng đơn với trạng thái hired ngay từ đầu bị chặn', null,
+  $$insert into job_applications (job_id, worker_id, status) values ('c0000000-0000-4000-a000-000000000001', 'a0000000-0000-4000-a000-000000000003', 'hired')$$, '%trạng thái%đã ứng tuyển%');
+select pg_temp.t_err('13ax. Đơn mới nộp (applied): chủ quán chưa xem được SĐT', 'e0000000-0000-4000-a000-000000000001',
+  $$select get_job_contacts('d0000000-0000-4000-a000-000000000001')$$, '%vòng tiếp theo%', 'authenticated');
+select pg_temp.t_err('13ay. Đơn mới nộp (applied): chính người nộp cũng chưa xem được SĐT chủ quán', 'a0000000-0000-4000-a000-000000000001',
+  $$select get_job_contacts('d0000000-0000-4000-a000-000000000001')$$, '%vòng tiếp theo%', 'authenticated');
+select pg_temp.t_err('13az. Đơn đã bị loại (rejected): chủ quán không xem được SĐT', 'e0000000-0000-4000-a000-000000000002',
+  $$select get_job_contacts('d0000000-0000-4000-a000-000000000007')$$, '%vòng tiếp theo%');
+select pg_temp.t_err('13ba. Đơn đã rút (withdrawn): chủ quán không xem được SĐT', 'e0000000-0000-4000-a000-000000000002',
+  $$select get_job_contacts('d0000000-0000-4000-a000-000000000004')$$, '%vòng tiếp theo%');
+select pg_temp.t_err('13bb. Đơn đã chọn nhưng người gọi là chủ quán khác: bị từ chối', 'e0000000-0000-4000-a000-000000000002',
+  $$select get_job_contacts('d0000000-0000-4000-a000-000000000002')$$, '%Không tìm thấy đơn%');
+select pg_temp.t_err('13bc. Đơn đã chọn nhưng người gọi là người làm khác: bị từ chối', 'a0000000-0000-4000-a000-000000000003',
+  $$select get_job_contacts('d0000000-0000-4000-a000-000000000002')$$, '%Không tìm thấy đơn%');
+select pg_temp.t_err('13bd. Nhóm vận hành cũng không xem SĐT khi đơn mới ở applied', '00000000-0000-4000-a000-000000000001',
+  $$select get_job_contacts('d0000000-0000-4000-a000-000000000001')$$, '%vòng tiếp theo%');
+select pg_temp.t_err('13be. anon không gọi được get_job_contacts', null,
+  $$select get_job_contacts('d0000000-0000-4000-a000-000000000002')$$, '%permission denied%', 'anon');
+select pg_temp.t_true('13bf. Đơn shortlisted: chủ quán thấy SĐT người làm, không có phần của quán', 'e0000000-0000-4000-a000-000000000001',
+  $$select j -> 'worker' ->> 'phone' = '0900000202' and j -> 'facility' = 'null'::jsonb from get_job_contacts('d0000000-0000-4000-a000-000000000002') j$$, 'authenticated');
+select pg_temp.t_true('13bg. Đơn shortlisted: người nộp thấy SĐT quán, không có phần của người làm', 'a0000000-0000-4000-a000-000000000002',
+  $$select j -> 'facility' ->> 'phone' = '0900000101' and j -> 'worker' = 'null'::jsonb from get_job_contacts('d0000000-0000-4000-a000-000000000002') j$$, 'authenticated');
+select pg_temp.t_true('13bh. Đơn hired: chủ quán thấy SĐT người làm', 'e0000000-0000-4000-a000-000000000002',
+  $$select j -> 'worker' ->> 'phone' = '0900000205' from get_job_contacts('d0000000-0000-4000-a000-000000000003') j$$ );
+select pg_temp.t_true('13bi. Đơn hired: người làm thấy SĐT quán', 'a0000000-0000-4000-a000-000000000005',
+  $$select j -> 'facility' ->> 'phone' = '0900000102' from get_job_contacts('d0000000-0000-4000-a000-000000000003') j$$ );
+select pg_temp.t_true('13bj. Đơn hired: nhóm vận hành thấy cả hai phía', '00000000-0000-4000-a000-000000000001',
+  $$select j -> 'worker' ->> 'phone' = '0900000205' and j -> 'facility' ->> 'phone' = '0900000102' from get_job_contacts('d0000000-0000-4000-a000-000000000003') j$$ );
+select pg_temp.t_err('13bk. Quán đã bị gỡ: dù đơn hired, chủ quán và người làm không xem được SĐT', 'e0000000-0000-4000-a000-000000000004',
+  $$select get_job_contacts('d0000000-0000-4000-a000-000000000006')$$, '%không hoạt động%');
+select pg_temp.t_err('13bl. Quán đã bị gỡ: người làm cũng không xem được SĐT quán', 'a0000000-0000-4000-a000-000000000001',
+  $$select get_job_contacts('d0000000-0000-4000-a000-000000000006')$$, '%không hoạt động%');
+select pg_temp.t_true('13bm. Người làm: feed chỉ có tin mở còn hạn (không có tin hết hạn, tin đã đóng)', 'a0000000-0000-4000-a000-000000000001',
+  $$select exists (select 1 from jsonb_array_elements(feed_job_posts()) e where e ->> 'id' = 'c0000000-0000-4000-a000-000000000001') and exists (select 1 from jsonb_array_elements(feed_job_posts()) e where e ->> 'id' = 'c0000000-0000-4000-a000-000000000002') and not exists (select 1 from jsonb_array_elements(feed_job_posts()) e where e ->> 'id' in ('c0000000-0000-4000-a000-000000000004', 'c0000000-0000-4000-a000-000000000005', 'c0000000-0000-4000-a000-000000000006'))$$ );
+select pg_temp.t_true('13bn. Feed lọc theo hình thức làm việc (full_time)', 'a0000000-0000-4000-a000-000000000001',
+  $$select count(*) > 0 and bool_and(e ->> 'employment' = 'full_time') from jsonb_array_elements(feed_job_posts(null, 'full_time')) e$$ );
+select pg_temp.t_true('13bo. Feed lọc theo loại việc (pha chế): chỉ tin pha chế', 'a0000000-0000-4000-a000-000000000001',
+  $$select count(*) = 1 and bool_and(e ->> 'job_type' = 'pha_che') from jsonb_array_elements(feed_job_posts('pha_che')) e$$ );
+select pg_temp.t_err('13bp. Người làm chưa duyệt không xem được feed', 'a0000000-0000-4000-a000-000000000010',
+  $$select feed_job_posts()$$, '%cần được duyệt%');
+select pg_temp.t_err('13bq. Người 17 tuổi không xem được feed', 'a0000000-0000-4000-a000-000000000007',
+  $$select feed_job_posts()$$, '%từ 18 tuổi%');
+select pg_temp.t_err('13br. Chủ quán không xem được feed của người làm', 'e0000000-0000-4000-a000-000000000001',
+  $$select feed_job_posts()$$, '%Chỉ người làm%');
+select pg_temp.t_err('13bs. anon không gọi được feed_job_posts', null,
+  $$select feed_job_posts()$$, '%permission denied%', 'anon');
+select pg_temp.t_true('13bt. Chi tiết tin mở: người làm xem được; có hired_count', 'a0000000-0000-4000-a000-000000000001',
+  $$select job_post_detail('c0000000-0000-4000-a000-000000000001') ->> 'title' is not null and (job_post_detail('c0000000-0000-4000-a000-000000000002') ->> 'hired_count')::int = 1$$ );
+select pg_temp.t_err('13bu. Tin đã đóng mà mình chưa nộp đơn: người làm không xem chi tiết được', 'a0000000-0000-4000-a000-000000000001',
+  $$select job_post_detail('c0000000-0000-4000-a000-000000000006')$$, '%Không tìm thấy tin%');
+select pg_temp.t_true('13bv. Tin đã đóng mà mình đã nộp đơn: người làm vẫn xem lại được', 'a0000000-0000-4000-a000-000000000001',
+  $$select job_post_detail('c0000000-0000-4000-a000-000000000004') ->> 'status' = 'closed' and job_post_detail('c0000000-0000-4000-a000-000000000004') -> 'my_application' ->> 'status' = 'hired'$$);
+select pg_temp.t_err('13bw. Chủ quán khác không xem chi tiết tin này', 'e0000000-0000-4000-a000-000000000001',
+  $$select job_post_detail('c0000000-0000-4000-a000-000000000002')$$, '%Chỉ người làm%');
+select pg_temp.t_true('13bx. Chủ quán xem tin của mình và là chủ (is_owner)', 'e0000000-0000-4000-a000-000000000002',
+  $$select (job_post_detail('c0000000-0000-4000-a000-000000000002') ->> 'is_owner')::boolean$$ );
+select pg_temp.t_true('13by. Chủ quán chỉ thấy tin của cơ sở mình, kèm số đơn', 'e0000000-0000-4000-a000-000000000001',
+  $$select count(*) >= 2 and bool_and(e ->> 'facility_id' = 'f0000000-0000-4000-a000-000000000001') and bool_and(e ? 'applied_count' and e ? 'shortlisted_count') from jsonb_array_elements(employer_job_posts()) e$$ );
+select pg_temp.t_true('13bz. Nhóm vận hành thấy tin của nhiều cơ sở', '00000000-0000-4000-a000-000000000001',
+  $$select count(distinct e ->> 'facility_id') >= 3 from jsonb_array_elements(employer_job_posts()) e$$ );
+select pg_temp.t_err('13ca. Chủ quán khác không xem được danh sách người ứng tuyển', 'e0000000-0000-4000-a000-000000000002',
+  $$select job_applicants('c0000000-0000-4000-a000-000000000001')$$, '%Không tìm thấy tin%');
+select pg_temp.t_err('13cb. Người làm không xem được danh sách người ứng tuyển', 'a0000000-0000-4000-a000-000000000001',
+  $$select job_applicants('c0000000-0000-4000-a000-000000000001')$$, '%Không tìm thấy tin%');
+select pg_temp.t_true('13cc. Chủ quán thấy thống kê hồ sơ ca làm của người ứng tuyển dù họ không bật chia sẻ; không có ngày sinh, trường, lớp, phụ huynh, SĐT', 'e0000000-0000-4000-a000-000000000001',
+  $$select jsonb_array_length(j -> 'applicants') >= 3 and j::text not like '%0900000%' and j::text not like '%date_of_birth%' and j::text not like '%school%' and j::text not like '%class_name%' and j::text not like '%parent%' and j::text not like '%Bà Rịa%' and (select (e -> 'profile') ?& array['confirmed_shifts', 'total_hours', 'avg_rating', 'on_time_rate', 'job_types', 'reviews'] from jsonb_array_elements(j -> 'applicants') e where e ->> 'name' = 'Nguyễn Minh Anh') and not (select share_enabled from worker_profiles where user_id = 'a0000000-0000-4000-a000-000000000001') from job_applicants('c0000000-0000-4000-a000-000000000001') j$$ );
+select pg_temp.t_true('13cc2. Thống kê hồ sơ ca làm có số thật (1 ca đã xác nhận, 3 sao) của người ứng tuyển', 'e0000000-0000-4000-a000-000000000002',
+  $$select (e -> 'profile' ->> 'confirmed_shifts')::int = 1 and (e -> 'profile' ->> 'avg_rating')::numeric = 3.0
+    from jsonb_array_elements(job_applicants('c0000000-0000-4000-a000-000000000006') -> 'applicants') e where e ->> 'name' = 'Phạm Gia Huy'$$);
+select pg_temp.t_true('13cd. RLS: chủ quán khác select thẳng bảng đơn không thấy đơn của tin này', 'e0000000-0000-4000-a000-000000000002',
+  $$select count(*) = 0 from job_applications where job_id = 'c0000000-0000-4000-a000-000000000001'$$, 'authenticated');
+select pg_temp.t_true('13ce. RLS: chủ quán thấy đơn của tin mình', 'e0000000-0000-4000-a000-000000000001',
+  $$select count(*) >= 3 from job_applications where job_id = 'c0000000-0000-4000-a000-000000000001'$$, 'authenticated');
+select pg_temp.t_true('13cf. RLS: người làm chỉ thấy đơn của chính mình', 'a0000000-0000-4000-a000-000000000002',
+  $$select count(*) >= 1 and bool_and(worker_id = 'a0000000-0000-4000-a000-000000000002') from job_applications$$, 'authenticated');
+select pg_temp.t_true('13cg. RLS: người làm không đọc thẳng bảng job_posts (phải qua feed)', 'a0000000-0000-4000-a000-000000000001',
+  $$select count(*) = 0 from job_posts$$, 'authenticated');
+select pg_temp.t_err('13ch. anon không đọc được bảng job_posts', null,
+  $$select count(*) from job_posts$$, '%permission denied%', 'anon');
+select pg_temp.t_err('13ci. Người đăng nhập không insert thẳng vào job_applications được', 'a0000000-0000-4000-a000-000000000001',
+  $$insert into job_applications (job_id, worker_id) values ('c0000000-0000-4000-a000-000000000002', 'a0000000-0000-4000-a000-000000000001')$$, '%permission denied%', 'authenticated');
+select pg_temp.t_err('13cj. Chủ quán không update thẳng job_posts được', 'e0000000-0000-4000-a000-000000000001',
+  $$update job_posts set status = 'closed' where id = 'c0000000-0000-4000-a000-000000000001'$$, '%permission denied%', 'authenticated');
+select pg_temp.t_err('13ck. Chủ quán không delete thẳng job_applications được', 'e0000000-0000-4000-a000-000000000001',
+  $$delete from job_applications where id = 'd0000000-0000-4000-a000-000000000001'$$, '%permission denied%', 'authenticated');
+select pg_temp.t_true('13cl. Người làm: feed, chi tiết, đơn của tôi không chứa SĐT (kể cả khi có đơn shortlisted)', 'a0000000-0000-4000-a000-000000000002',
+  $$select feed_job_posts()::text not like '%0900000%' and job_post_detail('c0000000-0000-4000-a000-000000000001')::text not like '%0900000%' and my_applications()::text not like '%0900000%' and jsonb_array_length(my_applications()) >= 1$$ );
+select pg_temp.t_true('13cm. Chủ quán: danh sách tin, danh sách người ứng tuyển không chứa SĐT (kể cả đơn hired, withdrawn)', 'e0000000-0000-4000-a000-000000000002',
+  $$select employer_job_posts()::text not like '%0900000%' and job_applicants('c0000000-0000-4000-a000-000000000002')::text not like '%0900000%' and jsonb_array_length(job_applicants('c0000000-0000-4000-a000-000000000002') -> 'applicants') = 2$$ );
+select pg_temp.t_true('13cn. Nhóm vận hành: danh sách tin và người ứng tuyển không chứa SĐT', '00000000-0000-4000-a000-000000000001',
+  $$select employer_job_posts()::text not like '%0900000%' and job_applicants('c0000000-0000-4000-a000-000000000001')::text not like '%0900000%'$$ );
+select pg_temp.t_true('13co. Hồ sơ công khai vẫn chạy bằng hàm dùng chung: bật chia sẻ mới xem được, không SĐT/ngày sinh', null,
+  $$select get_public_profile('demo-thu-ha') is not null and get_public_profile('demo-quoc-bao') is null and get_public_profile('demo-thu-ha')::text not like '%0900000%' and (get_public_profile('demo-thu-ha') ->> 'share_enabled')::boolean$$, 'anon');
+select pg_temp.t_err('13cp. Chủ quán không chuyển thẳng applied → hired', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_application_status('d0000000-0000-4000-a000-000000000001', 'hired')$$, '%Không đổi được trạng thái%');
+select pg_temp.t_err('13cq. Chủ quán khác không đổi được trạng thái đơn của quán này', 'e0000000-0000-4000-a000-000000000002',
+  $$select set_application_status('d0000000-0000-4000-a000-000000000001', 'shortlisted')$$, '%Không tìm thấy đơn%');
+select pg_temp.t_err('13cr. Người làm không dùng được set_application_status', 'a0000000-0000-4000-a000-000000000001',
+  $$select set_application_status('d0000000-0000-4000-a000-000000000001', 'shortlisted')$$, '%Không tìm thấy đơn%');
+select pg_temp.t_err('13cs. Chủ quán không đặt trạng thái withdrawn', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_application_status('d0000000-0000-4000-a000-000000000001', 'withdrawn')$$, '%Trạng thái không hợp lệ%');
+select pg_temp.t_do('13ct. Chủ quán chọn đơn applied → shortlisted, có mốc thời gian đổi trạng thái', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_application_status('d0000000-0000-4000-a000-000000000001', 'shortlisted')$$,
+  $$select status = 'shortlisted' and status_changed_at >= created_at from job_applications where id = 'd0000000-0000-4000-a000-000000000001'$$ );
+select pg_temp.t_do('13cu. shortlisted → rejected', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_application_status('d0000000-0000-4000-a000-000000000001', 'rejected')$$,
+  $$select status = 'rejected' from job_applications where id = 'd0000000-0000-4000-a000-000000000001'$$ );
+select pg_temp.t_err('13cv. rejected là bước cuối: không chọn lại được', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_application_status('d0000000-0000-4000-a000-000000000001', 'shortlisted')$$, '%Không đổi được trạng thái%');
+select pg_temp.t_err('13cw. Người làm không rút được đơn của người khác', 'a0000000-0000-4000-a000-000000000001',
+  $$select withdraw_application('d0000000-0000-4000-a000-000000000002')$$, '%Không tìm thấy đơn%');
+select pg_temp.t_err('13cx. Đơn hired: người làm không rút được', 'a0000000-0000-4000-a000-000000000005',
+  $$select withdraw_application('d0000000-0000-4000-a000-000000000003')$$, '%Không đổi được trạng thái%');
+select pg_temp.t_do('13cy. Đơn shortlisted: người nộp rút được', 'a0000000-0000-4000-a000-000000000002',
+  $$select withdraw_application('d0000000-0000-4000-a000-000000000002')$$,
+  $$select status = 'withdrawn' from job_applications where id = 'd0000000-0000-4000-a000-000000000002'$$ );
+select pg_temp.t_err('13cz. withdrawn là bước cuối: chủ quán không nhận được', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_application_status('d0000000-0000-4000-a000-000000000002', 'hired')$$, '%Không đổi được trạng thái%');
+select pg_temp.t_err('13da. Đơn hired không chuyển sang rejected được', 'e0000000-0000-4000-a000-000000000002',
+  $$select set_application_status('d0000000-0000-4000-a000-000000000003', 'rejected')$$, '%Không đổi được trạng thái%');
+select pg_temp.t_do('13db. Rút đơn rồi nộp lại được (đơn cũ không còn hiệu lực)', 'a0000000-0000-4000-a000-000000000002',
+  $$select apply_job('c0000000-0000-4000-a000-000000000001', 'Nộp lại')$$,
+  $$select count(*) = 2 and count(*) filter (where status = 'applied') = 1 from job_applications where job_id = 'c0000000-0000-4000-a000-000000000001' and worker_id = 'a0000000-0000-4000-a000-000000000002'$$ );
+select pg_temp.t_do('13dc. (chuẩn bị) hai người nộp vào tin chỉ cần 1 người', 'a0000000-0000-4000-a000-000000000001',
+  $$select apply_job(pg_temp.jp('Test13 openings1'), null)$$,
+  $$select pg_temp.ja('Test13 openings1', 'a0000000-0000-4000-a000-000000000001') is not null$$ );
+select pg_temp.t_do('13dd. (chuẩn bị) người thứ hai nộp', 'a0000000-0000-4000-a000-000000000005',
+  $$select apply_job(pg_temp.jp('Test13 openings1'), null)$$,
+  $$select pg_temp.ja('Test13 openings1', 'a0000000-0000-4000-a000-000000000005') is not null$$ );
+select pg_temp.t_do('13de. (chuẩn bị) chủ quán chọn người thứ nhất', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_application_status(pg_temp.ja('Test13 openings1', 'a0000000-0000-4000-a000-000000000001'), 'shortlisted')$$,
+  $$select status = 'shortlisted' from job_applications where id = pg_temp.ja('Test13 openings1', 'a0000000-0000-4000-a000-000000000001')$$ );
+select pg_temp.t_do('13df. (chuẩn bị) chủ quán chọn người thứ hai', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_application_status(pg_temp.ja('Test13 openings1', 'a0000000-0000-4000-a000-000000000005'), 'shortlisted')$$,
+  $$select status = 'shortlisted' from job_applications where id = pg_temp.ja('Test13 openings1', 'a0000000-0000-4000-a000-000000000005')$$ );
+select pg_temp.t_do('13dg. Nhận người thứ nhất vào tin 1 chỗ: được (đúng mốc openings)', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_application_status(pg_temp.ja('Test13 openings1', 'a0000000-0000-4000-a000-000000000001'), 'hired')$$,
+  $$select status = 'hired' from job_applications where id = pg_temp.ja('Test13 openings1', 'a0000000-0000-4000-a000-000000000001')$$ );
+select pg_temp.t_err('13dh. Nhận người thứ hai vượt openings bị từ chối', 'e0000000-0000-4000-a000-000000000001',
+  $$select set_application_status(pg_temp.ja('Test13 openings1', 'a0000000-0000-4000-a000-000000000005'), 'hired')$$, '%đủ 1 người%');
+select pg_temp.t_err('13di. Chủ quán khác không đóng được tin của quán này', 'e0000000-0000-4000-a000-000000000002',
+  $$select close_job_post(pg_temp.jp('Test13 monthly min'))$$, '%Không tìm thấy tin%');
+select pg_temp.t_do('13dj. Chủ quán đóng tin của mình', 'e0000000-0000-4000-a000-000000000001',
+  $$select close_job_post(pg_temp.jp('Test13 monthly min'))$$,
+  $$select status = 'closed' and closed_at is not null from job_posts where title = 'Test13 monthly min'$$ );
+select pg_temp.t_err('13dk. Đóng tin lần hai bị từ chối', 'e0000000-0000-4000-a000-000000000001',
+  $$select close_job_post(pg_temp.jp('Test13 monthly min'))$$, '%đã đóng rồi%');
+select pg_temp.t_err('13dl. Tin đã đóng không nhận đơn mới', 'a0000000-0000-4000-a000-000000000003',
+  $$select apply_job(pg_temp.jp('Test13 monthly min'), null)$$, '%đã đóng hoặc hết hạn%');
+select pg_temp.t_err('13dm. Tin đã đóng không mở lại được (ghi thẳng bảng)', null,
+  $$update job_posts set status = 'open', closed_at = null where title = 'Test13 monthly min'$$, '%không mở lại được%');
+select pg_temp.t_err('13dn. Không sửa nội dung tin (ghi thẳng bảng)', null,
+  $$update job_posts set wage_min = 99999999 where id = 'c0000000-0000-4000-a000-000000000001'$$, '%Không sửa được nội dung%');
+select pg_temp.t_err('13do. Chủ quán không gọi được admin_close_job_post', 'e0000000-0000-4000-a000-000000000001',
+  $$select admin_close_job_post('c0000000-0000-4000-a000-000000000001', 'thử')$$, '%nhóm vận hành%');
+select pg_temp.t_do('13dp. Nhóm vận hành đóng tin bất kỳ, có dòng audit close_job_post', '00000000-0000-4000-a000-000000000001',
+  $$select admin_close_job_post(pg_temp.jp('Test13 hourly min'), 'Nội dung không phù hợp')$$,
+  $$select (select status = 'closed' from job_posts where title = 'Test13 hourly min') and exists (select 1 from admin_audit_log where action = 'close_job_post' and target_id = pg_temp.jp('Test13 hourly min'))$$ );
+select pg_temp.t_err('13dq. Đóng tin đã đóng qua admin: báo không tìm thấy tin đang mở', '00000000-0000-4000-a000-000000000001',
+  $$select admin_close_job_post(pg_temp.jp('Test13 hourly min'), 'lần hai')$$, '%Không tìm thấy tin đang mở%');
+select pg_temp.t_do('13dr. Người làm có đơn ứng tuyển tự xóa tài khoản: đơn xóa theo, tin và đơn của người khác còn', 'b0000000-0000-4000-a000-000000000016',
+  $$select delete_my_account()$$,
+  $$select not exists (select 1 from auth.users where id = 'b0000000-0000-4000-a000-000000000016') and not exists (select 1 from job_applications where worker_id = 'b0000000-0000-4000-a000-000000000016') and exists (select 1 from job_posts where id = 'c0000000-0000-4000-a000-000000000001') and exists (select 1 from job_applications where id = 'd0000000-0000-4000-a000-000000000001')$$ );
+select pg_temp.t_do('13ds. Tắt verified của Quán Demo 2 bằng ghi thẳng bảng: tin đang mở của quán tự đóng', null,
+  $$update facilities set verified = false where id = 'f0000000-0000-4000-a000-000000000002'$$,
+  $$select (select status = 'closed' from job_posts where id = 'c0000000-0000-4000-a000-000000000002') and (select status = 'open' from job_posts where id = 'c0000000-0000-4000-a000-000000000001')$$ );
+update facilities set verified = true where id = 'f0000000-0000-4000-a000-000000000002';
+select pg_temp.t_true('13dt. Đã khôi phục Quán Demo 2; tin đã đóng không tự mở lại', null,
+  $$select (select verified from facilities where id = 'f0000000-0000-4000-a000-000000000002') and (select status = 'closed' from job_posts where id = 'c0000000-0000-4000-a000-000000000002')$$ );
 
 select pg_temp.as_user(null, null);
 select name, passed, detail from t_results order by n;
