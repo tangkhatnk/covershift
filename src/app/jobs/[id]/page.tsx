@@ -54,7 +54,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="space-y-4">
-      <Link href="/jobs" className="inline-flex min-h-[3rem] items-center gap-2 rounded font-semibold text-brand underline underline-offset-4">
+      <Link href="/jobs" className="inline-flex min-h-[3rem] items-center gap-2 rounded-ui font-semibold text-brand underline underline-offset-4">
         <ChevronLeft className="h-5 w-5" aria-hidden="true" />
         Tất cả việc làm
       </Link>
@@ -84,7 +84,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
         </dl>
         {j.description ? (
           <div className="mt-2 border-t border-rule pt-4">
-            <p className="text-base font-semibold text-ink">Mô tả công việc</p>
+            <h2 className="text-xl font-bold text-ink">Mô tả công việc</h2>
             <p className="mt-2 whitespace-pre-line break-words text-base text-ink">{j.description}</p>
           </div>
         ) : null}

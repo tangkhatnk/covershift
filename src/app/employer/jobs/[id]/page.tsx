@@ -24,7 +24,7 @@ function Stats({ p }: { p: Applicant['profile'] }) {
         <b>{p.confirmed_shifts}</b> ca đã xác nhận · <b>{p.total_hours}</b> giờ
         {p.on_time_rate != null ? <> · đúng giờ <b>{p.on_time_rate}%</b></> : null}
       </p>
-      {p.avg_rating != null ? <p className="flex items-center gap-2 text-base"><Stars value={p.avg_rating} /> {p.avg_rating} trên 5</p> : null}
+      {p.avg_rating != null ? <p className="flex items-center gap-2 text-base"><Stars value={p.avg_rating} /> <span aria-hidden="true">{p.avg_rating} trên 5</span></p> : null}
       {p.reviews.length ? (
         <Disclosure summary={<span>Nhận xét từ quán khác ({p.reviews.length})</span>}>
           <ul className="mt-2 divide-y divide-rule">
@@ -68,7 +68,7 @@ export default async function EmployerJobPage({ params }: { params: Promise<{ id
 
   return (
     <div className="space-y-6">
-      <Link href={back} className="inline-flex min-h-[3rem] items-center gap-2 rounded font-semibold text-brand underline underline-offset-4">
+      <Link href={back} className="inline-flex min-h-[3rem] items-center gap-2 rounded-ui font-semibold text-brand underline underline-offset-4">
         <ChevronLeft className="h-5 w-5" aria-hidden="true" />
         {isOwner ? 'Tất cả tin tuyển dụng' : 'Tin tuyển dụng'}
       </Link>

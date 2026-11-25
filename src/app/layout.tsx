@@ -5,6 +5,8 @@ import './globals.css';
 import { AppShell } from '@/components/client';
 import { APP_NAME, DISCLAIMER, NO_FEE } from '@/lib/constants';
 import { getContext, homeFor } from '@/lib/auth';
+import { createClient } from '@/lib/supabase/server';
+import type { MyNotifications } from '@/lib/types';
 
 // Font tự host qua next/font (tải lúc build, không gọi CDN khi người dùng mở trang).
 const sans = Be_Vietnam_Pro({ subsets: ['latin', 'vietnamese'], weight: ['400', '500', '600', '700'], variable: '--font-sans', display: 'swap' });
@@ -17,8 +19,24 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#083F5F' };
 
+/**
+ * Số thông báo chưa đọc cho chuông. Tự đọc danh tính cục bộ (getClaims kiểm JWT bằng JWKS đã cache, không gọi mạng) rồi
+ * gọi RPC, nên chạy song song với getContext (đọc profiles) thay vì nối tiếp sau nó. Lỗi hay chưa đăng nhập thì 0.
+ */
+async function getUnread() {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getClaims();
+    if (!data?.claims?.sub) return 0;
+    const { data: n } = await supabase.rpc('my_notifications', { p_limit: 1 });
+    return (n as MyNotifications | null)?.unread ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile } = await getContext();
+  const [{ user, profile }, unread] = await Promise.all([getContext(), getUnread()]);
   const role = profile && profile.status === 'active' ? profile.role : null;
   return (
     <html lang="vi" className={`${sans.variable} ${num.variable}`}>
@@ -26,6 +44,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <AppShell
           role={role}
           signedIn={!!user}
+          unread={role ? unread : null}
           userName={profile?.full_name.split(' ').slice(-1)[0] ?? null}
           homeHref={profile ? homeFor(profile.role) : '/'}
           footer={
