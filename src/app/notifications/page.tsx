@@ -56,7 +56,7 @@ export default async function NotificationsPage() {
       {items.length === 0 ? (
         <Empty>Bạn chưa có thông báo nào.</Empty>
       ) : (
-        <ul className="space-y-4">
+        <ul className="stagger space-y-4">
           {items.map((n) => {
             const { title, body } = notificationText(n);
             const go = target(n, profile.role);

@@ -31,7 +31,7 @@ export default async function MyApplicationsPage() {
           <Link href="/jobs" className={`${btn('secondary')} sm:w-auto`}>Xem việc làm lâu dài</Link>
         </>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="stagger grid gap-4 md:grid-cols-2">
           {apps.map((a, i) => {
             const c = contacts[i];
             return (

@@ -80,7 +80,7 @@ export function ActionForm({ action, children, className = 'space-y-4', resetOnO
       className={className}
     >
       {msg ? (
-        <Alert ref={msgRef} tone={state?.error ? 'red' : 'green'} role={state?.error ? 'alert' : 'status'} className="scroll-my-4 font-medium">
+        <Alert ref={msgRef} tone={state?.error ? 'red' : 'green'} role={state?.error ? 'alert' : 'status'} className="flash-in scroll-my-4 font-medium">
           {msg}
         </Alert>
       ) : null}
@@ -103,7 +103,7 @@ export function Flash({ param, tone = 'green', children }: { param: string; tone
       window.history.replaceState(null, '', url.pathname + url.search + url.hash);
     }
   }, [param]);
-  return <div ref={ref} className="scroll-my-4"><Alert tone={tone}>{children}</Alert></div>;
+  return <div ref={ref} className="flash-in scroll-my-4"><Alert tone={tone}>{children}</Alert></div>;
 }
 
 /**
@@ -343,7 +343,7 @@ function MoreMenu({ items, pathname, active }: { items: NavItem[]; pathname: str
         <Ellipsis className="h-6 w-6" aria-hidden="true" />
         Thêm
       </summary>
-      <ul className="absolute bottom-full right-0 mb-2 w-60 space-y-2 rounded-ui border border-rule bg-white p-2 text-ink">
+      <ul className="more-pop absolute bottom-full right-0 mb-2 w-60 space-y-2 rounded-ui border border-rule bg-white p-2 text-ink">
         {items.map((it) => (
           <li key={it.href}>
             <Link

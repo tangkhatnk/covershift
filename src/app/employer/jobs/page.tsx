@@ -13,7 +13,7 @@ function Group({ title, jobs }: { title: string; jobs: EmployerJobPost[] }) {
   return (
     <section className="space-y-4">
       <h2 className="text-xl font-bold text-ink">{title} <span className="font-normal text-ink-soft">({jobs.length})</span></h2>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="stagger grid gap-4 md:grid-cols-2">
         {jobs.map((j) => (
           <JobCard key={j.id} job={j} href={`/employer/jobs/${j.id}`}
             extra={<p className="text-base text-ink">Chờ xem: <b>{j.applied_count}</b> · Đã chọn: <b>{j.shortlisted_count}</b></p>} />
