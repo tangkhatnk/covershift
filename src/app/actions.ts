@@ -409,9 +409,11 @@ export async function adminCloseJobPost(_: ActionState, fd: FormData): Promise<A
 /** Form: id (lặp lại cho từng thông báo; bỏ trống = đánh dấu đã đọc tất cả). */
 export async function markNotificationsRead(_: ActionState, fd: FormData): Promise<ActionState> {
   const ids = fd.getAll('id').map(String).filter(Boolean);
-  return call('mark_notifications_read', { p_ids: ids.length ? ids : null }, {
+  const res = await call('mark_notifications_read', { p_ids: ids.length ? ids : null }, {
     ok: 'Đã đánh dấu đã đọc.', revalidate: ['/notifications'],
   });
+  if (res?.ok) revalidatePath('/', 'layout'); // số chưa đọc ở chuông nằm trong layout
+  return res;
 }
 
 /** Form: shift_id, stars (1–5), comment (tùy chọn). Người làm đánh giá quán sau ca đã xác nhận. */

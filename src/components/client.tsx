@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation';
 import { useActionState, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useFormStatus } from 'react-dom';
 import {
-  Building2, CalendarCheck, ChartColumn, Check, CircleUser, CirclePlus, Copy, Ellipsis, Flag, LayoutDashboard, LoaderCircle,
-  LogOut, Printer, ScrollText, Search, Settings, Share2, Store, UserRound, Users, type LucideIcon,
+  Bell, Briefcase, Building2, CalendarCheck, ChartColumn, Check, CircleUser, CirclePlus, Copy, Ellipsis, Flag, LayoutDashboard,
+  LoaderCircle, LogOut, Printer, ScrollText, Search, Settings, Share2, Star, Store, UserPlus, UserRound, Users, type LucideIcon,
 } from 'lucide-react';
 import { SITE_URL } from '@/lib/constants';
 import type { ActionState, Role } from '@/lib/types';
@@ -211,17 +211,20 @@ function Mark() {
   );
 }
 
-type NavItem = { href: string; label: string; icon: LucideIcon };
+/** `also`: đường dẫn khác cũng thuộc mục này (vd. /my-applications nằm trong "Việc làm"). */
+type NavItem = { href: string; label: string; icon: LucideIcon; also?: string[] };
 
 const NAV: Record<Role, NavItem[]> = {
   worker: [
     { href: '/shifts', label: 'Tìm ca', icon: Search },
     { href: '/my-shifts', label: 'Ca của tôi', icon: CalendarCheck },
+    { href: '/jobs', label: 'Việc làm', icon: Briefcase, also: ['/my-applications'] },
     { href: '/profile', label: 'Hồ sơ', icon: UserRound },
   ],
   employer: [
     { href: '/employer', label: 'Ca của quán', icon: Store },
     { href: '/employer/new-shift', label: 'Đăng ca', icon: CirclePlus },
+    { href: '/employer/jobs', label: 'Tuyển dụng', icon: UserPlus },
     { href: '/account', label: 'Tài khoản', icon: Settings },
   ],
   admin: [
@@ -233,13 +236,17 @@ const NAV: Record<Role, NavItem[]> = {
 };
 /** Các mục của nhóm vận hành nằm sau nút "Thêm" trên điện thoại (rail desktop hiện đủ). */
 const ADMIN_MORE: NavItem[] = [
+  // Chi tiết một tin (/employer/jobs/[id]) dùng chung với chủ quán: nhóm vận hành xem cũng thuộc mục này.
+  { href: '/admin/jobs', label: 'Tin tuyển dụng', icon: Briefcase, also: ['/employer/jobs'] },
+  { href: '/admin/reviews', label: 'Đánh giá quán', icon: Star },
   { href: '/admin/kpi', label: 'KPI', icon: ChartColumn },
   { href: '/admin/audit', label: 'Nhật ký', icon: ScrollText },
   { href: '/account', label: 'Tài khoản', icon: Settings },
 ];
 
-const BARE = /^\/(confirm|consent|p)(\/|$)/; // trang token / hồ sơ công khai: không có nav chính
-const WIDE_EXACT = new Set(['/login', '/terms', '/privacy', '/shifts', '/my-shifts', '/employer']);
+const BARE = /^\/(confirm|consent|p|f|s)(\/|$)/; // trang token / công khai (hồ sơ, quán, ca chia sẻ): không có nav chính
+const SELF_LAID_OUT = /^\/(f|s)(\/|$)/; // công khai có dải đầu tràn mép: trang tự dựng bố cục như '/'
+const WIDE_EXACT = new Set(['/login', '/terms', '/privacy', '/shifts', '/my-shifts', '/employer', '/jobs', '/my-applications', '/employer/jobs']);
 
 /**
  * Bề rộng nội dung theo đường dẫn: trang rộng (nhiều cột, bảng, danh sách + bản đồ) dùng max-w-6xl, còn lại max-w-3xl;
@@ -247,18 +254,60 @@ const WIDE_EXACT = new Set(['/login', '/terms', '/privacy', '/shifts', '/my-shif
  */
 function contentWidth(pathname: string) {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
-  if (p === '/') return '';
+  if (p === '/' || SELF_LAID_OUT.test(p)) return '';
   const wide = WIDE_EXACT.has(p) || p === '/admin' || p.startsWith('/admin/');
   return `mx-auto w-full px-4 py-6 lg:px-8 lg:py-8 ${wide ? 'max-w-6xl' : 'max-w-3xl'}`;
 }
 
-/** Mục nav đang chọn = href dài nhất khớp theo từng đoạn đường dẫn. */
+/** Mục nav đang chọn = đường dẫn (href hoặc `also`) dài nhất khớp theo từng đoạn; nhờ vậy /employer/jobs không làm sáng /employer. */
 function activeHref(pathname: string, items: NavItem[]) {
   let best = '';
-  for (const { href } of items) {
-    if ((pathname === href || pathname.startsWith(href + '/')) && href.length > best.length) best = href;
+  let bestLen = 0;
+  for (const { href, also = [] } of items) {
+    for (const h of [href, ...also]) {
+      if ((pathname === h || pathname.startsWith(h + '/')) && h.length > bestLen) { best = href; bestLen = h.length; }
+    }
   }
   return best;
+}
+
+/** Số chưa đọc gọn ("9+"): chữ trên huy hiệu là hình; trình đọc màn hình nghe số đầy đủ qua nhãn của link. */
+const badgeText = (n: number) => (n > 9 ? '9+' : String(n));
+
+/** Chuông thông báo: `icon` trên thanh trên (điện thoại), `row` trong rail (desktop). */
+function BellLink({ unread, pathname, row = false }: { unread: number; pathname: string; row?: boolean }) {
+  const here = pathname === '/notifications';
+  const badge = unread > 0 ? (
+    <span aria-hidden="true" className={`tabular inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-ui bg-accent px-1 text-sm font-bold leading-none text-ink ${row ? 'ml-auto' : 'absolute right-0 top-0'}`}>
+      {badgeText(unread)}
+    </span>
+  ) : null;
+  const label = unread > 0 ? `Thông báo, ${unread} chưa đọc` : 'Thông báo';
+  if (row) {
+    return (
+      <Link
+        href="/notifications"
+        aria-label={label}
+        aria-current={here ? 'page' : undefined}
+        className={`flex min-h-[3rem] items-center gap-2 rounded-ui px-4 text-base font-semibold text-white hover:bg-brand ${here ? 'bg-brand' : ''}`}
+      >
+        <Bell className="h-6 w-6 shrink-0" aria-hidden="true" />
+        Thông báo
+        {badge}
+      </Link>
+    );
+  }
+  return (
+    <Link
+      href="/notifications"
+      aria-label={label}
+      aria-current={here ? 'page' : undefined}
+      className={`relative inline-flex h-12 w-12 items-center justify-center rounded-ui text-white ${here ? 'bg-brand' : ''}`}
+    >
+      <Bell className="h-6 w-6" aria-hidden="true" />
+      {badge}
+    </Link>
+  );
 }
 
 function MoreMenu({ items, pathname, active }: { items: NavItem[]; pathname: string; active: boolean }) {
@@ -314,9 +363,10 @@ function MoreMenu({ items, pathname, active }: { items: NavItem[]; pathname: str
   );
 }
 
-export function AppShell({ role, signedIn, userName, homeHref, footer, children }: {
+export function AppShell({ role, signedIn, unread, userName, homeHref, footer, children }: {
   role: Role | null; // null: chưa đăng nhập, chưa đăng ký hoặc bị khóa (không có nav theo vai trò)
   signedIn: boolean;
+  unread: number | null; // số thông báo chưa đọc; null = không có chuông (không có vai trò)
   userName: string | null;
   homeHref: string;
   footer: ReactNode;
@@ -340,10 +390,13 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
           <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4">
             <Link href={homeHref} className="inline-flex min-h-[3rem] items-center gap-2 rounded px-2 text-xl font-bold text-white"><Mark /></Link>
             {bare || pathname === '/login' ? null : signedIn ? (
-              <Link href="/account" className="inline-flex min-h-[3rem] items-center gap-2 rounded-ui px-2 text-base font-semibold text-white">
-                <CircleUser className="h-6 w-6" aria-hidden="true" />
-                {userName ?? 'Tài khoản'}
-              </Link>
+              <div className="flex items-center">
+                {items && unread != null ? <BellLink unread={unread} pathname={pathname} /> : null}
+                <Link href="/account" className="inline-flex min-h-[3rem] items-center gap-2 rounded-ui px-2 text-base font-semibold text-white">
+                  <CircleUser className="h-6 w-6" aria-hidden="true" />
+                  {userName ?? 'Tài khoản'}
+                </Link>
+              </div>
             ) : (
               <Link href="/login" className="inline-flex min-h-[3rem] items-center rounded-ui bg-accent px-4 text-base font-semibold text-ink">
                 Đăng nhập
@@ -382,6 +435,7 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
               </ul>
             </nav>
             <div className="space-y-2 border-t border-brand p-4">
+              {unread != null ? <BellLink unread={unread} pathname={pathname} row /> : null}
               {railHasAccount ? null : (
                 <Link href="/account" className="flex min-h-[3rem] items-center gap-2 rounded-ui px-4 text-base font-semibold text-white hover:bg-brand">
                   <CircleUser className="h-6 w-6 shrink-0" aria-hidden="true" />

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ClipboardList } from 'lucide-react';
 import { Alert, Badge, Empty, Field, PageTitle, btn, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { EMPLOYMENT_LABEL, JOB_LABEL } from '@/lib/constants';
@@ -24,6 +25,11 @@ export default async function JobsPage({ searchParams }: {
   return (
     <div className="space-y-4">
       <PageTitle sub="Việc làm đều đặn hằng tuần ở quán đã được xác minh. Hiện chỉ dành cho bạn từ 18 tuổi.">Việc làm lâu dài</PageTitle>
+
+      <Link href="/my-applications" className={`${btn('secondary')} sm:w-auto`}>
+        <ClipboardList className="h-5 w-5" aria-hidden="true" />
+        Đơn ứng tuyển của tôi
+      </Link>
 
       <form method="get" className="grid grid-cols-2 gap-4 rounded-ui border border-rule bg-white p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <Field label="Loại việc">

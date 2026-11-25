@@ -4,13 +4,19 @@ import { ActionForm, SubmitButton } from '@/components/client';
 import { Alert, Badge, Empty, PageTitle } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
+import { UUID_RE } from '@/app/jobs/_parts';
 import { fmtDateTime, notificationText } from '@/lib/format';
 import type { AppNotification, MyNotifications, Role } from '@/lib/types';
 
 export const metadata = { title: 'Thông báo' };
 
-// Chỉ link tới trang đã có: ca (theo vai trò) và hồ sơ. Tin tuyển dụng chưa có trang riêng nên không link.
+// Chỉ link tới trang đã có: ca (theo vai trò), tin tuyển dụng (đơn mới → chủ quán, đổi trạng thái đơn → người làm) và hồ sơ.
 function target(n: AppNotification, role: Role): { href: string; label: string } | null {
+  const job = n.payload.job_id;
+  if (job && UUID_RE.test(job)) {
+    if (n.kind === 'application_new' && role !== 'worker') return { href: `/employer/jobs/${job}`, label: 'Xem đơn ứng tuyển' };
+    if (n.kind === 'application_status' && role === 'worker') return { href: `/jobs/${job}`, label: 'Xem tin tuyển dụng' };
+  }
   if (n.payload.shift_id) {
     return role === 'worker'
       ? { href: `/shifts/${n.payload.shift_id}`, label: 'Xem ca' }

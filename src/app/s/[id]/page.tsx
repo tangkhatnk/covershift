@@ -5,6 +5,7 @@ import { cache } from 'react';
 import { ShiftMap } from '@/components/map';
 import { Alert, Card, PageTitle, btn } from '@/components/ui';
 import { PublicShiftBox } from '@/app/f/shift-box';
+import { PublicBand, PublicBody } from '@/app/f/public-parts';
 import { APP_NAME, AREA_LABEL, FACILITY_TYPE_LABEL, JOB_LABEL } from '@/lib/constants';
 import { getContext } from '@/lib/auth';
 import { fmtDate, fmtMoney, fmtTime } from '@/lib/format';
@@ -36,10 +37,10 @@ export default async function PublicShiftPage({ params }: { params: Promise<{ id
   const { shift: s, failed } = await loadShift((await params).id);
   if (failed) {
     return (
-      <div className="space-y-4">
+      <PublicBody>
         <PageTitle>Ca làm</PageTitle>
         <Alert tone="red">Chưa tải được ca này. Vui lòng thử lại sau ít phút.</Alert>
-      </div>
+      </PublicBody>
     );
   }
   if (!s) notFound();
@@ -48,42 +49,43 @@ export default async function PublicShiftPage({ params }: { params: Promise<{ id
   const hasPin = s.lat != null && s.lng != null;
 
   return (
-    <div className="space-y-4">
-      <PageTitle sub={`${s.facility_name} · ${AREA_LABEL[s.area]}`}>{JOB_LABEL[s.job_type]}</PageTitle>
+    <>
+      <PublicBand title={JOB_LABEL[s.job_type]} sub={`${s.facility_name} · ${AREA_LABEL[s.area]}`} />
+      <PublicBody>
+        <PublicShiftBox shift={s} hero />
 
-      <PublicShiftBox shift={s} />
+        <div className="sm:max-w-xs">
+          {isWorker ? (
+            <Link href={`/shifts/${s.id}`} className={btn('primary')}>Mở ca trong ứng dụng</Link>
+          ) : (
+            <Link href="/login" className={btn('primary')}>Đăng nhập để nhận ca</Link>
+          )}
+        </div>
 
-      <Card>
-        <h2 className="text-xl font-bold text-ink">Nơi làm</h2>
-        <p className="mt-2 break-words text-lg font-semibold text-ink">{s.facility_name}</p>
-        <p className="text-base text-ink-soft">{FACILITY_TYPE_LABEL[s.facility_type]} · {AREA_LABEL[s.area]}</p>
-        <p className="mt-2 break-words text-base text-ink">{s.address}</p>
-        <Link href={`/f/${s.facility_slug}`} className="inline-flex min-h-[3rem] items-center font-semibold text-brand underline underline-offset-4">
-          Xem trang quán
-        </Link>
-        {hasPin ? (
-          <div className="mt-2 border-t border-rule pt-4">
-            <ShiftMap
-              className="h-64"
-              points={[{ id: s.id, lat: s.lat!, lng: s.lng!, text: fmtTime(s.starts_at), label: `${s.facility_name}, ${s.address}`, tone: 'open' }]}
-            />
-          </div>
-        ) : null}
-        {s.description ? (
-          <div className="mt-4 border-t border-rule pt-4">
-            <p className="text-base font-semibold text-ink">Mô tả công việc</p>
-            <p className="mt-2 whitespace-pre-line break-words text-base text-ink">{s.description}</p>
-          </div>
-        ) : null}
-      </Card>
-
-      <div className="sm:max-w-xs">
-        {isWorker ? (
-          <Link href={`/shifts/${s.id}`} className={btn('primary')}>Mở ca trong ứng dụng</Link>
-        ) : (
-          <Link href="/login" className={btn('primary')}>Đăng nhập để nhận ca</Link>
-        )}
-      </div>
-    </div>
+        <Card>
+          <h2 className="text-xl font-bold text-ink">Nơi làm</h2>
+          <p className="mt-2 break-words text-lg font-semibold text-ink">{s.facility_name}</p>
+          <p className="text-base text-ink-soft">{FACILITY_TYPE_LABEL[s.facility_type]} · {AREA_LABEL[s.area]}</p>
+          <p className="mt-2 break-words text-base text-ink">{s.address}</p>
+          <Link href={`/f/${s.facility_slug}`} className="inline-flex min-h-[3rem] items-center font-semibold text-brand underline underline-offset-4">
+            Xem trang quán
+          </Link>
+          {hasPin ? (
+            <div className="mt-2 border-t border-rule pt-4">
+              <ShiftMap
+                className="h-64"
+                points={[{ id: s.id, lat: s.lat!, lng: s.lng!, text: fmtTime(s.starts_at), label: `${s.facility_name}, ${s.address}`, tone: 'open' }]}
+              />
+            </div>
+          ) : null}
+          {s.description ? (
+            <div className="mt-4 border-t border-rule pt-4">
+              <h2 className="text-xl font-bold text-ink">Mô tả công việc</h2>
+              <p className="mt-2 whitespace-pre-line break-words text-base text-ink">{s.description}</p>
+            </div>
+          ) : null}
+        </Card>
+      </PublicBody>
+    </>
   );
 }
