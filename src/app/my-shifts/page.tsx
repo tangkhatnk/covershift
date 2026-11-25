@@ -1,5 +1,7 @@
 import Link from 'next/link';
-import { Alert, Badge, Empty, PageTitle, ShiftCard, btn } from '@/components/ui';
+import { createFacilityReview } from '@/app/actions';
+import { ActionForm, SubmitButton } from '@/components/client';
+import { Alert, Badge, Card, Empty, PageTitle, ShiftCard, btn, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
 import type { MyShift } from '@/lib/types';
@@ -39,10 +41,46 @@ function Group({ title, hint, items, extra }: {
   );
 }
 
+// Ca đã xác nhận mình có mặt, chưa đánh giá quán: mỗi ca một lần, không sửa sau khi gửi (trigger ở database).
+function ReviewForm({ s }: { s: MyShift }) {
+  return (
+    <Card>
+      <p className="mb-4 text-base font-semibold text-ink">Quán {s.facility_name} thế nào?</p>
+      <ActionForm action={createFacilityReview}>
+        <input type="hidden" name="shift_id" value={s.id} />
+        <fieldset>
+          <legend className="mb-2 text-base font-semibold text-ink">Chấm sao (1 thấp nhất, 5 cao nhất)</legend>
+          <div className="grid grid-cols-5 gap-2">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <label key={n} className="flex min-h-[3.5rem] cursor-pointer flex-col items-center justify-center gap-1 rounded-ui border-2 border-rule-strong bg-white has-[:checked]:border-brand has-[:checked]:bg-brand-tint has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-brand/30">
+                <input type="radio" name="stars" value={n} required className="h-6 w-6 accent-brand" />
+                <span className="tabular font-num text-xl font-bold leading-none text-ink">{n}<span className="sr-only"> sao</span></span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <label className="block">
+          <span className="mb-2 block text-base font-semibold text-ink">Nhận xét (không bắt buộc)</span>
+          <textarea name="comment" rows={3} maxLength={500} className={inputCls} />
+          <span className="mt-2 block text-sm text-ink-soft">Quán không đọc được nhận xét của bạn. Đánh giá không sửa lại được sau khi gửi.</span>
+        </label>
+        <SubmitButton confirm="Đánh giá không sửa lại được sau khi gửi. Gửi đánh giá?">Gửi đánh giá</SubmitButton>
+      </ActionForm>
+    </Card>
+  );
+}
+
 export default async function MyShiftsPage() {
   const { supabase } = await requireRole('worker');
-  const { data, error } = await supabase.rpc('my_shifts');
+  const [{ data, error }, { data: reviewed }] = await Promise.all([
+    supabase.rpc('my_shifts'),
+    supabase.from('facility_reviews').select('shift_id'), // RLS: chỉ đánh giá của chính mình
+  ]);
   const all = (data ?? []) as MyShift[];
+  const reviewedIds = new Set(((reviewed ?? []) as { shift_id: string }[]).map((r) => r.shift_id));
+  const toReview = all
+    .filter((s) => s.status === 'completed' && s.claim_status === 'active' && s.attended === true && !reviewedIds.has(s.id))
+    .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime());
   const now = Date.now();
   const t = (iso: string) => new Date(iso).getTime();
 
@@ -79,6 +117,23 @@ export default async function MyShiftsPage() {
           items={needAnswer}
           extra={() => <Badge tone="amber">Chưa trả lời tiền công</Badge>}
         />
+      ) : null}
+
+      {toReview.length ? (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-xl font-bold text-ink">Đánh giá quán ({toReview.length})</h2>
+            <p className="text-base text-ink-soft">Quán đã xác nhận bạn làm ca này. Mỗi ca đánh giá một lần.</p>
+          </div>
+          <ul className="grid gap-4 lg:grid-cols-2">
+            {toReview.map((s) => (
+              <li key={s.id} className="space-y-4">
+                <ShiftCard shift={s} />
+                <ReviewForm s={s} />
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
 
       {all.length ? (

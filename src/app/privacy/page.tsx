@@ -52,6 +52,31 @@ export default function DataPolicyPage() {
           <li><b>Nhóm vận hành:</b> xem được dữ liệu để duyệt và xử lý sự cố; mọi thao tác thay đổi dữ liệu của họ (duyệt, khóa, gỡ cơ sở, ẩn nhận xét, đổi cấu hình…) đều được ghi nhật ký.</li>
         </UL>
     </>) },
+    { title: "Trang quán, ca chia sẻ, đánh giá và thông báo", body: (<>
+        <UL>
+          <li>
+            <b>Trang quán công khai:</b> mỗi cơ sở đã xác minh có một trang riêng, ai có link đều xem được mà không cần đăng nhập. Trang chỉ có tên,
+            loại hình, khu vực, địa chỉ, vị trí trên bản đồ, số ca đã hoàn thành, điểm đánh giá trung bình và số lượt đánh giá, cùng các ca đang mở.
+            Trang không có số điện thoại, không có tên chủ quán và không có nhận xét của người làm.
+          </li>
+          <li>
+            <b>Ca chia sẻ:</b> link của một ca đang mở cho ai cũng xem được, kể cả mô tả công việc do chủ quán tự gõ, tên, địa chỉ và vị trí quán.
+            Link không có số điện thoại hay danh sách người đã nhận ca. Chủ quán không nên ghi số điện thoại cá nhân vào mô tả ca.
+          </li>
+          <li>
+            <b>Đánh giá quán:</b> chỉ người làm đã được quán xác nhận có mặt ở ca mới đánh giá được, mỗi ca một lần, từ 1 đến 5 sao kèm nhận xét tùy chọn.
+            Đánh giá không sửa được sau khi gửi. Trang quán công khai chỉ hiện điểm trung bình, không hiện nhận xét; chủ quán không đọc được nhận xét.
+            Nhóm vận hành xem được nhận xét kèm tên người làm và có thể ẩn đánh giá; đánh giá bị ẩn không tính vào điểm.
+          </li>
+          <li>
+            <b>Thông báo trong app:</b> chỉ bạn đọc được thông báo của mình. Thông báo chỉ nêu việc đã xảy ra (ví dụ lên làm người chính, ca bị hủy, hồ sơ được duyệt)
+            kèm loại việc và tên quán, không có số điện thoại, ngày sinh hay thông tin phụ huynh.
+          </li>
+          <li>
+            <b>Số điện thoại chủ quán:</b> có thể là số bàn hoặc tổng đài của quán chứ không phải số di động. Người làm chỉ thấy số này sau khi đã ghép ca, như mọi số điện thoại khác.
+          </li>
+        </UL>
+    </>) },
     { title: "Người dưới 18 tuổi", body: (<>
         <UL>
           <li>Người dưới 15 tuổi không đăng ký được.</li>

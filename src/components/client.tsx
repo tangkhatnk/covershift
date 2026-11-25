@@ -6,8 +6,9 @@ import { useActionState, useEffect, useLayoutEffect, useRef, useState, type Reac
 import { useFormStatus } from 'react-dom';
 import {
   Building2, CalendarCheck, ChartColumn, Check, CircleUser, CirclePlus, Copy, Ellipsis, Flag, LayoutDashboard, LoaderCircle,
-  LogOut, Printer, ScrollText, Search, Settings, Store, UserRound, Users, type LucideIcon,
+  LogOut, Printer, ScrollText, Search, Settings, Share2, Store, UserRound, Users, type LucideIcon,
 } from 'lucide-react';
+import { SITE_URL } from '@/lib/constants';
 import type { ActionState, Role } from '@/lib/types';
 import { Alert, btn, type BtnVariant, type Tone } from './ui';
 
@@ -426,5 +427,23 @@ export function AppShell({ role, signedIn, userName, homeHref, footer, children 
         </>
       ) : null}
     </>
+  );
+}
+
+/** Chia sẻ link một trang công khai (vd. /s/[id]): Web Share API nếu trình duyệt có, luôn có nút sao chép link dự phòng. */
+export function ShareButton({ path, title }: { path: string; title: string }) {
+  const [canShare, setCanShare] = useState(false);
+  useEffect(() => setCanShare(typeof navigator.share === 'function'), []);
+  const url = `${SITE_URL}${path}`;
+  return (
+    <div className="space-y-2">
+      {canShare ? (
+        <button type="button" className={btn('secondary')} onClick={() => navigator.share({ title, url }).catch(() => {})}>
+          <Share2 className="h-5 w-5" aria-hidden="true" />
+          Chia sẻ ca
+        </button>
+      ) : null}
+      <CopyButton text={url}>Sao chép link ca</CopyButton>
+    </div>
   );
 }
