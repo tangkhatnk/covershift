@@ -74,40 +74,7 @@ export default async function EmployerShiftPage({
 
       <PageTitle sub={`${shift.facility_name} · ${AREA_LABEL[shift.area]}`}>Chi tiết ca</PageTitle>
 
-      <Card
-        tab={
-          <>
-            <StateBadge state={state} />
-            {shift.urgent ? <Badge tone="red">GẤP</Badge> : null}
-            <Badge tone="blue">{JOB_LABEL[shift.job_type]}</Badge>
-            {shift.allow_minor ? <Badge tone="green">Hợp với người dưới 18</Badge> : null}
-          </>
-        }
-      >
-        <div className="space-y-2">
-          <div>
-            <p className="text-base text-ink-soft">{fmtDate(shift.starts_at)}</p>
-            <p className="tabular font-num text-4xl font-bold leading-tight text-ink">
-              {fmtTime(shift.starts_at)}–{fmtTime(shift.ends_at)}
-            </p>
-          </div>
-          <p className="text-lg font-semibold text-brand">
-            {fmtMoney(shift.hourly_wage)}/giờ{' '}
-            <span className="font-normal text-ink-soft">· {hoursBetween(shift.starts_at, shift.ends_at)} giờ</span>
-          </p>
-          {state === 'open' || state === 'filled' ? (
-            <SlotStrip headcount={shift.headcount} primary={shift.primary_count} backup={shift.backup_count} />
-          ) : (
-            <p className="text-base text-ink">
-              Cần <b>{shift.headcount}</b> người chính · Đã nhận: <b>{shift.primary_count}/{shift.headcount}</b> · Dự phòng:{' '}
-              <b>{shift.backup_count > 0 ? 'có' : 'chưa'}</b>
-            </p>
-          )}
-          <p className="break-words text-base text-ink">Địa chỉ: {shift.address}</p>
-          {shift.description ? <p className="whitespace-pre-line break-words text-base text-ink">{shift.description}</p> : null}
-        </div>
-      </Card>
-
+      {/* Ca đã xong chờ xác nhận: việc cần làm đứng trước chi tiết ca để nút lọt trên thanh điều hướng dưới. */}
       {shift.confirm_token ? (
         <section className="space-y-4 rounded-ui border-2 border-accent bg-accent-tint p-4">
           <h2 className="flex items-center gap-2 text-xl font-bold text-ink">
@@ -134,6 +101,46 @@ export default async function EmployerShiftPage({
         </section>
       ) : null}
 
+      <Card
+        tab={
+          <>
+            <StateBadge state={state} />
+            {shift.urgent ? <Badge tone="red">GẤP</Badge> : null}
+            <span className="text-base font-bold text-ink">{JOB_LABEL[shift.job_type]}</span>
+            {shift.allow_minor ? <Badge tone="green">Hợp với người dưới 18</Badge> : null}
+          </>
+        }
+      >
+        <div className="space-y-2">
+          <div>
+            <p className="text-base text-ink-soft">{fmtDate(shift.starts_at)}</p>
+            <p className="tabular font-num text-4xl font-bold leading-tight text-ink">
+              {fmtTime(shift.starts_at)}–{fmtTime(shift.ends_at)}
+            </p>
+          </div>
+          <p className="text-lg font-semibold text-brand">
+            {fmtMoney(shift.hourly_wage)}/giờ{' '}
+            <span className="font-normal text-ink-soft">· {hoursBetween(shift.starts_at, shift.ends_at)} giờ</span>
+          </p>
+          {state === 'open' || state === 'filled' ? (
+            <SlotStrip headcount={shift.headcount} primary={shift.primary_count} backup={shift.backup_count} />
+          ) : (
+            <p className="text-base text-ink">
+              Cần <b>{shift.headcount}</b> người chính · Đã nhận: <b>{shift.primary_count}/{shift.headcount}</b> · Dự phòng:{' '}
+              <b>{shift.backup_count > 0 ? 'có' : 'chưa'}</b>
+            </p>
+          )}
+          <p className="break-words text-base text-ink">Địa chỉ: {shift.address}</p>
+        </div>
+      </Card>
+
+      {shift.description ? (
+        <Card>
+          <h2 className="text-xl font-bold text-ink">Mô tả công việc</h2>
+          <p className="mt-2 whitespace-pre-line break-words text-base text-ink">{shift.description}</p>
+        </Card>
+      ) : null}
+
       {results.length ? (
         <Card>
           <h2 className="mb-2 text-xl font-bold text-ink">Kết quả đã xác nhận</h2>
@@ -144,7 +151,7 @@ export default async function EmployerShiftPage({
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge tone={r.attended ? 'green' : 'red'}>{r.attended ? 'Đã làm' : 'Không đến'}</Badge>
                   {r.attended && r.on_time != null ? (
-                    <Badge tone={r.on_time ? 'green' : 'amber'}>{r.on_time ? 'Đúng giờ' : 'Trễ'}</Badge>
+                    <Badge tone={r.on_time ? 'green' : 'amber'}>{r.on_time ? 'Đúng giờ' : 'Đến trễ'}</Badge>
                   ) : null}
                   <Stars value={r.rating} />
                 </div>
@@ -233,7 +240,7 @@ export default async function EmployerShiftPage({
 
       {notStarted ? (
         <Card className="space-y-4">
-          <h2 className="text-lg font-bold text-ink">Hủy ca</h2>
+          <h2 className="text-xl font-bold text-ink">Hủy ca</h2>
           {lateCancel ? (
             <Alert tone="red">
               Ca còn dưới 2 tiếng nữa là bắt đầu và đã có người nhận. Nếu hủy bây giờ sẽ bị ghi là <b>“hủy sát giờ”</b> và

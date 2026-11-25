@@ -118,7 +118,7 @@ export default async function NewShiftPage({ searchParams }: { searchParams: Pro
 
         <div className="space-y-4">
           <Check name="urgent" defaultChecked={src?.urgent}>
-            <b>Ca gấp</b> — cần người ngay, ca sẽ được đánh dấu GẤP.
+            <b>Ca gấp</b>: cần người ngay, ca sẽ được đánh dấu GẤP.
           </Check>
           <Check name="allow_minor" defaultChecked={src?.allow_minor}>
             <b>Nhận người dưới 18 tuổi</b>

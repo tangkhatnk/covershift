@@ -111,6 +111,9 @@ export default async function EmployerHomePage({ searchParams }: { searchParams:
     </div>
   ) : null;
 
+  // Chưa lọc: ca chờ xác nhận là việc cần làm, đứng ngay dưới nút "Đăng ca mới", trước ô tóm tắt.
+  const awaitingFirst = !filter && awaiting.length > 0;
+
   return (
     <div className="space-y-6">
       <PageTitle sub={facility ? `${facility.name} · ${facility.address}` : undefined}>Ca của quán</PageTitle>
@@ -139,6 +142,13 @@ export default async function EmployerHomePage({ searchParams }: { searchParams:
       ) : null}
 
       {shiftError ? <Alert tone="red">{friendlyError(shiftError)}</Alert> : null}
+
+      {awaitingFirst ? (
+        <div className="space-y-4">
+          <Alert tone="amber">Ca đã xong. Anh/chị bấm vào từng ca để xác nhận ai đã làm.</Alert>
+          <Group title="Cần anh/chị xác nhận" shifts={awaiting} />
+        </div>
+      ) : null}
 
       {shifts.length > 0 ? (
         <section aria-label="Tóm tắt ca" className="space-y-4">
@@ -173,12 +183,6 @@ export default async function EmployerHomePage({ searchParams }: { searchParams:
         </>
       ) : (
         <>
-          {awaiting.length ? (
-            <div className="space-y-4">
-              <Alert tone="amber">Ca đã xong. Anh/chị bấm vào từng ca để xác nhận ai đã làm.</Alert>
-              <Group title="Cần anh/chị xác nhận" shifts={awaiting} />
-            </div>
-          ) : null}
           {pinned === false ? panel : null}
           <Group title="Sắp tới / đang diễn ra" shifts={upcoming} />
           <Group title="Đã qua" shifts={past} />
