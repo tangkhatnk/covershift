@@ -62,7 +62,7 @@ export function Card({ children, className = '', tab }: { children: ReactNode; c
   return <section className={`rounded-ui border border-rule bg-white p-4 ${className}`}>{children}</section>;
 }
 
-// 0, 1, 2 dòng chữ phụ (khớp `PageTitle`, đo ở 360–1440px: 74,25 / 110,25 / 137,25px; 2 dòng chỉ ở điện thoại)
+// 0, 1, 2 dòng chữ phụ (khớp `PageTitle`, đo ở 360–1440px: 47,25 / 83,25 / 110,25px; 2 dòng chỉ ở điện thoại)
 const SKELETON_TITLE = ['h-[2.625rem]', 'h-[4.625rem]', 'h-[6.125rem] lg:h-[4.625rem]'] as const;
 
 /**
