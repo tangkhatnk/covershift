@@ -177,19 +177,19 @@ function shortText(t: string) {
 const PIN_W = 63; // min-w-[3.5rem] ở cỡ chữ gốc 18px
 const PIN_W_NARROW = 45; // min-w-[2.5rem]
 const isNum = (t: string) => /^\d{1,2}$/.test(t);
-const PIN_H = 46; // cao pin + đuôi, phía trên điểm
+const PIN_H = 52; // cao pin (>= 2,5rem) + đuôi, phía trên điểm
 
 // Biển giờ chữ nhật. Vùng chạm mở rộng bằng ::after để đủ 48px mà biển vẫn gọn.
 function Pin({ p, selected, lit, crowded, onPick }: { p: MapPoint; selected: boolean; lit: boolean; crowded: boolean; onPick: () => void }) {
   const on = selected || lit;
-  // Chữ số ngắn ("1", "2") đã gọn, không rút thêm; pin hẹp nhưng vẫn cao 2rem+ (chữ 20px) và vùng chạm >= 48px nhờ ::after.
+  // Chữ số ngắn ("1", "2") đã gọn, không rút thêm; pin hẹp nhưng vẫn cao >= 2,5rem (45px) và vùng chạm >= 48px nhờ ::after.
   const compact = crowded && !on && !isNum(p.text);
   const narrow = compact || isNum(p.text);
   const c = on ? PIN_ON : PIN[p.tone];
   return (
     <div className={`flex flex-col items-center ${on ? '-translate-y-1' : ''}`}>
       <button type="button" aria-label={p.label} aria-pressed={selected} onClick={onPick}
-        className={`relative z-10 ${narrow ? 'min-w-[2.5rem]' : 'min-w-[3.5rem]'} rounded-ui px-2 py-1 font-num text-lg font-bold leading-6 tabular after:absolute after:-inset-x-1 after:-inset-y-2 after:content-[''] ${c.bg} ${c.fg} ${c.bd} ${
+        className={`relative z-10 min-h-[2.5rem] ${narrow ? 'min-w-[2.5rem]' : 'min-w-[3.5rem]'} rounded-ui px-2 py-1 font-num text-lg font-bold leading-6 tabular after:absolute after:-inset-x-1 after:-inset-y-2 after:content-[''] ${c.bg} ${c.fg} ${c.bd} ${
           on ? 'border-[3px] shadow-lg' : 'border-2 shadow-md'
         }`}>
         {compact ? shortText(p.text) : p.text}
@@ -199,13 +199,15 @@ function Pin({ p, selected, lit, crowded, onPick }: { p: MapPoint; selected: boo
   );
 }
 
-export function ShiftMap({ points, selectedId, onSelect, highlightId, fitIds, className = 'h-80', lazy = true, caption }: {
+export function ShiftMap({ points, selectedId, onSelect, highlightId, fitIds, className = 'h-80', lazy = true, caption, failText = 'Chưa tải được bản đồ. Danh sách ca vẫn ở bên dưới.' }: {
   points: MapPoint[]; selectedId?: string | null; onSelect?: (id: string) => void;
   /** Thêm so với hợp đồng gốc: pin chỉ sáng lên (không chọn, không kéo bản đồ). */
   highlightId?: string | null;
   /** Khung nhìn ban đầu chỉ ôm các điểm có id này (các điểm khác vẫn hiện, kéo bản đồ để xem). */
   fitIds?: string[];
   className?: string; lazy?: boolean; caption?: string;
+  /** Câu hiện khi bản đồ không tải được; trang nào biết danh sách nằm đâu thì tự nói đúng chỗ. */
+  failText?: string;
 }) {
   const base = useBaseMap(lazy);
   const { ctx } = base;
@@ -318,7 +320,7 @@ export function ShiftMap({ points, selectedId, onSelect, highlightId, fitIds, cl
   return (
     <div>
       <MapFrame base={base} className={className} label={caption ?? 'Bản đồ các ca'}
-        failText="Chưa tải được bản đồ. Danh sách ca vẫn ở bên dưới.">
+        failText={failText}>
         {points.map((p) => {
           const el = els[p.id];
           return el ? createPortal(
@@ -343,7 +345,7 @@ function toPoint(s: Shift): MapPoint | null {
   const time = fmtTime(s.starts_at);
   return {
     id: s.id, lat: s.lat, lng: s.lng, text: time, href: `/shifts/${s.id}`,
-    label: `${JOB_LABEL[s.job_type]} ${time} ${s.facility_name}`,
+    label: `${s.urgent && s.status === 'open' && !full ? 'Ca gấp: ' : ''}${JOB_LABEL[s.job_type]} ${time} ${s.facility_name}`,
     tone: full ? 'full' : s.urgent && s.status === 'open' ? 'urgent' : 'open',
   };
 }
@@ -353,27 +355,41 @@ export function ShiftExplorer({ shifts, now }: { shifts: Shift[]; now: number })
   const [sel, setSel] = useState<string | null>(null);
   const [hover, setHover] = useState<string | null>(null);
   const [tab, setTab] = useState<'list' | 'map'>('list');
+  // `.stagger` chỉ cho lần vào đầu tiên: bỏ lớp sau khi hiệu ứng xong, để đổi tab (display: none rồi hiện lại) không chạy lại.
+  const [enter, setEnter] = useState(true);
+  useEffect(() => { const t = setTimeout(() => setEnter(false), 600); return () => clearTimeout(t); }, []);
+  const tabBar = useRef<HTMLDivElement>(null);
   const points = shifts.map(toPoint).filter((p): p is MapPoint => p !== null);
   const mapped = new Set(points.map((p) => p.id));
   const unmapped = shifts.length - points.length;
   const hasMap = points.length > 0;
+  const go = (t: 'list' | 'map') => { setEnter(false); setTab(t); };
 
   // Chọn pin thì cuộn thẻ tương ứng vào tầm nhìn; quay lại tab danh sách cũng vậy.
   useEffect(() => {
     if (sel) document.getElementById(`ca-${sel}`)?.scrollIntoView({ block: 'nearest', behavior: reduced() ? 'auto' : 'smooth' });
   }, [sel, tab]);
+  // Mở tab Bản đồ từ giữa danh sách dài (nút trên thẻ ca): đưa thanh Danh sách/Bản đồ (nằm ngay trên bản đồ) vào khung nhìn,
+  // để thấy bản đồ và vẫn quay lại được; đang ở đầu trang thì không cuộn.
+  useEffect(() => {
+    if (tab === 'map') tabBar.current?.scrollIntoView({ block: 'nearest', behavior: reduced() ? 'auto' : 'smooth' });
+  }, [tab]);
 
   return (
     <div className="space-y-4">
       {unmapped > 0 ? <p className="text-base text-ink-soft">{unmapped} ca chưa có vị trí trên bản đồ.</p> : null}
       {hasMap ? (
-        <div role="group" aria-label="Cách xem" className="grid grid-cols-2 gap-2 lg:hidden">
-          <button type="button" aria-pressed={tab === 'list'} onClick={() => setTab('list')} className={`${btn(tab === 'list' ? 'primary' : 'secondary')} !px-2`}>Danh sách</button>
-          <button type="button" aria-pressed={tab === 'map'} onClick={() => setTab('map')} className={`${btn(tab === 'map' ? 'primary' : 'secondary')} !px-2`}>Bản đồ</button>
+        <div ref={tabBar} role="group" aria-label="Cách xem" className="grid grid-cols-2 gap-0 rounded-ui border-2 border-brand lg:hidden">
+          {(['list', 'map'] as const).map((t) => (
+            <button key={t} type="button" aria-pressed={tab === t} onClick={() => go(t)}
+              className={`min-h-[3rem] rounded px-2 text-lg font-semibold transition-colors focus-visible:-outline-offset-4 ${tab === t ? 'bg-brand text-white' : 'bg-white text-brand hover:bg-brand-tint'}`}>
+              {t === 'list' ? 'Danh sách' : 'Bản đồ'}
+            </button>
+          ))}
         </div>
       ) : null}
       <div className={hasMap ? 'lg:grid lg:grid-cols-2 lg:items-start lg:gap-6' : ''}>
-        <ul aria-label="Danh sách ca" className={`space-y-4 ${tab === 'map' ? 'hidden lg:block' : ''}`}>
+        <ul aria-label="Danh sách ca" className={`space-y-4 ${enter ? 'stagger' : ''} ${tab === 'map' ? 'hidden lg:block' : ''}`}>
           {shifts.map((s) => (
             <li key={s.id} id={`ca-${s.id}`}
               onMouseEnter={() => setHover(s.id)} onMouseLeave={() => setHover(null)}
@@ -387,7 +403,7 @@ export function ShiftExplorer({ shifts, now }: { shifts: Shift[]; now: number })
                   ) : undefined} />
               </div>
               {mapped.has(s.id) ? (
-                <button type="button" onClick={() => { setSel(s.id); setTab('map'); }} className={`${btn('ghost', false)} mt-1`}>
+                <button type="button" onClick={() => { setSel(s.id); go('map'); }} className={`${btn('ghost', false)} mt-1 lg:hidden`}>
                   Xem vị trí trên bản đồ
                 </button>
               ) : null}
@@ -396,7 +412,9 @@ export function ShiftExplorer({ shifts, now }: { shifts: Shift[]; now: number })
         </ul>
         {hasMap ? (
           <div className={`${tab === 'list' ? 'hidden lg:block' : ''} lg:sticky lg:top-8`}>
-            <ShiftMap points={points} selectedId={sel} highlightId={hover} caption="Bản đồ các ca"
+            <ShiftMap points={points} selectedId={sel} highlightId={hover}
+              caption="Bản đồ các ca. Ghim đỏ là ca gấp, ghim trắng là ca đã đủ người."
+              failText={tab === 'map' ? 'Chưa tải được bản đồ. Bấm Danh sách để xem các ca.' : 'Chưa tải được bản đồ. Danh sách ca vẫn ở bên trái.'}
               onSelect={(id) => setSel(id || null)}
               className="h-[28rem] lg:h-[min(36rem,calc(100dvh_-_8rem))]" />
           </div>
@@ -431,7 +449,8 @@ export function LiveRefresh({ intervalMs = 30000 }: { intervalMs?: number }) {
     // đổi "--:--" thành giờ thật không làm đổi chiều cao. Nút là ghost để không tranh với hành động chính của trang.
     <div className="flex h-12 items-center justify-between gap-2">
       <p aria-live="off" className="min-w-0 flex-1 text-sm leading-snug text-ink-soft">
-        Tự cập nhật · <span className="tabular">{last ? fmtTime(new Date(last).toISOString()) : '--:--'}</span>
+        <span className="whitespace-nowrap">Tự cập nhật</span> <span aria-hidden="true" className="max-sm:hidden">·</span>{' '}
+        <span className="tabular max-sm:block">{last ? fmtTime(new Date(last).toISOString()) : '--:--'}</span>
       </p>
       <button type="button" onClick={run} disabled={pending} className={`${btn('ghost', false)} !px-2`}>
         <RefreshCw className={`h-5 w-5 ${pending ? 'motion-safe:animate-spin' : ''}`} aria-hidden="true" />

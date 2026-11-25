@@ -4,6 +4,7 @@ import { ActionForm, SubmitButton } from '@/components/client';
 import { Alert, Badge, Card, Empty, PageTitle, ShiftCard, btn, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
+import { shiftState } from '@/lib/format';
 import type { MyShift } from '@/lib/types';
 
 export const metadata = { title: 'Ca của tôi' };
@@ -25,7 +26,7 @@ function Group({ title, hint, items, extra }: {
         <h2 className="text-xl font-bold text-ink">{title} ({items.length})</h2>
         {hint ? <p className="text-base text-ink-soft">{hint}</p> : null}
       </div>
-      <ul className="grid gap-4 lg:grid-cols-2">
+      <ul className="stagger grid gap-4 lg:grid-cols-2">
         {items.map((s) => (
           <li key={s.id}>
             <ShiftCard
@@ -94,6 +95,8 @@ export default async function MyShiftsPage() {
     else if (live && ended && s.claim_role === 'primary' && s.attended !== false && s.my_payment == null) needAnswer.push(s);
     else past.push(s);
   }
+  // Ca đã diễn ra xong, quán chưa xác nhận (còn trong hạn 72 giờ): cùng cách tính với StateBadge.
+  const waiting = all.filter((s) => s.claim_status === 'active' && shiftState(s, now) === 'awaiting_confirm').length;
   upcoming.sort((a, b) => t(a.starts_at) - t(b.starts_at));
   needAnswer.sort((a, b) => t(b.starts_at) - t(a.starts_at));
   past.sort((a, b) => t(b.starts_at) - t(a.starts_at));
@@ -102,6 +105,20 @@ export default async function MyShiftsPage() {
     <div className="space-y-6">
       <PageTitle sub="Các ca bạn đã nhận.">Ca của tôi</PageTitle>
       {error ? <Alert tone="red">{friendlyError(error)}</Alert> : null}
+
+      {!error && all.length > 0 ? (
+        <Card>
+          <h2 className="sr-only">Tóm tắt</h2>
+          <dl className="grid grid-cols-3 divide-x divide-rule text-center">
+            {([['Sắp tới', upcoming.length], ['Chờ quán xác nhận', waiting], ['Cần bạn trả lời', needAnswer.length]] as const).map(([label, n]) => (
+              <div key={label} className="flex flex-col-reverse justify-end px-2">
+                <dt className="text-base text-ink-soft">{label}</dt>
+                <dd className="tabular font-num text-4xl font-bold leading-tight text-ink">{n}</dd>
+              </div>
+            ))}
+          </dl>
+        </Card>
+      ) : null}
 
       {!error && all.length === 0 ? (
         <div className="space-y-4">
@@ -125,7 +142,7 @@ export default async function MyShiftsPage() {
             <h2 className="text-xl font-bold text-ink">Đánh giá quán ({toReview.length})</h2>
             <p className="text-base text-ink-soft">Quán đã xác nhận bạn làm ca này. Mỗi ca đánh giá một lần.</p>
           </div>
-          <ul className="grid gap-4 lg:grid-cols-2">
+          <ul className="stagger grid gap-4 lg:grid-cols-2">
             {toReview.map((s) => (
               <li key={s.id} className="space-y-4">
                 <ShiftCard shift={s} />

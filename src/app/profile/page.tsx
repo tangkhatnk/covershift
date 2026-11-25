@@ -1,11 +1,13 @@
 import Link from 'next/link';
+import { Circle, CircleCheck } from 'lucide-react';
 import { regenerateConsent, setSharing, updateWorkerProfile } from '@/app/actions';
 import { ActionForm, CopyButton, SubmitButton } from '@/components/client';
 import { Alert, Badge, Card, Check, Field, PageTitle, btn, inputCls, type Tone } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { APPROVAL_LABEL, AREA_LABEL, AVAILABILITY_LABEL, CONSENT_LABEL, SITE_URL, type Area } from '@/lib/constants';
 import { friendlyError } from '@/lib/errors';
-import { fmtDateTime, fmtPlainDate } from '@/lib/format';
+import { fmtDateTime, fmtPlainDate, hoursBetween, vnDateInput } from '@/lib/format';
+import type { MyShift } from '@/lib/types';
 
 export const metadata = { title: 'Hồ sơ' };
 
@@ -25,19 +27,33 @@ type ConsentRow = { token: string; status: keyof typeof CONSENT_LABEL; expires_a
 const linkCls = 'font-semibold text-brand underline underline-offset-4';
 const APPROVAL_TONE: Record<WorkerRow['approval'], Tone> = { pending: 'amber', approved: 'green', rejected: 'red' };
 const CONSENT_TONE: Record<ConsentRow['status'], Tone> = { pending: 'amber', submitted: 'blue', approved: 'green', rejected: 'red' };
-const urlBox = 'break-all rounded-ui border-2 border-rule-strong bg-chalk px-4 py-2 text-base text-ink';
+const urlBox = 'break-all text-base font-semibold text-ink';
+
+/** Ngày YYYY-MM-DD cộng `n` ngày (chỉ số học trên ngày, không phụ thuộc múi giờ máy chủ). */
+const addDays = (ymd: string, n: number) => {
+  const [y, m, d] = ymd.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
+};
+/** Thứ Hai và Chủ nhật của tuần chứa `ymd` (tuần theo giờ Việt Nam, khớp `_claims_validate`). */
+const weekOf = (ymd: string) => {
+  const [y, m, d] = ymd.split('-').map(Number);
+  const mon = addDays(ymd, -((new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7));
+  return [mon, addDays(mon, 6)] as const;
+};
 
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ moi?: string }> }) {
   const { supabase, profile, user } = await requireRole('worker');
   const sp = await searchParams;
 
-  const [wpRes, phoneRes, consentRes, eventsRes] = await Promise.all([
+  const [wpRes, phoneRes, consentRes, eventsRes, shiftsRes, cfgRes] = await Promise.all([
     supabase.from('worker_profiles')
       .select('date_of_birth, school, class_name, area, availability, approval, review_note, share_enabled, public_slug')
       .eq('user_id', user.id).maybeSingle(),
     supabase.from('private_contacts').select('phone').eq('user_id', user.id).maybeSingle(),
     supabase.from('parental_consents').select('token, status, expires_at').eq('worker_id', user.id).maybeSingle(),
     supabase.from('worker_events').select('kind').eq('worker_id', user.id),
+    supabase.rpc('my_shifts'),
+    supabase.from('app_config').select('value').eq('key', 'weekly_hours_cap').maybeSingle(),
   ]);
 
   const wp = wpRes.data as WorkerRow | null;
@@ -50,6 +66,22 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   const lateCancels = events.filter((e) => e.kind === 'late_cancel').length;
   const noShows = events.filter((e) => e.kind === 'no_show').length;
 
+  // Giờ tuần này: cùng cách tính với database (suất còn hiệu lực, ca chưa hủy, tuần Thứ Hai đến Chủ nhật); database vẫn là nơi chặn.
+  const cap = Number(cfgRes.data?.value) || 40;
+  const [weekFrom, weekTo] = weekOf(vnDateInput());
+  const weekHours = shiftsRes.error ? null : Math.round(
+    ((shiftsRes.data ?? []) as MyShift[])
+      .filter((x) => x.claim_status === 'active' && x.status !== 'cancelled' && vnDateInput(x.starts_at) >= weekFrom && vnDateInput(x.starts_at) <= weekTo)
+      .reduce((sum, x) => sum + hoursBetween(x.starts_at, x.ends_at), 0) * 10) / 10;
+
+  const steps = [
+    { done: phone.trim() !== '', label: 'Số điện thoại', ok: 'Đã có số điện thoại.', todo: 'Chưa có số điện thoại.' },
+    { done: wp.school.trim() !== '', label: 'Trường đang học', ok: wp.school, todo: 'Chưa ghi trường đang học.' },
+    { done: (wp.availability ?? []).length > 0, label: 'Giờ rảnh', ok: `Đã chọn ${(wp.availability ?? []).length} khung giờ.`, todo: 'Chưa chọn giờ rảnh.' },
+  ];
+  const approved = wp.approval === 'approved';
+  const doneCount = steps.filter((x) => x.done).length + (approved ? 1 : 0);
+
   const consentUrl = consent ? `${SITE_URL}/consent/${consent.token}` : '';
   const consentExpired = consent ? new Date(consent.expires_at).getTime() < Date.now() : false;
   const publicUrl = `${SITE_URL}/p/${wp.public_slug}`;
@@ -60,27 +92,60 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
 
       {sp.moi ? (
         <Alert tone="green">
-          <b>Đăng ký thành công!</b>{' '}
+          <b>Bạn đã đăng ký xong.</b>{' '}
           {consent?.status === 'pending'
             ? 'Còn một bước: gửi link bên dưới cho phụ huynh để phụ huynh bấm đồng ý.'
             : 'Nhóm vận hành sẽ duyệt hồ sơ của bạn. Trong lúc chờ, bạn xem trước các ca được.'}
         </Alert>
       ) : null}
 
-      <Card tab={<><h2 className="text-lg font-bold text-ink">Trạng thái duyệt</h2><Badge tone={APPROVAL_TONE[wp.approval]}>{APPROVAL_LABEL[wp.approval]}</Badge></>}>
-        {wp.approval === 'pending' ? (
-          <p className="text-base text-ink">Nhóm vận hành đang xem hồ sơ. Duyệt xong bạn mới nhận ca được.</p>
-        ) : null}
-        {wp.approval === 'approved' ? (
-          <p className="text-base text-ink">
-            Bạn nhận ca được rồi. <Link href="/shifts" className={linkCls}>Tìm ca</Link>
-          </p>
-        ) : null}
-        {wp.approval === 'rejected' ? (
-          <p className="text-base text-danger">
-            {wp.review_note ? `Lý do: ${wp.review_note}` : 'Hồ sơ chưa được duyệt. Vui lòng liên hệ nhóm vận hành để biết lý do.'}
-          </p>
-        ) : null}
+      <Card tab={<><h2 className="text-lg font-bold text-ink">Hoàn thiện hồ sơ ({doneCount}/4)</h2><Badge tone={APPROVAL_TONE[wp.approval]}>{APPROVAL_LABEL[wp.approval]}</Badge></>}>
+        <ul className="divide-y divide-rule">
+          {steps.map((x) => (
+            <li key={x.label} className="flex items-start gap-2 py-2">
+              {x.done
+                ? <CircleCheck className="mt-1 h-5 w-5 shrink-0 text-ok" aria-hidden="true" />
+                : <Circle className="mt-1 h-5 w-5 shrink-0 text-rule-strong" aria-hidden="true" />}
+              <p className="min-w-0 flex-1 break-words text-base text-ink">
+                <b>{x.label}.</b> {x.done ? x.ok : x.todo}
+                {x.done ? null : <>{' '}<a href="#thong-tin" className={linkCls}>Điền ở mục Thông tin</a></>}
+              </p>
+            </li>
+          ))}
+          <li className="flex items-start gap-2 py-2">
+            {approved
+              ? <CircleCheck className="mt-1 h-5 w-5 shrink-0 text-ok" aria-hidden="true" />
+              : <Circle className="mt-1 h-5 w-5 shrink-0 text-rule-strong" aria-hidden="true" />}
+            <p className="min-w-0 flex-1 break-words text-base text-ink">
+              <b>Nhóm vận hành duyệt.</b>{' '}
+              {approved ? 'Bạn nhận ca được rồi.' : null}
+              {wp.approval === 'pending' ? 'Đang chờ duyệt. Duyệt xong bạn mới nhận ca được.' : null}
+              {wp.approval === 'rejected' ? <span className="text-danger">{wp.review_note ? `Lý do: ${wp.review_note}` : 'Chưa được duyệt. Vui lòng liên hệ nhóm vận hành để biết lý do.'}</span> : null}
+            </p>
+          </li>
+        </ul>
+        {approved ? <Link href="/shifts" className={`${btn('primary', false)} mt-4 w-full sm:w-auto`}>Tìm ca</Link> : null}
+      </Card>
+
+      <Card>
+        <h2 className="text-xl font-bold text-ink">Giờ làm tuần này</h2>
+        {weekHours == null ? (
+          <p className="mt-2 text-base text-ink-soft">Chưa tải được số giờ của tuần này. Bạn tải lại trang sau ít phút nhé.</p>
+        ) : (
+          <>
+            <p className="mt-2 text-base text-ink">
+              <span className="tabular font-num text-4xl font-bold leading-tight">{weekHours}/{cap}</span> giờ
+            </p>
+            <div role="progressbar" aria-label="Giờ làm tuần này" aria-valuemin={0} aria-valuemax={cap} aria-valuenow={Math.min(weekHours, cap)}
+              className="mt-2 h-4 overflow-hidden rounded-ui border border-rule-strong bg-chalk">
+              <div className="h-full bg-brand" style={{ width: `${Math.min(100, (weekHours / cap) * 100)}%` }} />
+            </div>
+            <p className="mt-2 text-base text-ink-soft">
+              Tuần {fmtPlainDate(weekFrom).slice(0, 5)} đến {fmtPlainDate(weekTo).slice(0, 5)}, tính cả suất dự phòng còn hiệu lực.
+              {weekHours >= cap ? ' Bạn đã đủ giờ của tuần này.' : ` Còn ${Math.round((cap - weekHours) * 10) / 10} giờ.`}
+            </p>
+          </>
+        )}
       </Card>
 
       {consent ? (
@@ -131,10 +196,10 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             <Link href={`/p/${wp.public_slug}`} className={btn('secondary')}>Xem hồ sơ</Link>
           </div>
         ) : (
-          <p className="mt-2 text-base">
-            <Link href={`/p/${wp.public_slug}`} className={linkCls}>Xem trước</Link>{' '}
-            <span className="text-ink-soft">(chỉ mình bạn xem được khi đang tắt)</span>
-          </p>
+          <div className="mt-2">
+            <Link href={`/p/${wp.public_slug}`} className={btn('secondary')}>Xem trước</Link>
+            <p className="mt-2 text-base text-ink-soft">Khi đang tắt, chỉ mình bạn xem được.</p>
+          </div>
         )}
         <ActionForm action={setSharing} className="mt-4 space-y-4">
           <input type="hidden" name="enabled" value={wp.share_enabled ? 'false' : 'true'} />
@@ -148,12 +213,12 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
 
       <Card>
         <h2 className="text-xl font-bold text-ink">Lịch sử</h2>
-        <dl className="mt-4 grid grid-cols-2 gap-4 text-center">
-          <div className="flex flex-col-reverse rounded-ui border border-rule bg-chalk p-4">
+        <dl className="mt-4 grid grid-cols-2 divide-x divide-rule text-center">
+          <div className="flex flex-col-reverse px-2">
             <dt className="text-base text-ink-soft">lần hủy sát giờ</dt>
             <dd className={`tabular font-num text-4xl font-bold ${lateCancels ? 'text-danger' : 'text-ink'}`}>{lateCancels}</dd>
           </div>
-          <div className="flex flex-col-reverse rounded-ui border border-rule bg-chalk p-4">
+          <div className="flex flex-col-reverse px-2">
             <dt className="text-base text-ink-soft">lần không đến</dt>
             <dd className={`tabular font-num text-4xl font-bold ${noShows ? 'text-danger' : 'text-ink'}`}>{noShows}</dd>
           </div>
@@ -162,7 +227,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       </Card>
 
       <Card>
-        <h2 className="text-xl font-bold text-ink">Thông tin của tôi</h2>
+        <h2 id="thong-tin" className="text-xl font-bold text-ink">Thông tin của tôi</h2>
         <dl className="mt-2 space-y-2 text-base">
           <div className="flex gap-2"><dt className="text-ink-soft">Họ tên:</dt><dd className="font-semibold">{profile.full_name}</dd></div>
           <div className="flex gap-2"><dt className="text-ink-soft">Ngày sinh:</dt><dd className="font-semibold">{fmtPlainDate(wp.date_of_birth)}</dd></div>
