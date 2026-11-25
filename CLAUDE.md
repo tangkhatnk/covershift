@@ -33,7 +33,7 @@ Hiện trạng (quyết định 17/11/2026): app là **bản mô phỏng**, ch�
 - Thông báo lỗi nghiệp vụ là tiếng Việt trong `raise exception`; `edge_cases.sql` khớp theo chuỗi này → sửa câu chữ thì sửa cả test.
 - Test SQL: hành động và kiểm tra phải là hai câu lệnh riêng (`pg_temp.t_do`), vì một câu không thấy dữ liệu hàm volatile vừa ghi.
 - Server chạy UTC: mọi hiển thị giờ đi qua `src/lib/format.ts`.
-- `'use client'` chỉ còn bốn file: `src/components/client.tsx` (có `AppShell`), `src/components/map.tsx` (bản đồ MapLibre, cần trình duyệt), `src/app/confirm/[token]/confirm-form.tsx`, `src/app/error.tsx` (error boundary của Next bắt buộc là Client Component). `/login` là Server Component, không có client Supabase cho đăng nhập.
+- `'use client'` chỉ còn năm file: `src/components/client.tsx` (có `AppShell`), `src/components/map.tsx` (bản đồ MapLibre, cần trình duyệt), `src/components/hero-fx.tsx` (nền ánh nước WebGL của hero trang chủ, cần `window`/canvas, tải lười), `src/app/confirm/[token]/confirm-form.tsx`, `src/app/error.tsx` (error boundary của Next bắt buộc là Client Component). `/login` là Server Component, không có client Supabase cho đăng nhập.
 - Next 15: `params` / `searchParams` là `Promise`.
 - Không chạy `next dev` và `next build` cùng lúc (chung thư mục `.next`).
 
