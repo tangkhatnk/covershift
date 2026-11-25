@@ -1,3 +1,11 @@
 {
-  "agent": "safeshift-lead"
+  "enabledPlugins": {
+    "savvy-progress@claude-kit": true,
+    "filetree@claude-code-filetree": true,
+    "frontend-design@anthropic-plugin-directory": true,
+    "code-review@anthropic-plugin-directory": true,
+    "github@anthropic-plugin-directory": true,
+    "playwright@anthropic-plugin-directory": true,
+    "supabase@anthropic-plugin-directory": true
+  }
 }

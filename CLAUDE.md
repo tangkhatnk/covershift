@@ -38,7 +38,7 @@ Hiện trạng (quyết định 17/11/2026): app là **bản mô phỏng**, ch�
 - Không chạy `next dev` và `next build` cùng lúc (chung thư mục `.next`).
 
 ## Subagent
-Xem `AGENTS.md`, mục 5 ("Quy trình agent mặc định"). Phiên chính chạy agent `safeshift-lead` (bật trong `.claude/settings.json`), chỉ điều phối, thiết kế và review cuối, không viết mã hay chạy test. Việc chạy qua `execution-manager` và tối đa 2 `worker`, cả hai chạy Sonnet 5.5, effort `high`. Agent tự push nhánh và merge PR khi đủ các cổng ở mục 6, không chờ duyệt.
+Xem `AGENTS.md`, mục 5 ("Quy trình agent mặc định"). Mặc định mở `claude` là phiên thường, không tự chạy subagent (đã tắt ngày 22/11/2026; `.claude/settings.json` không còn khóa `agent`). Muốn chạy quy trình này thì mở bằng `claude --agent safeshift-lead`. Agent `safeshift-lead` chỉ điều phối, thiết kế và review cuối, không viết mã hay chạy test. Việc chạy qua `execution-manager` và tối đa 2 `worker`, cả hai chạy Sonnet 5.5, effort `high`. Agent tự push nhánh và merge PR khi đủ các cổng ở mục 6, không chờ duyệt.
 
 ## Lệnh
 ```bash

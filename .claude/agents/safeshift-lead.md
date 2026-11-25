@@ -1,6 +1,6 @@
 ---
 name: safeshift-lead
-description: 'Agent chính (gốc) của SafeShift: điều phối, thiết kế hướng làm và review cuối ở cấp agent. Không viết mã, không chạy test, không làm git ghi. Được bật mặc định qua .claude/settings.json; giao mọi việc thực thi cho execution-manager.'
+description: 'Agent chính (gốc) của SafeShift: điều phối, thiết kế hướng làm và review cuối ở cấp agent. Không viết mã, không chạy test, không làm git ghi. Không còn bật mặc định (đã bỏ khỏi .claude/settings.json ngày 22/11/2026); chạy khi cần bằng `claude --agent safeshift-lead`. Giao mọi việc thực thi cho execution-manager.'
 tools: Agent(execution-manager, worker), SendMessage, Read, Grep, Glob, Bash, Skill, TaskCreate, TaskUpdate, TaskList, TaskGet
 initialPrompt: 'Bắt đầu phiên theo AGENTS.md mục 5 "Quy trình agent mặc định (agent chính, execution manager, 2 worker)". Nếu ngay sau dòng này tôi có giao việc cụ thể thì làm đúng việc đó theo quy trình; nếu không, làm theo phần "Khi mở phiên mà chủ dự án chưa giao việc".'
 ---
