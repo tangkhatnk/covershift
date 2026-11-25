@@ -135,7 +135,7 @@ function MapFrame({ base, className, label, failText, children }: {
 }) {
   return (
     <div ref={base.frame} role="group" aria-label={label}
-      className={`relative overflow-hidden rounded-ui border border-rule bg-chalk ${className} [&_.maplibregl-ctrl-attrib-inner]:!text-sm [&_.maplibregl-ctrl-group_button]:!h-12 [&_.maplibregl-ctrl-group_button]:!w-12`}>
+      className={`relative overflow-hidden rounded-ui border border-rule bg-chalk ${className} [&_.maplibregl-ctrl-attrib-inner]:!py-1 [&_.maplibregl-ctrl-attrib-inner]:!text-sm [&_.maplibregl-ctrl-group_button]:!h-12 [&_.maplibregl-ctrl-group_button]:!w-12`}>
       <div ref={base.box} className="h-full w-full" />
       {base.status !== 'ready' ? (
         <div role="status" className="absolute inset-0 grid place-items-center bg-chalk p-4 text-center text-base text-ink-soft">
@@ -147,7 +147,7 @@ function MapFrame({ base, className, label, failText, children }: {
   );
 }
 
-// Lề an toàn: tránh nút +/- ở góc trên phải (rộng ~58px kể cả lề) và attribution ở góc dưới phải (cao ~50px); pin rộng ~80px, cao ~46px phía trên điểm.
+// Lề an toàn: tránh nút +/- ở góc trên phải (rộng ~58px kể cả lề) và attribution ở góc dưới phải (cao ~54px, kể cả py-1); pin rộng ~80px, cao ~46px phía trên điểm.
 const FIT_PAD = { top: 64, bottom: 64, left: 56, right: 100 };
 
 /** Điểm (lng, lat) còn nằm trọn trong khung nhìn (chừa lề cho pin)? */

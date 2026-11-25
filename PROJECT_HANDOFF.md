@@ -20,8 +20,8 @@ Nguồn của tài liệu này chỉ là **một phiên làm việc duy nhất**
 |---|---|
 | Thư mục dự án | `/Users/macpro/Desktop/Project/startup` |
 | Hạn chót | Deploy ổn định **trước 20/11/2026**. Chạy **21–22/11**. Demo **26/11**. Theo quyết định 17/11/2026, app là **bản mô phỏng**: đợt 21–22/11 không dùng người thật, chỉ dữ liệu mẫu. |
-| Hiện trạng | **Tạm dừng 19/11/2026: production ở `main` = `d5eaeef`; việc tiếp theo ở đầu mục 7.** **17/11: migration đã áp lên Supabase thật (85/85 test đạt trên Supabase lúc đó; nay có 86 test).** Web đã deploy production tại https://safeshift-beta.vercel.app (Vercel project `safeshift`, team `safeshift`, nối GitHub: merge vào `main` là tự deploy; biến `NEXT_PUBLIC_*` đã đặt). Đăng nhập chỉ bằng 3 nút demo ở `/login` (server action `demoLogin`, mật khẩu chung công khai đặt bởi `seed.sql`); đã bỏ Google OAuth và magic link. **19/11: `0003` và `0004` đã áp, seed mới đã chạy (xem mục 7). 18/11: đã chạy lại `seed.sql` trên Supabase thật (16/16 user demo có mật khẩu; 3 tài khoản của nút demo đăng nhập được qua Supabase Auth). Chưa chạy tay `TESTING.md` mục B trên trình duyệt.** |
-| Việc gấp nhất | Làm theo khối "Tạm dừng 19/11/2026" ở đầu mục 7 (hoàn tất #25, giao diện người làm và chủ quán, tuyển dụng lâu dài); chủ dự án kiểm tay `TESTING.md` mục B trên điện thoại thật → chuẩn bị demo 26/11. |
+| Hiện trạng | **25/11/2026: `main` = `2537cea` (#48) lúc viết dòng này; trạng thái và việc còn lại ở đầu mục 7. (Tạm dừng 19/11/2026 khi `main` = `d5eaeef`.)** **17/11: migration đã áp lên Supabase thật (85/85 test đạt trên Supabase lúc đó; nay có 86 test).** Web đã deploy production tại https://safeshift-beta.vercel.app (Vercel project `safeshift`, team `safeshift`, nối GitHub: merge vào `main` là tự deploy; biến `NEXT_PUBLIC_*` đã đặt). Đăng nhập chỉ bằng 3 nút demo ở `/login` (server action `demoLogin`, mật khẩu chung công khai đặt bởi `seed.sql`); đã bỏ Google OAuth và magic link. **19/11: `0003` và `0004` đã áp, seed mới đã chạy (xem mục 7). 18/11: đã chạy lại `seed.sql` trên Supabase thật (16/16 user demo có mật khẩu; 3 tài khoản của nút demo đăng nhập được qua Supabase Auth). Chưa chạy tay `TESTING.md` mục B trên trình duyệt.** |
+| Việc gấp nhất | Demo **26/11**: chủ dự án kiểm tay `TESTING.md` mục B trên điện thoại thật (#39), chốt #36, #38, #40; chạy lại `seed.sql` ngay trước buổi demo. Chi tiết ở khối "Cập nhật 25/11/2026" đầu mục 7. |
 
 Lệnh kiểm tra nhanh trạng thái (đều đã chạy đạt lúc bàn giao):
 
@@ -349,8 +349,27 @@ Chức năng: đăng ca / nhân bản / đổi thứ tự chính–dự phòng �
 
 ## 7. NEXT STEPS
 
-### Tạm dừng 19/11/2026: trạng thái và việc tiếp theo
-Ngày 19/11/2026 chủ dự án tạm dừng toàn bộ công việc để sao lưu; lần sau mở Claude làm tiếp từ khối này.
+### Cập nhật 25/11/2026: trạng thái và việc còn lại
+
+**Trạng thái**
+- `main` lúc viết = `2537cea` (#48); merge vào `main` là tự deploy lên https://safeshift-beta.vercel.app. Phiên viết khối này chưa mở lại production sau #48.
+- PR đã merge sau khối 19/11 (theo `gh pr list`): #42 tắt agent `safeshift-lead` mặc định khi mở phiên; #43 giao diện tuyển dụng lâu dài cho người làm, chủ quán, nhóm vận hành; #44 trang thông báo, trang quán công khai, chia sẻ ca và đánh giá quán; #45 nav việc làm và tuyển dụng, chuông thông báo, dải đầu trang quán và ca chia sẻ; #46 trang chủ mới (hero ánh nước WebGL, vé ca minh họa); #47 giao diện chủ quán và nhóm vận hành, tìm kiếm người làm, manifest PWA (`src/app/manifest.ts`); #48 giao diện người làm gọn hơn ở tìm ca, chi tiết ca, ca của tôi và hồ sơ. #25 (hệ thiết kế Biển & Nắng) đã merge ngày 19/11; #28 (WIP trang chủ) đã đóng; #19 (script `apply-remote.mjs`) còn mở.
+- Issue #29 đến #35 đã đóng. Còn mở: #36, #37, #38, #39, #40.
+- Không có thay đổi nào trong `supabase/` và `db-test/` kể từ 19/11: vẫn 358/358 test, schema dừng ở `0004`.
+- Dữ liệu demo trên Supabase thật: ngày 25/11/2026 chủ dự án cho phép **một lần** chạy lại `seed.sql` qua MCP; kết quả là 5 ca mở trong các ngày 26 đến 28/11. Đây là ngoại lệ một lần, không đổi quy tắc "agent không tự ghi lên Supabase thật" (`AGENTS.md` mục 12). Ca mẫu và token `demo-token-con-han` (hết hạn 70 giờ sau lúc chạy seed) tính theo `now()` lúc chạy; hết hạn hoặc bị test làm đổi thì cần chạy lại seed (chủ dự án chạy hoặc cho phép).
+- #37 (lỗi và quan sát còn mở): nhánh `fix/loi-quan-sat-37` sửa phần sửa được (logo thanh trên lệch lề nội dung ở desktop, đệm ô ghi nguồn của bản đồ). `/shifts/<id lạ>` trả 200 thay vì 404 **chưa sửa**: nguyên nhân là `src/app/shifts/loading.tsx` (và `[id]/loading.tsx`) làm Next gửi khung chờ, tức status 200, trước khi `notFound()` chạy; chỉ bỏ cả hai `loading.tsx` mới ra 404, mà `AGENTS.md` mục 18 yêu cầu trang có dữ liệu giữ khung chờ. Trang hiển thị đúng "Không tìm thấy" và đứng sau đăng nhập nên chấp nhận.
+
+**Việc còn lại, chờ chủ dự án**
+1. #36: giữ hay đóng PR #19.
+2. #38: các câu hỏi G4, G5, G8, G10, H1 đến H6, I1 đến I7, thông tin liên hệ cho `/terms` và `/privacy`.
+3. #39: kiểm tay `TESTING.md` mục B trên điện thoại thật và trong Zalo (mục B12 mới cho `/jobs`, thông báo, `/f`, `/s`).
+4. #40: số đo hiệu năng tham chiếu.
+5. Ngay trước demo 26/11: chạy lại `seed.sql`, mở web một lần để chắc Supabase không bị tạm dừng.
+
+**Khi demo luồng xác nhận sau ca**: đi từ tài khoản nhóm vận hành (`/admin` → "Xem chi tiết ca" → "Xác nhận ngay"). Token mẫu `demo-token-con-han` thuộc quán OASIS SEA Coffee & Tea, không thuộc SOHO Coffee của tài khoản chủ quán demo, nên nút "Xác nhận ngay" không hiện ở `/employer` của tài khoản chủ quán demo. Mở thẳng `/confirm/demo-token-con-han` thì chạy được mà không cần đăng nhập.
+
+### Tạm dừng 19/11/2026: trạng thái và việc tiếp theo (bản ghi lịch sử, một phần đã cũ)
+Ngày 19/11/2026 chủ dự án tạm dừng toàn bộ công việc để sao lưu. Từ đó #25 đến #35 đã xong và merge (xem khối 25/11 ở trên); các mục dưới đây giữ lại để biết quy trình và lý do.
 
 **Trạng thái**
 - Production đang ở `main` = `d5eaeef`.

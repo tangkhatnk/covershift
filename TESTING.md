@@ -99,7 +99,7 @@ Dữ liệu seed dùng trong kịch bản: 9 quán thật ở Vũng Tàu (cơ s�
    - không tick cam kết → ✔ không gửi được
    - tick "Nhận dưới 18" với giờ 18:00–23:00 → ✔ lỗi 06:00–22:00
    - hợp lệ → ✔ sang trang ca, báo "Đã đăng ca".
-5. "Nhân bản ca này" → ✔ form điền sẵn, chỉ cần chọn ngày → đăng.
+5. Ở `/employer/shifts/[id]` bấm "Đăng lại ca này" → ✔ mở `/employer/new-shift?from=<id>` với form điền sẵn loại việc, giờ bắt đầu và kết thúc, số người, lương, mô tả; ngày mặc định là ngày mai. Chỉ kiểm giá trị điền sẵn, không bấm Đăng nếu không cần thêm ca.
 6. N và một người làm khác nhận ca → Q thấy người chính + dự phòng kèm SĐT → "Đổi chỗ với người dự phòng" → ✔ hai người đổi vai.
 
 ### B4. Số điện thoại
@@ -126,6 +126,8 @@ Dữ liệu seed dùng trong kịch bản: 9 quán thật ở Vũng Tàu (cơ s�
 ### B6. Xác nhận sau ca
 
 Dùng ca seed "vừa hết giờ" (OASIS SEA Coffee & Tea, dọn dẹp) — link: `/confirm/demo-token-con-han`.
+
+Khi demo luồng này từ trong app, đi từ tài khoản nhóm vận hành (**A**): `/admin` → ca chờ xác nhận → "Xem chi tiết ca" → "Xác nhận ngay". Token mẫu `demo-token-con-han` thuộc quán OASIS, không thuộc SOHO Coffee của tài khoản chủ quán demo (**Q**), nên **Q** không thấy ca này ở `/employer`; chủ quán chỉ có nút "Xác nhận ngay" ở ca của quán mình.
 
 1. Mở link **trong Zalo trên điện thoại** (gửi link cho chính mình qua Zalo rồi bấm; chủ quán thật sẽ mở như vậy), hoặc ở trình duyệt ẩn danh → ✔ thấy tên quán, giờ, tên người làm; không cần đăng nhập. Nút "Gửi xác nhận" không hỏi lại bằng hộp thoại (trình duyệt nhúng của Zalo có thể chặn hộp thoại).
 2. Chọn "Đã làm" → "Đúng giờ" → **chưa chấm sao** → Gửi → ✔ lỗi *"Vui lòng chọn Đúng giờ / Trễ và số sao."* hiện trong tầm nhìn, các lựa chọn đã chọn vẫn giữ. Chấm 5 sao → nhận xét → Gửi → ✔ *"Ca này đã được xác nhận. Cảm ơn anh/chị!"*.
@@ -172,6 +174,16 @@ Cần `0002_toa_do_co_so.sql` đã áp và `seed.sql` đã chạy lại (seed gh
 7. Bàn phím và đọc màn hình: ghim chọn được bằng Tab, mỗi ghim có tên đọc được ("SOHO Coffee, ..."). Bề rộng 360px: bản đồ không gây cuộn ngang, kéo bản đồ không làm cuộn cả trang bị kẹt (có thể lướt qua bản đồ bằng một ngón).
 8. Mất mạng hoặc chặn `tiles.openfreemap.org` → ✔ danh sách ca vẫn dùng được, bản đồ báo không tải được bằng chữ.
 9. Dòng nhắc SĐT quán (theo chỉ thị chủ dự án 19/11/2026): N đã nhận suất mở `/shifts/[id]` của ca đó → ✔ ngay dưới "Liên hệ quán: … · <số>" có dòng "Dữ liệu mô phỏng. Không gọi số này để hỏi về ca."; A vào `/admin` (ca sắp tới và ca chờ xác nhận), `/admin/facilities` và `/admin/reports` → ✔ dòng đó nằm dưới mỗi dòng "Chủ quán/Chủ: … · <số>" (ở báo cáo: dưới dòng "Người liên quan", vì người đó có thể là chủ quán). Ở 360–414px: ✔ chữ nhỏ hơn thân nhưng đọc được, xuống dòng không bị cắt, không cuộn ngang.
+
+### B12. Việc làm lâu dài, thông báo, trang công khai
+
+Chỉ xem và mở; không bấm Ứng tuyển, Đánh dấu đã đọc hay gửi đánh giá nếu muốn giữ dữ liệu seed (lỡ bấm thì chạy lại `seed.sql`).
+
+1. N vào `/jobs`: ✔ tiêu đề "Việc làm lâu dài", các tin của quán đã xác minh, lọc theo việc và hình thức ra đúng; mở một tin → `/jobs/[id]` mở được, ✔ không có SĐT của quán trước khi đơn được chọn. Bấm "Đơn ứng tuyển của tôi" → `/my-applications` (✔ danh sách hoặc ô trống rõ ràng). ✔ Mục "Việc làm" của nav sáng ở cả `/jobs`, `/jobs/[id]` và `/my-applications`.
+2. Thông báo: N rồi Q mở `/notifications`. ✔ Chuông có huy hiệu vàng khớp số chưa đọc (quá 9 hiện "9+"; ở điện thoại chuông nằm trên thanh trên, ở desktop là hàng "Thông báo" trong rail; trình đọc màn hình đọc "Thông báo, N chưa đọc"). Mở `/notifications` → ✔ tiêu đề phụ "N thông báo chưa đọc", thông báo chưa đọc có nhãn "Mới" trên nền vàng nhạt, mỗi thông báo có link tới trang liên quan. Bấm "Đánh dấu đã đọc" (chỉ khi chấp nhận ghi dữ liệu) → tải lại trang bất kỳ ✔ huy hiệu biến mất.
+3. Trang quán công khai `/f/<slug>` (slug dạng `demo-quan-1` đến `demo-quan-9`; lấy từ link "Xem trang quán" ở `/s/[id]`), mở ở trình duyệt ẩn danh: ✔ dải đầu xanh biển đậm nối liền thanh trên, tên quán, số ca đã hoàn thành, điểm đánh giá, địa chỉ, bản đồ, mục "Ca đang mở"; ✔ không có SĐT, không có nav chính; bấm một ca → `/s/[id]`. Quán chưa xác minh (số 5, KATINAT) → ✔ trang "Không tìm thấy". Slug bậy → ✔ "Không tìm thấy".
+4. Chia sẻ ca `/s/<id ca còn chỗ>` (lấy link từ nút "Sao chép link ca" ở `/shifts/[id]`): ẩn danh → ✔ nút "Đăng nhập để nhận ca"; đăng nhập N rồi mở lại ✔ nút "Mở ca trong ứng dụng" và **vẫn không có nav chính** (trang công khai chỉ có thanh trên); id lạ → ✔ "Không tìm thấy". Ở 360–414px không cuộn ngang.
+5. Mở link `/f/…` hoặc `/s/…` trong Zalo (nếu có điều kiện) ✔ hiện đủ, không chờ hiệu ứng.
 
 ### B10. Kiểm tra giao diện
 

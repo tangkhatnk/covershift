@@ -24,7 +24,7 @@ Trình duyệt ──► Next.js trên Vercel (Server Component + Server Action,
 - Ứng dụng **không dùng service-role key**. Vercel chỉ giữ anon key. Lộ mã nguồn frontend không lộ quyền gì.
 - Bản đồ (MapLibre) tải ô bản đồ và phông chữ từ `tiles.openfreemap.org` ngay trên trình duyệt người dùng: không cần khóa, không cấu hình thêm, nhưng cần có mạng; dịch vụ này nhận IP và vùng đang xem, không nhận dữ liệu tài khoản.
 - Số điện thoại nằm ở bảng riêng `private_contacts`; chỉ lộ qua `get_shift_contacts()` cho hai bên đã ghép ca.
-- Trang không cần đăng nhập (`/confirm/[token]`, `/consent/[token]`, `/p/[slug]`) gọi RPC bằng quyền `anon`, bảo vệ bằng token ngẫu nhiên 244 bit.
+- Trang không cần đăng nhập (`/confirm/[token]`, `/consent/[token]`, `/p/[slug]`, `/f/[slug]`, `/s/[id]`) gọi RPC bằng quyền `anon`, bảo vệ bằng token ngẫu nhiên 244 bit.
 
 ### Sơ đồ route
 
@@ -36,14 +36,20 @@ Trình duyệt ──► Next.js trên Vercel (Server Component + Server Action,
 | `/terms`, `/privacy` | mọi người | Điều khoản, chính sách dữ liệu |
 | `/shifts`, `/shifts/[id]` | người làm | Feed ca (gấp lên đầu, lọc ngày/khu vực/loại việc); nhận ca, hủy, xem SĐT quán, trả lời "đã trả đủ chưa", báo cáo |
 | `/my-shifts` | người làm | Ca sắp tới / cần trả lời / đã qua |
+| `/jobs`, `/jobs/[id]`, `/my-applications` | người làm | Việc làm lâu dài (lọc theo việc và hình thức), ứng tuyển, đơn của tôi |
+| `/notifications` | người làm, chủ quán | Thông báo trong app, đánh dấu đã đọc; số chưa đọc hiện ở chuông trên thanh nav |
 | `/profile` | người làm | Trạng thái duyệt, link phụ huynh, bật/tắt hồ sơ công khai, sửa thông tin |
 | `/p/[slug]` | công khai | Hồ sơ ca làm (in / lưu PDF), không có SĐT |
+| `/f/[slug]` | công khai | Trang quán (ca đã hoàn thành, điểm đánh giá, địa chỉ, bản đồ, ca đang mở); quán chưa xác minh hoặc đã gỡ thì 404; không SĐT, không nav chính |
+| `/s/[id]` | công khai | Chia sẻ một ca còn chỗ; người làm đăng nhập thì có nút mở ca trong ứng dụng, không nav chính |
 | `/consent/[token]` | phụ huynh | Phiếu đồng ý, không đăng nhập |
-| `/employer`, `/employer/new-shift`, `/employer/shifts/[id]` | chủ quán | Danh sách ca; đăng ca / nhân bản (`?from=id`); xem người chính–dự phòng, đổi thứ tự, hủy ca, link xác nhận |
+| `/employer`, `/employer/new-shift`, `/employer/shifts/[id]` | chủ quán | Danh sách ca; đăng ca / "Đăng lại ca này" (`?from=id`); xem người chính–dự phòng, đổi thứ tự, hủy ca, link xác nhận |
+| `/employer/jobs`, `/employer/jobs/new`, `/employer/jobs/[id]` | chủ quán (admin xem được `/employer/jobs/[id]`) | Tin tuyển dụng lâu dài, đăng tin, danh sách người ứng tuyển |
 | `/confirm/[token]` | chủ quán | Xác nhận sau ca, không đăng nhập, dùng một lần, hết hạn 72 giờ |
 | `/account` | mọi vai trò | Đăng xuất, xóa tài khoản và toàn bộ dữ liệu |
 | `/admin` | admin | Bảng điều phối 24 giờ tới, sao chép tin nhắc ca, "người chính báo bận", ca chờ xác nhận |
 | `/admin/facilities`, `/admin/workers` | admin | Duyệt cơ sở (checklist), duyệt người làm + phiếu phụ huynh, khóa/mở, gỡ cơ sở |
+| `/admin/jobs`, `/admin/reviews` | admin | Mọi tin tuyển dụng (đóng tin vi phạm); đánh giá quán (ẩn/hiện) |
 | `/admin/reports`, `/admin/kpi`, `/admin/kpi/export`, `/admin/audit` | admin | Hộp báo cáo; KPI + CSV + cấu hình lương tối thiểu; audit log |
 
 Đường dẫn web là tiếng Anh theo chỉ thị chủ dự án 19/11/2026; đường dẫn tiếng Việt cũ (`/dang-nhap`, `/ca/[id]`, `/xac-nhan/[token]`…) redirect vĩnh viễn sang đường dẫn mới, bảng đổi tên ở `AGENTS.md` mục 18.

@@ -387,10 +387,11 @@ export function AppShell({ role, signedIn, unread, userName, homeHref, footer, c
     <>
       <div className={`flex min-h-dvh flex-col ${items ? 'shell-pad lg:pl-60' : ''}`}>
         <header data-chrome className={`surface-dark sticky top-0 z-30 h-14 bg-brand-deep ${items ? 'lg:hidden' : ''}`}>
-          <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4">
-            <Link href={homeHref} className="inline-flex min-h-[3rem] items-center gap-2 rounded px-2 text-xl font-bold text-white"><Mark /></Link>
+          <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4 lg:px-8">
+            {/* -ml-2 trừ phần đệm px-2 của link (vùng chạm), để chữ logo thẳng lề với nội dung bên dưới */}
+            <Link href={homeHref} className="-ml-2 inline-flex min-h-[3rem] items-center gap-2 rounded px-2 text-xl font-bold text-white"><Mark /></Link>
             {bare || pathname === '/login' ? null : signedIn ? (
-              <div className="flex items-center">
+              <div className="-mr-2 flex items-center">
                 {items && unread != null ? <BellLink unread={unread} pathname={pathname} /> : null}
                 <Link href="/account" className="inline-flex min-h-[3rem] items-center gap-2 rounded-ui px-2 text-base font-semibold text-white">
                   <CircleUser className="h-6 w-6" aria-hidden="true" />
