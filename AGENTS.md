@@ -147,7 +147,7 @@ Skill chỉ gợi ý; mục 19–22 và `PRODUCT.md`, `DESIGN.md` là nguồn s�
 
 ## 5. Quy trình agent mặc định (agent chính, execution manager, 2 worker)
 
-Áp dụng cho mọi phiên làm việc của coding agent trong repo này. Với Claude Code, quy trình được bật sẵn: `.claude/settings.json` chạy agent chính `safeshift-lead`, agent này tự gửi lượt đầu tiên theo mục này khi mở phiên.
+Áp dụng cho mọi phiên làm việc của coding agent trong repo này. Với Claude Code, quy trình **không tự chạy khi mở phiên** (chủ dự án tắt mặc định ngày 22/11/2026: `.claude/settings.json` không còn khóa `agent`, nên mở `claude` là phiên thường, không gọi `execution-manager` hay `worker`). Muốn chạy quy trình này thì mở bằng `claude --agent safeshift-lead`, hoặc nhờ phiên thường gọi đúng agent đó cho một task.
 
 Chủ dự án đã giao quyền chạy liền mạch: agent tự push nhánh task, mở PR và merge vào `main` khi đủ các cổng ở mục 6, không chờ chủ dự án duyệt từng PR. Mục đích là để phiên chạy xuyên suốt; chủ dự án đọc lại kết quả sau.
 
