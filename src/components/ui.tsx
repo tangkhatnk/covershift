@@ -70,12 +70,12 @@ const SKELETON_TITLE = ['h-[2.625rem]', 'h-[4.625rem]', 'h-[6.125rem] lg:h-[4.62
  * `ShiftCard`...) để khi dữ liệu về nội dung không nhảy (CLS); cả khung cao tối thiểu một màn hình nên chân trang
  * không chui vào tầm nhìn rồi bị đẩy xuống. Cấu hình theo trang thật, không có khối thừa "để dành".
  * - `gap`: `space-y-4` hay `space-y-6` của trang thật. `lead`: khối trước tiêu đề (`back` = link quay lại, `refresh` = dòng LiveRefresh).
- * - `sub`: số dòng chữ phụ của tiêu đề. `action`: nút chính to. `form`: ô lọc. `map`: bản đồ.
+ * - `sub`: số dòng chữ phụ của tiêu đề. `action`: nút chính to. `form`: ô lọc. `filter`: thanh "Bộ lọc" thu gọn và (điện thoại) thanh Danh sách/Bản đồ của /shifts. `map`: bản đồ.
  * - `boxes`: chiều cao (lớp Tailwind) của từng mô-đun; `side`: mô-đun cột phải từ `lg` (xếp dưới cùng trên điện thoại).
  * Chỉ nhấp nháy khi người dùng không chọn giảm chuyển động.
  */
-export function PageSkeleton({ gap = 4, lead, sub = 1, action = false, form = false, map = false, boxes = [], side }: {
-  gap?: 4 | 6; lead?: 'back' | 'refresh'; sub?: 0 | 1 | 2; action?: boolean; form?: boolean; map?: boolean; boxes?: string[]; side?: string;
+export function PageSkeleton({ gap = 4, lead, sub = 1, action = false, form = false, filter = false, map = false, boxes = [], side }: {
+  gap?: 4 | 6; lead?: 'back' | 'refresh'; sub?: 0 | 1 | 2; action?: boolean; form?: boolean; filter?: boolean; map?: boolean; boxes?: string[]; side?: string;
 }) {
   const box = (h: string, key: string | number) => (
     <div key={key} className={`${h} space-y-4 rounded-ui border border-rule bg-white p-4`}>
@@ -97,9 +97,15 @@ export function PageSkeleton({ gap = 4, lead, sub = 1, action = false, form = fa
         {lead === 'refresh' ? <div className="h-12 rounded-ui bg-white" /> : null}
         {action ? <div className="h-[3.75rem] w-full rounded-ui bg-brand-tint sm:w-56" /> : null}
         {form ? <div className="h-[17rem] rounded-ui border border-rule bg-white lg:h-28" /> : null}
+        {filter ? (
+          <>
+            <div className="h-14 rounded-ui border border-rule bg-white" />
+            <div className="h-14 rounded-ui border-2 border-brand-tint bg-white lg:hidden" />
+          </>
+        ) : null}
         {map ? <div className="h-72 rounded-ui border border-rule bg-chalk lg:h-96" /> : null}
         {side ? (
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
             <div className="space-y-4">{left}</div>
             {box(side, 'side')}
           </div>
@@ -291,20 +297,20 @@ export function ShiftCard({ shift, href, extra, showState = false, now }: { shif
       <div className="flex flex-wrap items-center gap-2 border-b border-rule bg-accent-tint px-4 py-2">
         {urgent ? <Badge tone="red">GẤP</Badge> : null}
         <span className="text-base font-bold text-ink">{JOB_LABEL[shift.job_type]}</span>
-        {shift.allow_minor ? <Badge tone="green">Nhận dưới 18 tuổi</Badge> : null}
+        {shift.allow_minor ? <Badge tone="green">Hợp với người dưới 18</Badge> : null}
         {showState ? <StateBadge state={state} /> : null}
       </div>
       <div className="space-y-2 p-4">
         <div>
-          <p className="text-base text-ink-soft">{fmtDate(shift.starts_at)}</p>
-          <p className="tabular font-num text-4xl font-bold leading-tight text-ink">
-            {fmtTime(shift.starts_at)}–{fmtTime(shift.ends_at)}
-          </p>
+          <p className="text-base text-ink-soft">{fmtDate(shift.starts_at)} · {hoursBetween(shift.starts_at, shift.ends_at)} giờ</p>
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+            <p className="tabular font-num text-4xl font-bold leading-tight text-ink">
+              {fmtTime(shift.starts_at)}–{fmtTime(shift.ends_at)}
+            </p>
+            <p className="text-lg font-semibold text-brand">{fmtMoney(shift.hourly_wage)}/giờ</p>
+          </div>
         </div>
         <p className="text-base text-ink">{shift.facility_name} · {AREA_LABEL[shift.area]}</p>
-        <p className="text-lg font-semibold text-brand">
-          {fmtMoney(shift.hourly_wage)}/giờ <span className="font-normal text-ink-soft">· {hoursBetween(shift.starts_at, shift.ends_at)} giờ</span>
-        </p>
         {upcoming ? <SlotStrip headcount={shift.headcount} primary={shift.primary_count} backup={shift.backup_count} /> : null}
         {extra ? <div>{extra}</div> : null}
       </div>

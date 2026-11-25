@@ -11,7 +11,7 @@ export function PublicShiftBox({ shift: s, href, hero = false }: { shift: Public
       <div className="flex flex-wrap items-center gap-2 border-b border-rule bg-accent-tint px-4 py-2">
         {s.urgent ? <Badge tone="red">GẤP</Badge> : null}
         <span className="text-base font-bold text-ink">{JOB_LABEL[s.job_type]}</span>
-        <Badge tone={s.adults_only ? 'amber' : 'green'}>{s.adults_only ? 'Chỉ từ 18 tuổi' : 'Nhận dưới 18 tuổi'}</Badge>
+        <Badge tone={s.adults_only ? 'amber' : 'green'}>{s.adults_only ? 'Chỉ từ 18 tuổi' : 'Hợp với người dưới 18'}</Badge>
       </div>
       <div className={hero ? 'space-y-4 p-4' : 'space-y-2 p-4'}>
         <div>

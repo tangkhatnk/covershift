@@ -175,8 +175,8 @@ export async function claimShift(_: ActionState, fd: FormData): Promise<ActionSt
   revalidatePath('/my-shifts');
   return {
     ok: data === 'primary'
-      ? 'Nhận ca thành công! Bạn là NGƯỜI CHÍNH. Số điện thoại của quán hiện ở bên dưới.'
-      : 'Bạn là NGƯỜI DỰ PHÒNG. Nếu người chính hủy, bạn sẽ được lên thay. Hãy để ý điện thoại.',
+      ? 'Bạn đã nhận ca, bạn là người chính. Số điện thoại của quán ở bên dưới.'
+      : 'Bạn đã nhận ca, bạn là người dự phòng. Nếu người chính hủy, bạn sẽ được lên thay. Hãy để ý điện thoại.',
   };
 }
 

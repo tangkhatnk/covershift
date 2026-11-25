@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Alert, Empty, Field, PageTitle, btn, inputCls } from '@/components/ui';
+import { SlidersHorizontal } from 'lucide-react';
+import { Alert, Disclosure, Empty, Field, PageTitle, btn, inputCls } from '@/components/ui';
 import { LiveRefresh, ShiftExplorer } from '@/components/map';
 import { requireRole } from '@/lib/auth';
 import { AREA_LABEL, JOB_LABEL } from '@/lib/constants';
@@ -28,7 +29,8 @@ export default async function FeedPage({ searchParams }: {
   // Object.hasOwn thay cho `in`: `in` coi cả "constructor", "toString"… là hợp lệ.
   const khu = Object.hasOwn(AREA_LABEL, one(sp.khu)) ? one(sp.khu) : '';
   const viec = Object.hasOwn(JOB_LABEL, one(sp.viec)) ? one(sp.viec) : '';
-  const filtering = Boolean(ngay || khu || viec);
+  const active = [ngay, khu, viec].filter(Boolean).length;
+  const filtering = active > 0;
 
   const isWorker = profile.role === 'worker';
   // Ba truy vấn độc lập: chạy song song để không cộng dồn độ trễ.
@@ -44,8 +46,10 @@ export default async function FeedPage({ searchParams }: {
 
   return (
     <div className="space-y-4">
-      <PageTitle sub="Ca gấp hiện lên đầu. Bấm vào ca để xem và nhận.">Tìm ca</PageTitle>
-      <LiveRefresh />
+      <div className="flex items-start gap-4">
+        <PageTitle>Tìm ca</PageTitle>
+        <div className="min-w-0 flex-1"><LiveRefresh /></div>
+      </div>
 
       {profile.role === 'worker' && approval !== 'approved' ? (
         approval === 'rejected' ? (
@@ -73,36 +77,43 @@ export default async function FeedPage({ searchParams }: {
         )
       ) : null}
 
-      <form method="get" className="grid grid-cols-2 gap-4 rounded-ui border border-rule bg-white p-4 lg:grid-cols-[2fr_2fr_2fr_auto] lg:items-end">
-        <div className="col-span-2 lg:col-span-1">
-          <Field label="Ngày">
-            <input type="date" name="ngay" defaultValue={ngay} min={vnDateInput()} className={inputCls} />
-          </Field>
-        </div>
-        <Field label="Khu vực">
-          <select name="khu" defaultValue={khu} className={inputCls}>
-            <option value="">Tất cả</option>
-            {Object.entries(AREA_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </Field>
-        <Field label="Loại việc">
-          <select name="viec" defaultValue={viec} className={inputCls}>
-            <option value="">Tất cả</option>
-            {Object.entries(JOB_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </select>
-        </Field>
-        <div className="col-span-2 flex items-center gap-4 lg:col-span-1">
-          <button type="submit" className={`${btn('primary')} lg:px-8`}>Lọc</button>
-          {filtering ? <Link href="/shifts" className={`${btn('ghost', false)} whitespace-nowrap`}>Bỏ lọc</Link> : null}
-        </div>
-      </form>
+      <div className="rounded-ui border border-rule bg-white">
+        <Disclosure summary={<span className="inline-flex items-center gap-2"><SlidersHorizontal className="h-5 w-5" aria-hidden="true" />Bộ lọc ({active})</span>}>
+          <form method="get" className="grid grid-cols-2 gap-4 border-t border-rule p-4 lg:grid-cols-[2fr_2fr_2fr_auto] lg:items-end">
+            <div className="col-span-2 lg:col-span-1">
+              <Field label="Ngày">
+                <input type="date" name="ngay" defaultValue={ngay} min={vnDateInput()} className={inputCls} />
+              </Field>
+            </div>
+            <Field label="Khu vực">
+              <select name="khu" defaultValue={khu} className={inputCls}>
+                <option value="">Tất cả</option>
+                {Object.entries(AREA_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            </Field>
+            <Field label="Loại việc">
+              <select name="viec" defaultValue={viec} className={inputCls}>
+                <option value="">Tất cả</option>
+                {Object.entries(JOB_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            </Field>
+            <div className="col-span-2 flex items-center gap-4 lg:col-span-1">
+              <button type="submit" className={`${btn('primary')} lg:px-8`}>Lọc</button>
+              {filtering ? <Link href="/shifts" className={`${btn('ghost', false)} whitespace-nowrap`}>Bỏ lọc</Link> : null}
+            </div>
+          </form>
+        </Disclosure>
+      </div>
 
       {error ? (
         <Alert tone="red">{friendlyError(error)}</Alert>
       ) : shifts.length === 0 ? (
-        <Empty>
-          {filtering ? 'Không có ca nào khớp bộ lọc. Thử bỏ lọc xem sao.' : 'Hiện chưa có ca nào đang tìm người. Bạn quay lại sau nhé.'}
-        </Empty>
+        <div className="space-y-4">
+          <Empty>
+            {filtering ? 'Không có ca nào khớp bộ lọc. Bỏ lọc để xem tất cả ca đang tìm người.' : 'Hiện chưa có ca nào đang tìm người. Bạn quay lại sau nhé.'}
+          </Empty>
+          {filtering ? <Link href="/shifts" className={`${btn('primary', false)} w-full sm:w-auto`}>Bỏ lọc</Link> : null}
+        </div>
       ) : (
         <ShiftExplorer shifts={shifts} now={Date.now()} />
       )}

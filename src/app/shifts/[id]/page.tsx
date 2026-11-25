@@ -93,13 +93,13 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
   const showActive = active && s.status !== 'cancelled';
   const askPayment = isWorker && active && claim?.role === 'primary' && s.status !== 'cancelled' && now >= end
     && s.my_result?.attended !== false;
-  const hasSide = showClaim || showActive || askPayment || Boolean(s.my_result);
+  const hasSide = showClaim || showActive || askPayment || Boolean(s.my_result) || upcoming;
 
   const claimBadges = (
     <>
       <StateBadge state={state} />
       {s.urgent && upcoming ? <Badge tone="red">GẤP</Badge> : null}
-      {s.allow_minor ? <Badge tone="green">Nhận dưới 18 tuổi</Badge> : null}
+      {s.allow_minor ? <Badge tone="green">Hợp với người dưới 18</Badge> : null}
       {active ? (
         <Badge tone={claim.role === 'primary' ? 'green' : 'amber'}>
           Bạn là {claim.role === 'primary' ? 'người chính' : 'người dự phòng'}
@@ -123,65 +123,34 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
 
       {s.status === 'cancelled' ? <Alert tone="red">Ca này đã bị hủy. Bạn không cần đến.</Alert> : null}
 
-      {/* Hai cột từ lg: chi tiết ca bên trái, việc cần làm (nhận / hủy / trả lời) bên phải. Điện thoại: một cột theo thứ tự DOM. */}
-      <div className={`grid gap-4 lg:items-start ${hasSide ? 'lg:grid-cols-[minmax(0,1fr)_17rem]' : ''}`}>
-        <div className="space-y-4">
-          <Card tab={claimBadges}>
-            <p className="text-base text-ink-soft">{fmtDate(s.starts_at)} · {hoursBetween(s.starts_at, s.ends_at)} giờ</p>
-            <p className="tabular font-num text-5xl font-bold leading-tight text-ink">
-              {fmtTime(s.starts_at)}–{fmtTime(s.ends_at)}
-            </p>
-            <dl className="mt-4 divide-y divide-rule border-t border-rule">
-              <Row label="Lương"><span className="text-brand">{fmtMoney(s.hourly_wage)}/giờ</span></Row>
-              <Row label="Nơi làm">
-                {s.facility_name}
-                <span className="block text-base font-normal text-ink-soft">{FACILITY_TYPE_LABEL[s.facility_type]} · {AREA_LABEL[s.area]}</span>
-              </Row>
-              <Row label="Địa chỉ">
-                <span className="font-normal">{s.address}</span>
+      {/* Điện thoại: một cột theo thứ tự DOM (giờ, lương, nơi làm; rồi việc cần làm; rồi bản đồ và mô tả; "Chia sẻ ca" cuối).
+          Từ lg: hai cột, việc cần làm dính ở cột phải (`contents` ở điện thoại để các khối con tự xếp theo `order` của lưới). */}
+      <div className={`grid gap-4 lg:items-start ${hasSide ? 'lg:grid-cols-[minmax(0,1fr)_20rem]' : ''}`}>
+        <Card tab={claimBadges}>
+          <p className="text-base text-ink-soft">{fmtDate(s.starts_at)} · {hoursBetween(s.starts_at, s.ends_at)} giờ</p>
+          <p className="tabular font-num text-5xl font-bold leading-tight text-ink">
+            {fmtTime(s.starts_at)}–{fmtTime(s.ends_at)}
+          </p>
+          <dl className="mt-4 divide-y divide-rule border-t border-rule">
+            <Row label="Lương"><span className="text-brand">{fmtMoney(s.hourly_wage)}/giờ</span></Row>
+            <Row label="Nơi làm">
+              {s.facility_name}
+              <span className="block text-base font-normal text-ink-soft">{FACILITY_TYPE_LABEL[s.facility_type]} · {AREA_LABEL[s.area]}</span>
+            </Row>
+            <Row label="Địa chỉ">
+              <span className="font-normal">{s.address}</span>
+              <span className="flex flex-wrap gap-x-6">
                 <a href={mapsHref} target="_blank" rel="noopener noreferrer" className={`${linkCls} block min-h-[3rem] text-base leading-[3rem]`}>Xem bản đồ</a>
                 {directionsHref ? (
                   <a href={directionsHref} target="_blank" rel="noopener noreferrer" className={`${linkCls} block min-h-[3rem] text-base leading-[3rem]`}>Chỉ đường</a>
                 ) : null}
-              </Row>
-            </dl>
-            {hasPin ? (
-              <div className="mt-2 border-t border-rule pt-4">
-                <ShiftMap
-                  className="h-64"
-                  points={[{ id: s.id, lat: s.lat!, lng: s.lng!, text: fmtTime(s.starts_at), label: `${s.facility_name}, ${s.address}`, tone: 'open' }]}
-                />
-              </div>
-            ) : null}
-            {upcoming ? (
-              <div className="mt-2 border-t border-rule pt-4">
-                <SlotStrip headcount={s.headcount} primary={s.primary_count} backup={s.backup_count} />
-              </div>
-            ) : null}
-            {s.description ? (
-              <div className="mt-4 border-t border-rule pt-4">
-                <p className="text-base font-semibold text-ink">Mô tả công việc</p>
-                <p className="mt-2 whitespace-pre-line break-words text-base text-ink">{s.description}</p>
-              </div>
-            ) : null}
-          </Card>
-
-          {upcoming ? (
-            <Card>
-              <h2 className="text-xl font-bold text-ink">Chia sẻ ca</h2>
-              <p className="mb-4 mt-2 text-base text-ink-soft">Ai mở link cũng xem được ca này, không cần đăng nhập.</p>
-              <ShareButton path={`/s/${s.id}`} title={`${JOB_LABEL[s.job_type]} tại ${s.facility_name}`} />
-            </Card>
-          ) : null}
-
-          <Alert tone="gray">
-            Lương và điều kiện làm việc do bạn và quán tự thỏa thuận. Quán <b>không được</b> thu phí, đặt cọc hay giữ giấy tờ của bạn.
-            Nếu bị đòi, hãy báo ngay cho nhóm vận hành ở cuối trang.
-          </Alert>
-        </div>
+              </span>
+            </Row>
+          </dl>
+        </Card>
 
         {hasSide ? (
-          <div className="space-y-4">
+          <div className="contents space-y-4 lg:sticky lg:top-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:block">
 
             {/* Nhận ca */}
             {showClaim ? (
@@ -295,8 +264,44 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
                 ) : null}
               </Card>
             ) : null}
+
+            {/* Chia sẻ ca: sau cùng trên điện thoại, dưới việc cần làm ở cột phải */}
+            {upcoming ? (
+              <Card className="max-lg:order-last">
+                <h2 className="text-xl font-bold text-ink">Chia sẻ ca</h2>
+                <p className="mb-4 mt-2 text-base text-ink-soft">Ai mở link cũng xem được ca này, không cần đăng nhập.</p>
+                <ShareButton path={`/s/${s.id}`} title={`${JOB_LABEL[s.job_type]} tại ${s.facility_name}`} />
+              </Card>
+            ) : null}
           </div>
         ) : null}
+
+        <div className="space-y-4 lg:col-start-1 lg:row-start-2">
+          {upcoming || hasPin || s.description ? (
+            <Card>
+              {upcoming ? <SlotStrip headcount={s.headcount} primary={s.primary_count} backup={s.backup_count} /> : null}
+              {hasPin ? (
+                <div className={upcoming ? 'mt-4 border-t border-rule pt-4' : ''}>
+                  <ShiftMap
+                    className="h-56"
+                    points={[{ id: s.id, lat: s.lat!, lng: s.lng!, text: fmtTime(s.starts_at), label: `${s.facility_name}, ${s.address}`, tone: 'open' }]}
+                  />
+                </div>
+              ) : null}
+              {s.description ? (
+                <div className={upcoming || hasPin ? 'mt-4 border-t border-rule pt-4' : ''}>
+                  <p className="text-base font-semibold text-ink">Mô tả công việc</p>
+                  <p className="mt-2 whitespace-pre-line break-words text-base text-ink">{s.description}</p>
+                </div>
+              ) : null}
+            </Card>
+          ) : null}
+
+          <Alert tone="gray">
+            Lương và điều kiện làm việc do bạn và quán tự thỏa thuận. Quán <b>không được</b> thu phí, đặt cọc hay giữ giấy tờ của bạn.
+            Nếu bị đòi, hãy báo ngay cho nhóm vận hành ở cuối trang.
+          </Alert>
+        </div>
       </div>
 
       <details className="rounded-ui border border-rule bg-white">

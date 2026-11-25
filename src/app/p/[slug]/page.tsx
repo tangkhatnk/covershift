@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: 'Hồ sơ ca làm', robots: { index: 
 function Stat({ label, value, extra }: { label: string; value: string; extra?: React.ReactNode }) {
   return (
     <div className="flex flex-col-reverse justify-end rounded-ui border border-rule bg-chalk p-4 text-center print:bg-white">
-      <dt className="mt-2 text-base font-semibold text-ink-soft">{label}</dt>
+      <dt className="mt-2 flex min-h-[3rem] items-center justify-center text-base font-semibold leading-snug text-ink-soft">{label}</dt>
       <dd>
         <span className="tabular font-num block text-4xl font-bold leading-tight text-ink">{value}</span>
         {extra ? <span className="block">{extra}</span> : null}
@@ -51,7 +51,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
     <div className="space-y-4">
       {p.share_enabled === false ? (
         <div className="print:hidden">
-          <Alert tone="amber">Hồ sơ đang TẮT chia sẻ, chỉ bạn thấy trang này.</Alert>
+          <Alert tone="amber">Hồ sơ đang tắt chia sẻ, chỉ bạn thấy trang này.</Alert>
         </div>
       ) : null}
 
