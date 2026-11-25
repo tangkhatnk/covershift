@@ -221,7 +221,7 @@ export default async function WorkersPage({ searchParams }: { searchParams: Prom
             Hiện {(page - 1) * PAGE_SIZE + 1}–{(page - 1) * PAGE_SIZE + list.length} trong {matched.length} người.
           </p>
           {/* Một thẻ cho mỗi người ở mọi bề rộng; từ 1024px phần thông tin chia ba cột, thao tác trải hết bề ngang. */}
-          <div className="stagger space-y-4">
+          <div className="space-y-4">
             {list.map((w) => (
               <Card key={w.user_id} tab={<Badges w={w} />}>
                 <div className="space-y-4">
