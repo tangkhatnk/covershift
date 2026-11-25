@@ -10,10 +10,13 @@ import type { Shift, ShiftDetail } from '@/lib/types';
 export const metadata = { title: 'Đăng ca mới' };
 
 const DEFAULT_MIN_WAGE = 25500;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export default async function NewShiftPage({ searchParams }: { searchParams: Promise<{ from?: string }> }) {
+export default async function NewShiftPage({ searchParams }: { searchParams: Promise<{ from?: string | string[] }> }) {
   const { supabase, profile } = await requireRole('employer');
-  const { from } = await searchParams;
+  const raw = (await searchParams).from;
+  // `from` là id ca cũ; chỉ nhận đúng dạng UUID, ca có thuộc quán này hay không do `shift_detail` + `is_owner` quyết định.
+  const from = typeof raw === 'string' && UUID_RE.test(raw) ? raw : undefined;
 
   // Bốn truy vấn độc lập: chạy song song; ba cái sau chỉ dùng khi cơ sở đã được phép đăng ca.
   const [{ data: facility }, { data: cfg }, cloneRes, recentRes] = await Promise.all([
@@ -54,11 +57,11 @@ export default async function NewShiftPage({ searchParams }: { searchParams: Pro
 
       {src ? (
         <Alert tone="blue">
-          Đang nhân bản ca cũ, anh/chị chỉ cần chọn ngày.{' '}
-          <Link href="/employer/new-shift" className="font-semibold underline underline-offset-4">Đăng ca trống</Link>
+          Đang đăng lại ca cũ. Ngày làm đã đặt sang ngày mai, anh/chị kiểm lại ngày và giờ rồi tick cam kết.{' '}
+          <Link href="/employer/new-shift" className="inline-flex min-h-[3rem] items-center font-semibold underline underline-offset-4">Đăng ca trống</Link>
         </Alert>
-      ) : from ? (
-        <Alert tone="amber">Không tìm thấy ca cũ để nhân bản. Anh/chị điền ca mới bên dưới.</Alert>
+      ) : raw ? (
+        <Alert tone="amber">Không tìm thấy ca cũ để đăng lại. Anh/chị điền ca mới bên dưới.</Alert>
       ) : null}
 
       <ActionForm action={createShift}>
@@ -133,8 +136,8 @@ export default async function NewShiftPage({ searchParams }: { searchParams: Pro
 
       {!from && recent.length ? (
         <Card>
-          <Disclosure summary={<span>Nhân bản ca cũ ({recent.length})</span>}>
-            <p className="mt-2 text-base text-ink-soft">Bấm vào một ca để dùng lại, chỉ cần chọn ngày mới.</p>
+          <Disclosure summary={<span>Đăng lại ca cũ ({recent.length})</span>}>
+            <p className="mt-2 text-base text-ink-soft">Bấm vào một ca để dùng lại. Anh/chị chỉ cần kiểm lại ngày.</p>
             <ul className="mt-2 divide-y divide-rule">
               {recent.map((s) => (
                 <li key={s.id}>

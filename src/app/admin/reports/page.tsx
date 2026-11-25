@@ -7,8 +7,11 @@ import { friendlyError } from '@/lib/errors';
 import { REPORT_KIND_LABEL } from '@/lib/constants';
 import { fmtDateTime } from '@/lib/format';
 import type { AdminReport } from '@/lib/types';
+import { Pager, pageOf } from '../pager';
 
 export const metadata = { title: 'Hộp báo cáo' };
+
+const PAGE_SIZE = 8;
 
 function Kind({ r }: { r: AdminReport }) {
   const open = r.status === 'open';
@@ -73,8 +76,9 @@ function Resolve({ r }: { r: AdminReport }) {
   );
 }
 
-export default async function ReportsPage() {
+export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ trang?: string | string[] }> }) {
   const { supabase } = await requireRole('admin');
+  const sp = await searchParams;
   const { data, error } = await supabase.rpc('admin_list_reports');
   if (error) {
     return (
@@ -86,6 +90,8 @@ export default async function ReportsPage() {
   }
   const list = (data ?? []) as AdminReport[];
   const openCount = list.filter((r) => r.status === 'open').length;
+  const { page, pages } = pageOf(sp.trang, list.length, PAGE_SIZE);
+  const shown = list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   return (
     <div className="space-y-6">
       <PageTitle sub="Hiện tối đa 300 báo cáo gần nhất.">Hộp báo cáo</PageTitle>
@@ -98,7 +104,7 @@ export default async function ReportsPage() {
         <>
           {/* Một thẻ cho mỗi báo cáo ở mọi bề rộng; từ 1024px nội dung và người liên quan chia hai cột. */}
           <div className="space-y-4">
-            {list.map((r) => (
+            {shown.map((r) => (
               <Card key={r.id} tab={<><Kind r={r} /><span className="text-base text-ink-soft">{fmtDateTime(r.created_at)}</span></>}>
                 <div className="space-y-4">
                   <div className="grid gap-4 lg:grid-cols-2 lg:gap-8">
@@ -110,6 +116,7 @@ export default async function ReportsPage() {
               </Card>
             ))}
           </div>
+          <Pager base="/admin/reports" page={page} pages={pages} />
         </>
       )}
     </div>
