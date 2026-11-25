@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChevronLeft, Flag } from 'lucide-react';
 import { cancelClaim, claimShift, createReport, submitPayment } from '@/app/actions';
-import { ActionForm, SubmitButton } from '@/components/client';
+import { ActionForm, ShareButton, SubmitButton } from '@/components/client';
 import { ShiftMap } from '@/components/map';
 import { Alert, Badge, Card, DemoPhoneNote, PageTitle, SlotStrip, StateBadge, Stars, Tel, inputCls } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
@@ -165,6 +165,14 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
               </div>
             ) : null}
           </Card>
+
+          {upcoming ? (
+            <Card>
+              <h2 className="text-xl font-bold text-ink">Chia sẻ ca</h2>
+              <p className="mb-4 mt-2 text-base text-ink-soft">Ai mở link cũng xem được ca này, không cần đăng nhập.</p>
+              <ShareButton path={`/s/${s.id}`} title={`${JOB_LABEL[s.job_type]} tại ${s.facility_name}`} />
+            </Card>
+          ) : null}
 
           <Alert tone="gray">
             Lương và điều kiện làm việc do bạn và quán tự thỏa thuận. Quán <b>không được</b> thu phí, đặt cọc hay giữ giấy tờ của bạn.

@@ -107,7 +107,7 @@ export default async function NewShiftPage({ searchParams }: { searchParams: Pro
           </div>
 
           <div className="col-span-full">
-            <Field label="Mô tả công việc (không bắt buộc)" hint="Ví dụ: bưng bê, dọn bàn; mặc áo tối màu.">
+            <Field label="Mô tả công việc (không bắt buộc)" hint="Ví dụ: bưng bê, dọn bàn; mặc áo tối màu. Mô tả hiện công khai khi ca được chia sẻ: đừng ghi số điện thoại cá nhân.">
               <textarea name="description" rows={3} maxLength={500} defaultValue={src?.description ?? ''} className={inputCls} />
             </Field>
           </div>

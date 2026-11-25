@@ -35,8 +35,8 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // Trang có token / hồ sơ cá nhân: không cho máy tìm kiếm lập chỉ mục, không lộ token qua Referer.
-        source: '/(confirm|consent|p)/:path*',
+        // Trang có token / hồ sơ cá nhân / trang quán và ca chia sẻ (công khai): không cho máy tìm kiếm lập chỉ mục, không lộ token qua Referer.
+        source: '/(confirm|consent|p|f|s)/:path*',
         headers: [
           { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
           { key: 'Referrer-Policy', value: 'no-referrer' },
