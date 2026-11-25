@@ -349,7 +349,7 @@ function MoreMenu({ items, pathname, active }: { items: NavItem[]; pathname: str
             <Link
               href={it.href}
               aria-current={it.href === current ? 'page' : undefined}
-              className={`flex min-h-[3rem] items-center gap-2 rounded px-4 text-base font-semibold hover:bg-chalk ${
+              className={`flex min-h-[3rem] items-center gap-2 rounded-ui px-4 text-base font-semibold hover:bg-chalk ${
                 it.href === current ? 'bg-accent-tint' : ''
               }`}
             >
@@ -389,7 +389,7 @@ export function AppShell({ role, signedIn, unread, userName, homeHref, footer, c
         <header data-chrome className={`surface-dark sticky top-0 z-30 h-14 bg-brand-deep ${items ? 'lg:hidden' : ''}`}>
           <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4 lg:px-8">
             {/* -ml-2 trừ phần đệm px-2 của link (vùng chạm), để chữ logo thẳng lề với nội dung bên dưới */}
-            <Link href={homeHref} className="-ml-2 inline-flex min-h-[3rem] items-center gap-2 rounded px-2 text-xl font-bold text-white"><Mark /></Link>
+            <Link href={homeHref} className="-ml-2 inline-flex min-h-[3rem] items-center gap-2 rounded-ui px-2 text-xl font-bold text-white"><Mark /></Link>
             {bare || pathname === '/login' ? null : signedIn ? (
               <div className="-mr-2 flex items-center">
                 {items && unread != null ? <BellLink unread={unread} pathname={pathname} /> : null}
@@ -416,7 +416,7 @@ export function AppShell({ role, signedIn, unread, userName, homeHref, footer, c
       {items ? (
         <>
           <aside data-chrome data-rail className="surface-dark fixed inset-y-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto bg-brand-deep text-white lg:flex">
-            <Link href={homeHref} className="m-4 inline-flex min-h-[3rem] items-center gap-2 rounded px-2 text-xl font-bold text-white"><Mark /></Link>
+            <Link href={homeHref} className="m-4 inline-flex min-h-[3rem] items-center gap-2 rounded-ui px-2 text-xl font-bold text-white"><Mark /></Link>
             <nav aria-label="Điều hướng chính" className="flex-1 px-4">
               <ul className="space-y-2">
                 {allItems.map((it) => (

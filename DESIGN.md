@@ -345,13 +345,13 @@ Nút gửi form dùng `SubmitButton`: tự khóa và đổi nhãn "Đang gửi�
 
 ### Cards / Containers (`Card`, `PageTitle`, `Empty`, `Disclosure`)
 - **Card**: trắng, viền hairline `rule`, `rounded-ui`, `p-4`. Prop `tab` thêm dải đầu `accent-tint` (viền dưới `rule`, `px-4 py-2`) chứa **dữ liệu thật** của mô-đun (trạng thái, loại việc, "GẤP"), không phải nhãn trang trí.
-- **PageTitle**: không có khối nền, chữ trên nền vôi: `h1` `text-2xl font-bold ink`, dưới là gạch nắng ngắn `h-1 w-12 bg-accent rounded-sm` (3rem x 4,5px, `aria-hidden`), phụ đề `text-base ink-soft`. Chiều cao ổn định theo số dòng phụ đề (47,25 / 83,25 / 110,25px ở 0 / 1 / 2 dòng, đo ở 360–1440px; 2 dòng chỉ ở điện thoại); `PageSkeleton` khớp các số này (CLS 0).
+- **PageTitle**: không có khối nền, chữ trên nền vôi: `h1` `text-2xl font-bold ink`, dưới là gạch nắng ngắn `h-1 w-12 bg-accent rounded-sm` (3rem x 4,5px, `aria-hidden`), phụ đề `text-base ink-soft`. Chiều cao ổn định theo số dòng phụ đề (47,25 / 83,25 / 110,25 / 137,25px ở 0 / 1 / 2 / 3 dòng, đo ở 360–1440px; 2 và 3 dòng chỉ ở điện thoại); `PageSkeleton` khớp các số này (CLS 0).
 - **PageSkeleton** (`loading.tsx` của trang có dữ liệu): khung chờ nhấp nháy `motion-safe:animate-pulse`, cao tối thiểu một màn hình. Cấu hình theo trang thật bằng prop: `lead` (`back` cho link quay lại, `refresh` cho dòng `LiveRefresh`), `sub` (0/1/2 dòng phụ đề), `action`, `form`, `filter` (thanh "Bộ lọc" thu gọn, hàng chip ngày và, ở điện thoại, thanh Danh sách/Bản đồ của `/shifts`), `map`, `boxes` (chiều cao từng mô-đun) và `side` (mô-đun cột phải rộng `20rem` từ `lg`, xếp dưới cùng ở điện thoại).
 - **Empty**: viền nét đứt 2px `rule-strong`, `text-base ink-soft`, căn giữa.
 - **Disclosure**: `<details>`; dòng tóm tắt cao `3rem`, chữ `brand font-semibold`, mũi tên `ChevronDown` xoay khi mở; chạy bằng bàn phím.
 
 ### Badges (`Badge`, `StateBadge`)
-`min-h-[2rem]`, `px-2`, `text-sm font-semibold`, `whitespace-nowrap`, bo `rounded` mặc định. Tông: `green` (`ok-tint`/`ok`), `amber` (nền trắng, viền 1px `accent`, chữ `ink`), `red` (`danger-tint`/`danger`), `blue` (`info-tint`/`info`), `gray` (`chalk` + viền `rule`/`ink-soft`). `StateBadge` là từ điển đóng của trạng thái ca: mỗi trạng thái đúng một icon Lucide + nhãn + tông (nhãn và tông lấy từ `format.ts`): `open` DoorOpen, `filled` DoorClosed, `in_progress` CirclePlay, `awaiting_confirm` Hourglass, `expired` TriangleAlert, `unfilled` CircleAlert, `confirmed` CircleCheck, `cancelled` Ban. Không tự ghép Badge trạng thái ca ở trang khác.
+`min-h-[2rem]`, `px-2`, `text-sm font-semibold`, `whitespace-nowrap`, bo `rounded-ui`. Tông: `green` (`ok-tint`/`ok`), `amber` (nền trắng, viền 1px `accent`, chữ `ink`), `red` (`danger-tint`/`danger`), `blue` (`info-tint`/`info`), `gray` (`chalk` + viền `rule`/`ink-soft`). `StateBadge` là từ điển đóng của trạng thái ca: mỗi trạng thái đúng một icon Lucide + nhãn + tông (nhãn và tông lấy từ `format.ts`): `open` DoorOpen, `filled` DoorClosed, `in_progress` CirclePlay, `awaiting_confirm` Hourglass, `expired` TriangleAlert, `unfilled` CircleAlert, `confirmed` CircleCheck, `cancelled` Ban. Không tự ghép Badge trạng thái ca ở trang khác.
 
 ### Alert
 Nền tint + viền 1px + icon `h-6 w-6` (CircleCheck, TriangleAlert, OctagonAlert, Info) + chữ `ink`, `rounded-ui px-4 py-2`. Tông đỏ là `role="alert"`, còn lại `role="status"`; `ActionForm` truyền rõ theo lỗi/thành công và thêm `scroll-my-4`.
@@ -462,5 +462,4 @@ Ghi nhận hiện trạng, không phải quy tắc cho trang mới. Mục (a)-(e
 - (c) Có khối trống ở `/login` ở bề rộng 1280px.
 - (d) Pin dạng số ở bản đồ cơ sở (`/admin/facilities`) chưa có chú giải.
 - (e) Chưa thử trong trình duyệt nhúng thật của Zalo/Facebook.
-- Một số chỗ dùng `rounded` mặc định của Tailwind (`0.25rem` = 4,5px) thay vì `rounded-ui` 6px: Badge, link nav trong rail/menu, mục lục của `Doc`. Đây là lệch so với nguyên tắc "một bán kính", **không** được coi là bán kính thứ hai của hệ; trang mới dùng `rounded-ui`.
 - Chưa có kiểm trực quan tự động (không có CI) cho các cặp màu hay bề rộng; bảng tỉ lệ ở trên chỉ tính từ hex, chưa đo trên màn hình thật.

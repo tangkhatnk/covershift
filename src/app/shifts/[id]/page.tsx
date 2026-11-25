@@ -82,9 +82,9 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
 
   const claimBadges = (
     <>
-      <StateBadge state={state} />
       {s.urgent && upcoming ? <Badge tone="red">GẤP</Badge> : null}
       {s.allow_minor ? <Badge tone="green">Hợp với người dưới 18</Badge> : null}
+      <StateBadge state={state} />
       {active ? (
         <Badge tone={claim.role === 'primary' ? 'green' : 'amber'}>
           Bạn là {claim.role === 'primary' ? 'người chính' : 'người dự phòng'}

@@ -104,8 +104,9 @@ export default async function EmployerShiftPage({
       <Card
         tab={
           <>
-            <StateBadge state={state} />
+            {/* Thứ tự khác ShiftCard: để dải đầu không rớt thêm hàng ở 360px. */}
             {shift.urgent ? <Badge tone="red">GẤP</Badge> : null}
+            <StateBadge state={state} />
             <span className="text-base font-bold text-ink">{JOB_LABEL[shift.job_type]}</span>
             {shift.allow_minor ? <Badge tone="green">Hợp với người dưới 18</Badge> : null}
           </>
