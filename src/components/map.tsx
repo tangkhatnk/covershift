@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useTransition, type KeyboardEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { RefreshCw } from 'lucide-react';
 import type { AddLayerObject, Map as MapLibreMap, Marker as MapLibreMarker } from 'maplibre-gl';
 import { JOB_LABEL } from '@/lib/constants';
 import { fmtTime } from '@/lib/format';
@@ -24,11 +25,12 @@ const MAX_BOUNDS: [[number, number], [number, number]] = [[106.9, 10.2], [107.7,
 // Khung hợp lệ phía database (migration 0002); phía client chỉ để cảnh báo sớm.
 const VT_BOX = { lat: [10.3, 10.8], lng: [107.0, 107.6] } as const;
 
-// Chỗ duy nhất được viết mã màu hex: bảng paint ghi đè lên nền positron cho hợp bảng màu "Phố cửa chớp".
+// Chỗ duy nhất được viết mã màu hex: bảng paint ghi đè lên nền positron cho hợp bảng màu "Biển & Nắng".
+// Tương phản đã tính (DESIGN.md): nhãn bản đồ >= 5,9:1 trên nền của chúng; viền pin >= 3:1 với land, water, park, road, major.
 const MAP_COLOR = {
-  land: '#F3EFD9', park: '#D9E4C6', water: '#B9D7D3', building: '#E9DFB4',
-  road: '#FFFFFF', roadEdge: '#DAD3B0', major: '#F2C94C', majorEdge: '#B89A22',
-  label: '#2A3B33', waterLabel: '#1D4A54',
+  land: '#F1EEE3', park: '#D6E4CE', water: '#BDDCEA', building: '#E6E1D0',
+  road: '#FFFFFF', roadEdge: '#D9D4C1', major: '#FFD97A', majorEdge: '#D9A532',
+  label: '#24343F', waterLabel: '#16526F',
 } as const;
 
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -156,13 +158,13 @@ function inView(map: MapLibreMap, lng: number, lat: number) {
 }
 
 const PIN: Record<MapTone, { bg: string; fg: string; bd: string }> = {
-  open: { bg: 'bg-shutter', fg: 'text-white', bd: 'border-shutter' },
-  urgent: { bg: 'bg-roof', fg: 'text-white', bd: 'border-roof' },
-  full: { bg: 'bg-white', fg: 'text-shutter', bd: 'border-shutter' },
-  pending: { bg: 'bg-wall', fg: 'text-ink', bd: 'border-wall' },
-  removed: { bg: 'bg-rule', fg: 'text-ink-soft', bd: 'border-rule' },
+  open: { bg: 'bg-brand', fg: 'text-white', bd: 'border-brand' },
+  urgent: { bg: 'bg-danger', fg: 'text-white', bd: 'border-danger' },
+  full: { bg: 'bg-white', fg: 'text-brand', bd: 'border-brand' },
+  pending: { bg: 'bg-accent', fg: 'text-ink', bd: 'border-brand-deep' },
+  removed: { bg: 'bg-rule', fg: 'text-ink-soft', bd: 'border-ink-soft' },
 };
-const PIN_ON = { bg: 'bg-wall', fg: 'text-ink', bd: 'border-shutter-deep' };
+const PIN_ON = { bg: 'bg-accent', fg: 'text-ink', bd: 'border-brand-deep' };
 
 // Chữ rút gọn cho pin chồng nhau: giờ "18:00" -> "18h"; nhiều từ -> từ cuối ("Phê La Vũng Tàu" -> "Tàu"); còn lại cắt 3 ký tự.
 // Tên đầy đủ vẫn ở aria-label, và hiện lại khi pin được chọn.
@@ -366,8 +368,8 @@ export function ShiftExplorer({ shifts, now }: { shifts: Shift[]; now: number })
       {unmapped > 0 ? <p className="text-base text-ink-soft">{unmapped} ca chưa có vị trí trên bản đồ.</p> : null}
       {hasMap ? (
         <div role="group" aria-label="Cách xem" className="grid grid-cols-2 gap-2 lg:hidden">
-          <button type="button" aria-pressed={tab === 'list'} onClick={() => setTab('list')} className={btn(tab === 'list' ? 'primary' : 'secondary')}>Danh sách</button>
-          <button type="button" aria-pressed={tab === 'map'} onClick={() => setTab('map')} className={btn(tab === 'map' ? 'primary' : 'secondary')}>Bản đồ</button>
+          <button type="button" aria-pressed={tab === 'list'} onClick={() => setTab('list')} className={`${btn(tab === 'list' ? 'primary' : 'secondary')} !px-2`}>Danh sách</button>
+          <button type="button" aria-pressed={tab === 'map'} onClick={() => setTab('map')} className={`${btn(tab === 'map' ? 'primary' : 'secondary')} !px-2`}>Bản đồ</button>
         </div>
       ) : null}
       <div className={hasMap ? 'lg:grid lg:grid-cols-2 lg:items-start lg:gap-6' : ''}>
@@ -376,7 +378,7 @@ export function ShiftExplorer({ shifts, now }: { shifts: Shift[]; now: number })
             <li key={s.id} id={`ca-${s.id}`}
               onMouseEnter={() => setHover(s.id)} onMouseLeave={() => setHover(null)}
               onFocusCapture={() => setHover(s.id)} onBlurCapture={() => setHover(null)}>
-              <div className={`rounded-ui ${s.id === sel ? 'ring-2 ring-shutter-deep ring-offset-2 ring-offset-chalk' : ''}`}>
+              <div className={`rounded-ui ${s.id === sel ? 'ring-2 ring-brand-deep ring-offset-2 ring-offset-chalk' : ''}`}>
                 <ShiftCard shift={s} href={`/shifts/${s.id}`} now={now}
                   extra={s.my_role ? (
                     <Badge tone={s.my_role === 'primary' ? 'green' : 'amber'}>
@@ -396,7 +398,7 @@ export function ShiftExplorer({ shifts, now }: { shifts: Shift[]; now: number })
           <div className={`${tab === 'list' ? 'hidden lg:block' : ''} lg:sticky lg:top-8`}>
             <ShiftMap points={points} selectedId={sel} highlightId={hover} caption="Bản đồ các ca"
               onSelect={(id) => setSel(id || null)}
-              className="h-[min(32rem,calc(100dvh_-_var(--chrome-top)_-_var(--chrome-bottom)_-_10rem))] lg:h-[calc(100dvh_-_12rem)]" />
+              className="h-[28rem] lg:h-[min(36rem,calc(100dvh_-_8rem))]" />
           </div>
         ) : null}
       </div>
@@ -425,11 +427,16 @@ export function LiveRefresh({ intervalMs = 30000 }: { intervalMs?: number }) {
     return () => { clearInterval(t); document.removeEventListener('visibilitychange', onVisible); };
   }, [intervalMs]);
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <p aria-live="off" className="text-base text-ink-soft">
-        Tự cập nhật mỗi {Math.round(intervalMs / 1000)} giây · lần cuối {last ? fmtTime(new Date(last).toISOString()) : '--:--'}
+    // Nằm dưới tiêu đề, một dòng gọn, cao cố định 3rem (đúng vùng chạm của nút) và giờ dùng chữ số bảng:
+    // đổi "--:--" thành giờ thật không làm đổi chiều cao. Nút là ghost để không tranh với hành động chính của trang.
+    <div className="flex h-12 items-center justify-between gap-2">
+      <p aria-live="off" className="min-w-0 flex-1 text-sm leading-snug text-ink-soft">
+        Tự cập nhật · <span className="tabular">{last ? fmtTime(new Date(last).toISOString()) : '--:--'}</span>
       </p>
-      <button type="button" onClick={run} disabled={pending} className={btn('secondary', false)}>Làm mới</button>
+      <button type="button" onClick={run} disabled={pending} className={`${btn('ghost', false)} !px-2`}>
+        <RefreshCw className={`h-5 w-5 ${pending ? 'motion-safe:animate-spin' : ''}`} aria-hidden="true" />
+        Làm mới
+      </button>
     </div>
   );
 }
@@ -437,7 +444,7 @@ export function LiveRefresh({ intervalMs = 30000 }: { intervalMs?: number }) {
 const round6 = (n: number) => Math.round(n * 1e6) / 1e6;
 const inBox = (p: { lat: number; lng: number }) =>
   p.lat >= VT_BOX.lat[0] && p.lat <= VT_BOX.lat[1] && p.lng >= VT_BOX.lng[0] && p.lng <= VT_BOX.lng[1];
-const PIN_DOT = 'h-6 w-6 rounded-full border-[3px] border-white bg-roof shadow-md';
+const PIN_DOT = 'h-6 w-6 rounded-full border-[3px] border-white bg-danger shadow-md';
 
 /** Chọn vị trí: bấm bản đồ hoặc kéo ghim, hoặc dùng vị trí hiện tại, hoặc nhập tọa độ. Tọa độ chỉ nằm trong input ẩn và chỉ gửi khi form được Lưu. */
 export function LocationPicker({ lat, lng, latName = 'lat', lngName = 'lng' }: {

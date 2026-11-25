@@ -46,7 +46,7 @@ export default async function KpiPage() {
               <div className="overflow-hidden rounded-ui border border-rule bg-white">
                 <table className="w-full border-collapse text-base">
                   <caption className="sr-only">Chỉ số vận hành</caption>
-                  <thead className="bg-wall-tint">
+                  <thead className="bg-accent-tint">
                     <tr>
                       <th scope="col" className="px-4 py-2 text-left font-semibold text-ink">Chỉ số</th>
                       <th scope="col" className="px-4 py-2 text-right font-semibold text-ink">Giá trị</th>

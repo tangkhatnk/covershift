@@ -11,7 +11,7 @@ import type { DispatchBoard, DispatchShift, PendingConfirmation } from '@/lib/ty
 
 export const metadata = { title: 'Điều phối' };
 
-const linkCls = 'inline-flex min-h-[3rem] items-center font-semibold text-shutter underline underline-offset-4';
+const linkCls = 'inline-flex min-h-[3rem] items-center font-semibold text-brand underline underline-offset-4';
 
 function reminderText(s: DispatchShift) {
   const maps =
@@ -179,10 +179,10 @@ export default async function DispatchPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="space-y-6">
-      <LiveRefresh />
-      <PageTitle sub={`Cập nhật lúc ${fmtDateTime(new Date(now).toISOString())}. Trang tự làm mới mỗi 30 giây.`}>
+      <PageTitle sub={`Cập nhật lúc ${fmtDateTime(new Date(now).toISOString())}.`}>
         Bảng điều phối
       </PageTitle>
+      <LiveRefresh />
 
       {/* Kết quả "Người chính báo bận" (action primaryBusy chuyển hướng về đây); Flash tự xóa ?bao-ban khỏi URL. */}
       {busyResult === 'da-thay' ? (

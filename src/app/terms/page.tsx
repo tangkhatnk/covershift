@@ -4,7 +4,7 @@ import { APP_NAME, DISCLAIMER, JOB_LABEL, NO_FEE, PROHIBITED_TEXT } from '@/lib/
 
 export const metadata = { title: 'Điều khoản sử dụng' };
 
-const A = 'font-semibold text-shutter underline underline-offset-4';
+const A = 'font-semibold text-brand underline underline-offset-4';
 
 export default function TermsPage() {
   const jobs = Object.values(JOB_LABEL).join(', ').toLowerCase();

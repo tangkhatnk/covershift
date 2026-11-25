@@ -4,7 +4,7 @@ import { DISCLAIMER } from '@/lib/constants';
 
 export const metadata = { title: 'Chính sách dữ liệu' };
 
-const A = 'font-semibold text-shutter underline underline-offset-4';
+const A = 'font-semibold text-brand underline underline-offset-4';
 
 export default function DataPolicyPage() {
   const sections = [

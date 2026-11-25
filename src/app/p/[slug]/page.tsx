@@ -56,9 +56,9 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
       ) : null}
 
       <article className="overflow-hidden rounded-ui border border-rule bg-white print:border-ink print:bg-white">
-        <header className="bg-wall px-4 py-6 text-center print:border-b-2 print:border-ink print:bg-white">
-          <h1 className="break-words text-3xl font-bold leading-tight text-ink">{p.name}</h1>
-          <p className="mt-2 text-base text-shutter-deep print:text-ink">Hồ sơ ca làm · {APP_NAME}</p>
+        <header className="bg-brand-deep px-4 py-6 text-center text-white print:border-b-2 print:border-ink print:bg-white print:text-ink">
+          <h1 className="break-words text-3xl font-bold leading-tight">{p.name}</h1>
+          <p className="mt-2 text-base text-brand-tint print:text-ink">Hồ sơ ca làm · {APP_NAME}</p>
         </header>
 
         <div className="p-4 sm:p-6">

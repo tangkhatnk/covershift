@@ -691,7 +691,7 @@ Dùng lại trước khi tạo mới:
 
 Bề mặt chính là điện thoại 360 đến 414px, thường mở từ Zalo hoặc Facebook. Chủ quán là nhóm có nhiều người lớn tuổi. Thiết kế cho họ trước. Desktop cũng phải đẹp, không chỉ "không vỡ": buổi demo 26/11 trình bày cho ban giám khảo trên laptop hoặc máy chiếu.
 
-Hướng giao diện (nội bộ gọi là "Phố cửa chớp": tường vàng, cửa chớp xanh, nền vôi) ghi ở `PRODUCT.md`; bảng màu và token ở `tailwind.config.ts`. `DESIGN.md` (gốc repo) mô tả hệ hình ảnh đang chạy (màu, chữ, thành phần, quy tắc dùng); nó là bản mô tả, còn quy tắc bắt buộc nằm ở file này.
+Hướng giao diện (nội bộ gọi là "Biển & Nắng": xanh biển, vàng nắng, nền vôi sáng; theo chỉ thị chủ dự án 19/11/2026, thay hướng "Phố cửa chớp" cũ) ghi ở `PRODUCT.md`; bảng màu và token ở `tailwind.config.ts`. `DESIGN.md` (gốc repo) mô tả hệ hình ảnh đang chạy (màu, chữ, thành phần, quy tắc dùng); nó là bản mô tả, còn quy tắc bắt buộc nằm ở file này.
 
 ### Khung trang
 
@@ -718,19 +718,20 @@ Khung do `AppShell` (`src/components/client.tsx`) dựng, `layout.tsx` chỉ tru
 ### Hệ hình ảnh
 
 - Một bảng màu, khai ở `tailwind.config.ts`; chỉ dùng tên token, không viết mã hex trong trang (ngoại lệ hiện có: các mã trong `globals.css` cho `::selection`, `caret-color`, thanh cuộn, vòng focus, và `themeColor` ở `layout.tsx`):
-  - `chalk` `#F6F4E8`: nền vôi của cả app.
-  - `ink` `#17231D` (chữ chính) và `ink-soft` `#46524B` (chữ phụ).
-  - `shutter` `#1F5C45`, `shutter-deep` `#153F30`, `shutter-tint` `#DDEBE3`: xanh cửa chớp, dùng cho khung (thanh trên, rail, chân trang), nút chính, thành công.
-  - `wall` `#F2C94C`, `wall-tint` `#FBF0C4`: tường vàng, dùng cho băng tiêu đề trang, mục đang chọn, dải đầu mô-đun, cảnh báo nhẹ.
-  - `roof` `#B0391F`, `roof-tint` `#F8DDD5`: lỗi và hành động nguy hiểm.
-  - `sea` `#1C5F8A`, `sea-tint` `#D6E6EF`: thông tin.
-  - `rule` `#CFCAB2` (viền hairline) và `rule-strong` `#7C8479` (viền ô nhập, ô tick).
-  - Trạng thái qua `Tone`: `green` = shutter, `amber` = wall, `red` = roof, `blue` = sea, `gray` = chalk có viền `rule`.
+  - `chalk` `#F6F3EA`: nền vôi của cả app.
+  - `ink` `#0F2230` (chữ chính) và `ink-soft` `#42525E` (chữ phụ).
+  - `brand` `#0B5C8A`, `brand-deep` `#083F5F`, `brand-tint` `#DCEBF5`: xanh biển, dùng cho khung (thanh trên, rail, chân trang), nút chính, liên kết.
+  - `accent` `#FFC247`, `accent-tint` `#FFF1CE`: vàng nắng. `accent` đặc chỉ cho điểm nhấn thật (mục nav đang chọn, nút "Đăng nhập" trên thanh trên, gạch nắng ngắn dưới `PageTitle`, pin đang chọn); `accent-tint` cho dải đầu mô-đun, cảnh báo nhẹ. `PageTitle` không có khối nền (chữ trên `chalk` kèm gạch nắng ngắn).
+  - `ok` `#146B45`, `ok-tint` `#DAF0E4`: thành công.
+  - `danger` `#B8321F`, `danger-tint` `#FBDFD8`: lỗi và hành động nguy hiểm.
+  - `info` `#0F6F7E`, `info-tint` `#D4EDEF`: thông tin.
+  - `rule` `#D6D1BE` (viền hairline) và `rule-strong` `#6F7C86` (viền ô nhập, ô tick).
+  - Trạng thái qua `Tone`: `green` = ok, `amber` = nền trắng viền `accent`, `red` = danger, `blue` = info, `gray` = chalk có viền `rule`.
 - Bo góc duy nhất là `rounded-ui` (6px). Không đổ bóng, không gradient, không kính mờ (glass), không viền trái màu; ngoại lệ duy nhất là bóng mềm của pin trên bản đồ (`src/components/map.tsx`), để pin nổi lên khỏi nền bản đồ; không dùng bóng ở chỗ khác. Không đưa vào bảng màu, font, bo góc hay đổ bóng thứ hai. Cần sắc độ mới thì thêm vào `tailwind.config.ts`.
 - Bố cục nội dung là các mô-đun chữ nhật viền hairline (`Card`, `ShiftCard`). Dải đầu của mô-đun (`Card tab`, đầu `ShiftCard`) chứa dữ liệu thật (loại việc, trạng thái, nhãn "GẤP"), không phải nhãn trang trí. Không dùng nhãn kicker hoặc eyebrow (dòng chữ nhỏ viết hoa phía trên tiêu đề). Không bọc từng dòng trong thẻ, không lồng thẻ trong thẻ.
-- Dãy cửa chớp (`SlotStrip`) là hình đặc trưng của sản phẩm: mỗi người chính là một ô cửa (đóng = đã có người, trống = còn chỗ), có một ô dự phòng nét đứt tách bằng một trụ. Hình chỉ là minh họa (`aria-hidden`); luôn kèm câu chữ đọc được ("2/3 người chính · chưa có dự phòng") và chữ "Dự phòng" đầy đủ, không rút gọn, không chỉ dựa vào hình và màu.
+- Dãy ô cửa (`SlotStrip`) là hình minh họa đặc trưng của ca làm; logo là mặt trời nhô trên hai làn sóng (`Mark` ở `client.tsx`, favicon `src/app/icon.svg`). `SlotStrip`: mỗi người chính là một ô cửa (đóng = đã có người, trống = còn chỗ), có một ô dự phòng nét đứt tách bằng một trụ. Hình chỉ là minh họa (`aria-hidden`); luôn kèm câu chữ đọc được ("2/3 người chính · chưa có dự phòng") và chữ "Dự phòng" đầy đủ, không rút gọn, không chỉ dựa vào hình và màu.
 - Từ điển trạng thái ca đóng (`StateBadge`): mỗi trạng thái đúng một icon, một nhãn, một tông. Không tự ghép Badge trạng thái ca ở trang khác.
-- App chỉ có giao diện sáng: không có `dark:` hay `prefers-color-scheme` nào. Không thêm chế độ tối nếu không được giao. Vùng nền xanh đậm (thanh trên, rail, nav dưới, chân trang) mang lớp `surface-dark` để vòng focus đổi sang vàng (mục 22); đó là bề mặt của khung, không phải chế độ tối.
+- App chỉ có giao diện sáng: không có `dark:` hay `prefers-color-scheme` nào. Không thêm chế độ tối nếu không được giao. Vùng nền xanh biển đậm (thanh trên, rail, nav dưới, chân trang) mang lớp `surface-dark` để vòng focus đổi sang vàng (mục 22); đó là bề mặt của khung, không phải chế độ tối.
 - Không dùng trang trí không có chức năng (gradient, ảnh minh họa lớn, hiệu ứng). Ảnh hưởng đến tải trang trên 4G yếu.
 
 ---
@@ -743,9 +744,9 @@ Icon dùng `lucide-react` (ghim `1.74.0`, giấy phép ISC): khung điều hư�
 - Icon trang trí phải ẩn khỏi trình đọc màn hình (`aria-hidden="true"`). Nút chỉ có icon phải có tên truy cập được (`aria-label` hoặc chữ ẩn bằng `sr-only`). Nút to tối thiểu `3rem` vẫn áp dụng cho nút chỉ có icon. Hiện các icon đều đi kèm chữ.
 - Trạng thái quan trọng phải có chữ (ví dụ "Đã sao chép", "Đã làm"), không chỉ dựa vào icon hay màu.
 - Không dùng ký tự Unicode hay emoji làm icon, và không thêm ký tự mới kiểu đó.
-- `Stars` (`src/components/ui.tsx`) vẽ năm icon `Star` của Lucide: sao đầy tô `wall` viền `shutter-deep`, sao rỗng chỉ có viền `rule-strong`; bao ngoài là `<span role="img" aria-label="… trên 5 sao">`, các icon bên trong `aria-hidden`. Nút chấm sao trong `confirm-form.tsx` là `<button>` có `aria-label="{n} sao"`, nên ký tự bên trong không bị đọc thừa.
+- `Stars` (`src/components/ui.tsx`) vẽ năm icon `Star` của Lucide: sao đầy tô `accent` viền `brand-deep`, sao rỗng chỉ có viền `rule-strong`; bao ngoài là `<span role="img" aria-label="… trên 5 sao">`, các icon bên trong `aria-hidden`. Nút chấm sao trong `confirm-form.tsx` là `<button>` có `aria-label="{n} sao"`, nên ký tự bên trong không bị đọc thừa.
 - Thêm thư viện icon thứ hai là thay đổi dependency, cần nêu trong PR (mục 21).
-- Custom SVG chỉ dành cho logo hay hình minh họa riêng của SafeShift, không dùng để tự vẽ lại bộ icon. Ô cửa chớp trong `SlotStrip` là hình minh họa riêng của sản phẩm nên được vẽ bằng SVG; biểu tượng trình duyệt `src/app/icon.svg` (ô cửa chớp, màu `shutter-deep` và `wall`) là logo, được phép viết mã hex vì file SVG không dùng được token Tailwind.
+- Custom SVG chỉ dành cho logo hay hình minh họa riêng của SafeShift, không dùng để tự vẽ lại bộ icon. Ô cửa chớp trong `SlotStrip` là hình minh họa riêng của sản phẩm nên được vẽ bằng SVG; biểu tượng trình duyệt `src/app/icon.svg` (mặt trời `accent` trên sóng, nền `brand-deep`) là logo, được phép viết mã hex vì file SVG không dùng được token Tailwind.
 
 ---
 
@@ -765,7 +766,7 @@ Dependency hiện tại nhỏ: `next`, `react`, `react-dom`, `@supabase/ssr`, `@
 ## 22. Tương tác và khả năng truy cập
 
 - HTML ngữ nghĩa trước, ARIA bổ sung sau. Dùng `button` cho hành động, `a` / `Link` cho điều hướng, `label` gắn với ô nhập (`Field`, `Check`), `fieldset` + `legend` cho nhóm lựa chọn. Không dùng `div` hay `span` có `onClick`; hiện không có chỗ nào như vậy.
-- Giữ viền focus. `globals.css` có `:focus-visible { outline: 3px solid #153F30; outline-offset: 2px }` (xanh đậm trên nền sáng) và `.surface-dark :focus-visible { outline-color: #F2C94C }` (vàng trên nền xanh đậm: thanh trên, rail, nav dưới, chân trang). Không xóa chúng, không thêm `outline-none` hay `focus:outline-none` vào thành phần nào. `inputCls` đã bỏ `focus:outline-none`, ô nhập hiện cả vòng 3px lẫn viền `shutter`. Khung nền xanh đậm mới thì thêm lớp `surface-dark`. `Choice` ở `confirm-form.tsx` dùng `focus-within:ring-4`, là cách làm đúng cho radio ẩn bằng `sr-only`.
+- Giữ viền focus. `globals.css` có `:focus-visible { outline: 3px solid #083F5F; outline-offset: 2px }` (`brand-deep` trên nền sáng) và `.surface-dark :focus-visible { outline-color: #FFC247 }` (`accent`, vàng nắng trên nền xanh biển đậm: thanh trên, rail, nav dưới, chân trang). Không xóa chúng, không thêm `outline-none` hay `focus:outline-none` vào thành phần nào. `inputCls` đã bỏ `focus:outline-none`, ô nhập hiện cả vòng 3px lẫn viền `brand`. Khung nền xanh biển đậm mới thì thêm lớp `surface-dark`. `Choice` ở `confirm-form.tsx` dùng `focus-within:ring-4`, là cách làm đúng cho radio ẩn bằng `sr-only`.
 - Không có thao tác chỉ-hover. `hover:` chỉ là phụ (màu nền); mọi việc phải làm được bằng chạm và bàn phím.
 - Trạng thái đủ bộ: bình thường, hover, active, focus, disabled. `btn()` đã có `disabled:cursor-not-allowed disabled:opacity-50`. Nút gửi form dùng `SubmitButton`: nó đọc `useFormStatus()`, tự khóa và đổi nhãn khi đang gửi để chống bấm hai lần. Không tự viết nút gửi khác trong form dùng `ActionForm`. Nút bấm ngoài form (hiện chưa có) phải tự khóa khi `busy`.
 - Thông báo: lỗi dùng `role="alert"`, thành công dùng `role="status"`. `Alert` tự chọn: tông đỏ là `alert`, các tông còn lại là `status` (truyền `role` để đổi); `ActionForm` truyền rõ theo lỗi hay thành công. Mỗi tông có icon riêng kèm chữ, không chỉ dựa vào màu.
@@ -773,8 +774,16 @@ Dependency hiện tại nhỏ: `next`, `react`, `react-dom`, `@supabase/ssr`, `@
 - Cũng vì trình duyệt nhúng: trang token không phụ thuộc vào `alert`, `prompt`, cửa sổ mới hay bước đăng nhập. Đăng nhập demo là form thường nên chạy được trong trình duyệt nhúng; không thêm lại luồng đăng nhập cần cửa sổ ngoài.
 - Menu "Thêm" của nhóm vận hành dùng `<details>`/`<summary>` (chạy bằng bàn phím và trong trình duyệt nhúng, đóng bằng Esc hoặc chạm ra ngoài); không thay bằng menu thả cần JS phức tạp. Nav có `aria-label="Điều hướng chính"` và mục đang chọn mang `aria-current="page"`.
 - Nhóm lựa chọn dùng input radio/checkbox thật khi có thể. Bộ chấm sao trong `confirm-form.tsx` dùng `role="radiogroup"` với các `button role="radio"` và chưa có điều khiển bằng phím mũi tên. Nếu viết lại kiểu này, hoặc dùng input radio thật, hoặc bổ sung đủ hành vi bàn phím của radiogroup.
-- Chuyển động: hiện chỉ có `transition` màu và vòng quay đang gửi; `globals.css` đã rút mọi `animation`/`transition` về gần 0 khi `prefers-reduced-motion: reduce`. Nếu thêm animation, bọc bằng `motion-reduce:` hoặc `@media (prefers-reduced-motion: reduce)`, và chỉ dùng cho phản hồi trạng thái. Không dùng animation che việc thiếu trạng thái đang tải hay lỗi. Cuộn tới thông báo (`ActionForm`, `Flash`) dùng `scrollIntoView({ block: 'center' })`, mượt trừ khi người dùng chọn giảm chuyển động (`scrollBehavior()` trong `client.tsx`); thêm cuộn kiểu này thì kiểm điều kiện đó. Thông báo mang `scroll-my-4` và `<html>` có `scroll-padding` theo `--chrome-top`/`--chrome-bottom`, để thông báo hay mục neo không nằm dưới thanh dính. Vòng quay của `SubmitButton` dùng `motion-safe:animate-spin`. Skill chuyển động (`animate`, `emil-design-eng`, `improve-animations`) chỉ được gợi ý trong khuôn khổ này: chỉ CSS, không thêm thư viện (không `framer-motion`), không hiệu ứng trang trí; đề xuất nào vượt khuôn khổ thì bỏ. `design-taste-frontend` nhắm vào trang giới thiệu công ty, không dùng cho màn thao tác của chủ quán và người làm (chỉ chạy khi chủ dự án gọi tay cho trang chủ).
-- Tương phản đạt WCAG AA: chữ nội dung dùng `ink` hoặc `ink-soft` trên `chalk`/trắng, chữ trên nền `shutter-deep` là trắng hoặc `wall`; không tự pha màu chữ nhạt hơn `ink-soft` cho nội dung (chỉ `placeholder` dùng `ink-soft/80`). Cặp màu mới phải tự tính tỉ lệ tương phản (4,5:1 cho chữ thường). Không chỉ dùng màu để phân biệt trạng thái: luôn kèm chữ như `Badge` đang làm.
+- Chuyển động (theo chỉ thị chủ dự án 19/11/2026; chi tiết ở `DESIGN.md` mục Motion). Chỉ CSS, không thư viện (không `framer-motion`), không JS để chạy hiệu ứng:
+  - easing `cubic-bezier(0.23, 1, 0.32, 1)` (`--ease-out` trong `globals.css`, cũng là `transition` mặc định của Tailwind); phản hồi giao diện <= 250ms; nhấn nút `scale(0.97)` 120ms trong `btn()`;
+  - vào trang: mờ dần + trượt lên 4px, <= 200ms, lớp `.page-enter` ở `<main>` do `AppShell` gắn (key theo đường dẫn), **không** gắn ở trang token và hồ sơ công khai (`/confirm`, `/consent`, `/p`: trình duyệt nhúng của Zalo, không thêm hiệu ứng);
+  - danh sách tải một lần: lớp `.stagger` ở phần tử cha, mục thứ 2 đến 6 trễ thêm 40ms mỗi mục, từ mục thứ 7 hiện luôn; không gắn cho thứ đổi qua lại (tab, bộ lọc, tự làm mới);
+  - không animate nav dưới và hành động lặp nhiều lần; không `transition: all` (liệt kê `color`, `background-color`, `border-color`, `opacity`, `transform`); `hover:` chỉ trên thiết bị có con trỏ (`future.hoverOnlyWhenSupported` trong `tailwind.config.ts`; CSS build sinh `@media (hover: hover) and (pointer: fine)`);
+  - `prefers-reduced-motion: reduce`: giữ mờ dần và đổi màu, bỏ trượt và co giãn (`globals.css`); animation mới phải theo cách này hoặc bọc `motion-safe:`/`motion-reduce:`. Không dùng animation che việc thiếu trạng thái đang tải hay lỗi; khung chờ nhấp nháy bằng `motion-safe:animate-pulse`;
+  - cuộn tới thông báo (`ActionForm`, `Flash`) dùng `scrollIntoView({ block: 'center' })`, mượt trừ khi người dùng chọn giảm chuyển động (`scrollBehavior()` trong `client.tsx`); thêm cuộn kiểu này thì kiểm điều kiện đó. Thông báo mang `scroll-my-4` và `<html>` có `scroll-padding` theo `--chrome-top`/`--chrome-bottom`. Vòng quay của `SubmitButton` dùng `motion-safe:animate-spin`;
+  - khối cao thay đổi theo dữ liệu (dòng trạng thái `LiveRefresh`, khung bản đồ) có chiều cao cố định; `PageTitle` có chiều cao theo số dòng phụ đề và `PageSkeleton` khớp nó (CLS 0). Đổi `PageTitle` thì đo lại và sửa `SKELETON_TITLE` trong `ui.tsx`;
+  - skill chuyển động (`animate`, `emil-design-eng`, `improve-animations`) chỉ được gợi ý trong khuôn khổ này; đề xuất nào vượt khuôn khổ thì bỏ. `design-taste-frontend` nhắm vào trang giới thiệu công ty, không dùng cho màn thao tác của chủ quán và người làm (chỉ chạy khi chủ dự án gọi tay cho trang chủ).
+- Tương phản đạt WCAG AA: chữ nội dung dùng `ink` hoặc `ink-soft` trên `chalk`/trắng, chữ trên nền `brand-deep` là trắng hoặc `accent`; không tự pha màu chữ nhạt hơn `ink-soft` cho nội dung (chỉ `placeholder` dùng `ink-soft/80`). Cặp màu mới phải tự tính tỉ lệ tương phản (4,5:1 cho chữ thường). Không chỉ dùng màu để phân biệt trạng thái: luôn kèm chữ như `Badge` đang làm.
 
 ---
 

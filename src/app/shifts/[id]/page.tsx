@@ -13,7 +13,7 @@ import type { Contacts, ShiftDetail } from '@/lib/types';
 
 export const metadata = { title: 'Chi tiết ca' };
 
-const linkCls = 'font-semibold text-shutter underline underline-offset-4';
+const linkCls = 'font-semibold text-brand underline underline-offset-4';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PAY_VARIANT: Record<PaymentAnswer, 'primary' | 'secondary' | 'danger'> = { full: 'primary', partial: 'secondary', unpaid: 'danger' };
 
@@ -115,7 +115,7 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="space-y-4">
-      <Link href="/shifts" className="inline-flex min-h-[3rem] items-center gap-2 rounded font-semibold text-shutter underline underline-offset-4">
+      <Link href="/shifts" className="inline-flex min-h-[3rem] items-center gap-2 rounded font-semibold text-brand underline underline-offset-4">
         <ChevronLeft className="h-5 w-5" aria-hidden="true" />
         Tất cả ca
       </Link>
@@ -132,7 +132,7 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
               {fmtTime(s.starts_at)}–{fmtTime(s.ends_at)}
             </p>
             <dl className="mt-4 divide-y divide-rule border-t border-rule">
-              <Row label="Lương"><span className="text-shutter">{fmtMoney(s.hourly_wage)}/giờ</span></Row>
+              <Row label="Lương"><span className="text-brand">{fmtMoney(s.hourly_wage)}/giờ</span></Row>
               <Row label="Nơi làm">
                 {s.facility_name}
                 <span className="block text-base font-normal text-ink-soft">{FACILITY_TYPE_LABEL[s.facility_type]} · {AREA_LABEL[s.area]}</span>
@@ -293,7 +293,7 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
 
       <details className="rounded-ui border border-rule bg-white">
         <summary className="flex min-h-[3rem] cursor-pointer items-center gap-2 px-4 text-lg font-semibold text-ink">
-          <Flag className="h-5 w-5 shrink-0 text-roof" aria-hidden="true" />
+          <Flag className="h-5 w-5 shrink-0 text-danger" aria-hidden="true" />
           Báo cáo vấn đề với nhóm vận hành
         </summary>
         <div className="border-t border-rule p-4">

@@ -35,7 +35,7 @@ function Identity({ f }: { f: AdminFacility }) {
       <p className="break-words text-base text-ink">{f.address}</p>
       {f.maps_url ? (
         <a href={f.maps_url} target="_blank" rel="noopener noreferrer"
-          className="inline-flex min-h-[3rem] items-center gap-2 font-semibold text-shutter underline underline-offset-4">
+          className="inline-flex min-h-[3rem] items-center gap-2 font-semibold text-brand underline underline-offset-4">
           <MapPin className="h-5 w-5" aria-hidden="true" />
           Mở bản đồ
         </a>

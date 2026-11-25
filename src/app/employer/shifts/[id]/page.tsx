@@ -22,7 +22,7 @@ function WorkerRow({ w, children }: { w: Worker; children?: React.ReactNode }) {
       <p className="text-lg font-bold text-ink">{w.name}</p>
       <p className="text-lg">Gọi: <Tel phone={w.phone} /></p>
       {w.slug ? (
-        <Link href={`/p/${w.slug}`} className="inline-flex min-h-[3rem] items-center text-base font-semibold text-shutter underline underline-offset-4">
+        <Link href={`/p/${w.slug}`} className="inline-flex min-h-[3rem] items-center text-base font-semibold text-brand underline underline-offset-4">
           Xem hồ sơ ca làm
         </Link>
       ) : null}
@@ -88,7 +88,7 @@ export default async function EmployerShiftPage({
               {fmtTime(shift.starts_at)}–{fmtTime(shift.ends_at)}
             </p>
           </div>
-          <p className="text-lg font-semibold text-shutter">
+          <p className="text-lg font-semibold text-brand">
             {fmtMoney(shift.hourly_wage)}/giờ{' '}
             <span className="font-normal text-ink-soft">· {hoursBetween(shift.starts_at, shift.ends_at)} giờ</span>
           </p>
@@ -106,7 +106,7 @@ export default async function EmployerShiftPage({
       </Card>
 
       {shift.confirm_token ? (
-        <section className="space-y-4 rounded-ui border-2 border-wall bg-wall-tint p-4">
+        <section className="space-y-4 rounded-ui border-2 border-accent bg-accent-tint p-4">
           <h2 className="flex items-center gap-2 text-xl font-bold text-ink">
             <Hourglass className="h-6 w-6 shrink-0" aria-hidden="true" />
             Xác nhận sau ca

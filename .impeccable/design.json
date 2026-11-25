@@ -4,132 +4,132 @@
   "title": "Design System: SafeShift",
   "extensions": {
     "colorMeta": {
-      "shutter": {
+      "brand": {
         "role": "primary",
-        "displayName": "Xanh cửa chớp",
-        "canonical": "#1F5C45",
+        "displayName": "Xanh biển",
+        "canonical": "#0B5C8A",
         "tonalRamp": [
-          "#153F30",
-          "#1F5C45",
-          "#DDEBE3"
+          "#083F5F",
+          "#0B5C8A",
+          "#DCEBF5"
         ]
       },
-      "shutter-deep": {
+      "brand-deep": {
         "role": "primary",
-        "displayName": "Xanh cửa chớp đậm (khung chrome)",
-        "canonical": "#153F30",
+        "displayName": "Xanh biển đậm (khung chrome)",
+        "canonical": "#083F5F",
         "tonalRamp": [
-          "#153F30",
-          "#1F5C45",
-          "#DDEBE3"
+          "#083F5F",
+          "#0B5C8A",
+          "#DCEBF5"
         ]
       },
-      "shutter-tint": {
+      "brand-tint": {
         "role": "primary",
-        "displayName": "Xanh cửa chớp nhạt",
-        "canonical": "#DDEBE3",
+        "displayName": "Xanh biển nhạt",
+        "canonical": "#DCEBF5",
         "tonalRamp": [
-          "#153F30",
-          "#1F5C45",
-          "#DDEBE3"
+          "#083F5F",
+          "#0B5C8A",
+          "#DCEBF5"
         ]
       },
-      "wall": {
+      "accent": {
         "role": "secondary",
-        "displayName": "Tường vàng",
-        "canonical": "#F2C94C",
+        "displayName": "Vàng nắng",
+        "canonical": "#FFC247",
         "tonalRamp": [
-          "#F2C94C",
-          "#FBF0C4"
+          "#FFC247",
+          "#FFF1CE"
         ]
       },
-      "wall-tint": {
+      "accent-tint": {
         "role": "secondary",
-        "displayName": "Tường vàng nhạt",
-        "canonical": "#FBF0C4",
+        "displayName": "Vàng nắng nhạt",
+        "canonical": "#FFF1CE",
         "tonalRamp": [
-          "#F2C94C",
-          "#FBF0C4"
+          "#FFC247",
+          "#FFF1CE"
         ]
       },
-      "roof": {
+      "danger": {
         "role": "tertiary",
-        "displayName": "Ngói (lỗi, nguy hiểm)",
-        "canonical": "#B0391F",
+        "displayName": "Lỗi, nguy hiểm",
+        "canonical": "#B8321F",
         "tonalRamp": [
-          "#B0391F",
-          "#F8DDD5"
+          "#B8321F",
+          "#FBDFD8"
         ]
       },
-      "roof-tint": {
+      "danger-tint": {
         "role": "tertiary",
-        "displayName": "Ngói nhạt",
-        "canonical": "#F8DDD5",
+        "displayName": "Lỗi nhạt",
+        "canonical": "#FBDFD8",
         "tonalRamp": [
-          "#B0391F",
-          "#F8DDD5"
+          "#B8321F",
+          "#FBDFD8"
         ]
       },
-      "sea": {
+      "info": {
         "role": "tertiary",
-        "displayName": "Biển (thông tin)",
-        "canonical": "#1C5F8A",
+        "displayName": "Thông tin",
+        "canonical": "#0F6F7E",
         "tonalRamp": [
-          "#1C5F8A",
-          "#D6E6EF"
+          "#0F6F7E",
+          "#D4EDEF"
         ]
       },
-      "sea-tint": {
+      "info-tint": {
         "role": "tertiary",
-        "displayName": "Biển nhạt",
-        "canonical": "#D6E6EF",
+        "displayName": "Thông tin nhạt",
+        "canonical": "#D4EDEF",
         "tonalRamp": [
-          "#1C5F8A",
-          "#D6E6EF"
+          "#0F6F7E",
+          "#D4EDEF"
         ]
       },
       "chalk": {
         "role": "neutral",
         "displayName": "Nền vôi",
-        "canonical": "#F6F4E8",
+        "canonical": "#F6F3EA",
         "tonalRamp": [
-          "#F6F4E8"
+          "#F6F3EA"
         ]
       },
       "ink": {
         "role": "neutral",
         "displayName": "Mực",
-        "canonical": "#17231D",
+        "canonical": "#0F2230",
         "tonalRamp": [
-          "#17231D",
-          "#46524B"
+          "#0F2230",
+          "#42525E"
         ]
       },
       "ink-soft": {
         "role": "neutral",
         "displayName": "Mực nhạt",
-        "canonical": "#46524B",
+        "canonical": "#42525E",
         "tonalRamp": [
-          "#17231D",
-          "#46524B"
+          "#0F2230",
+          "#42525E"
         ]
       },
       "rule": {
         "role": "neutral",
         "displayName": "Đường kẻ hairline",
-        "canonical": "#CFCAB2",
+        "canonical": "#D6D1BE",
         "tonalRamp": [
-          "#7C8479",
-          "#CFCAB2"
+          "#6F7C86",
+          "#D6D1BE"
         ]
       },
       "rule-strong": {
         "role": "neutral",
         "displayName": "Đường kẻ đậm (viền ô nhập)",
-        "canonical": "#7C8479",
+        "canonical": "#6F7C86",
         "tonalRamp": [
-          "#7C8479",
-          "#CFCAB2"
+          "#6F7C86",
+          "#D6D1BE"
         ]
       },
       "white": {
@@ -138,6 +138,24 @@
         "canonical": "#FFFFFF",
         "tonalRamp": [
           "#FFFFFF"
+        ]
+      },
+      "ok": {
+        "role": "tertiary",
+        "displayName": "Thành công",
+        "canonical": "#146B45",
+        "tonalRamp": [
+          "#146B45",
+          "#DAF0E4"
+        ]
+      },
+      "ok-tint": {
+        "role": "tertiary",
+        "displayName": "Thành công nhạt",
+        "canonical": "#DAF0E4",
+        "tonalRamp": [
+          "#146B45",
+          "#DAF0E4"
         ]
       }
     },
@@ -148,7 +166,7 @@
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "PageTitle trên băng tường vàng (text-2xl)."
+        "purpose": "PageTitle trên nền vôi (text-2xl)."
       },
       "title": {
         "displayName": "Title",
@@ -185,14 +203,29 @@
     ],
     "motion": [
       {
-        "name": "color-transition",
-        "value": "150ms cubic-bezier(0.4, 0, 0.2, 1)",
-        "purpose": "transition-colors mặc định của Tailwind trên nút; chevron của Disclosure dùng transition-transform cùng đường cong."
+        "name": "ease-out",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "--ease-out trong globals.css và transition mặc định của Tailwind (150ms); mọi phản hồi giao diện <= 250ms."
+      },
+      {
+        "name": "page-enter",
+        "value": "opacity + translateY(4px), 200ms",
+        "purpose": ".page-enter ở <main> (key theo đường dẫn); không áp ở /confirm, /consent, /p. Chỉ CSS."
+      },
+      {
+        "name": "stagger",
+        "value": "40ms mỗi mục, sáu mục đầu",
+        "purpose": ".stagger ở phần tử cha của danh sách tải một lần; mục thứ bảy trở đi hiện luôn."
+      },
+      {
+        "name": "press",
+        "value": "scale(0.97) 120ms",
+        "purpose": "btn(): motion-safe:active:scale, không khi disabled; transition liệt kê thuộc tính, không dùng all."
       },
       {
         "name": "spin",
         "value": "motion-safe:animate-spin",
-        "purpose": "Vòng quay LoaderCircle khi SubmitButton đang gửi."
+        "purpose": "Vòng quay LoaderCircle khi SubmitButton đang gửi; skeleton motion-safe:animate-pulse."
       },
       {
         "name": "scroll",
@@ -201,8 +234,8 @@
       },
       {
         "name": "reduced-motion",
-        "value": "animation-duration, transition-duration: 0.01ms; scroll-behavior: auto",
-        "purpose": "globals.css rút mọi chuyển động khi người dùng chọn giảm chuyển động; bản đồ tắt animate trong fitBounds và đổi easeTo thành jumpTo."
+        "value": "giữ opacity và màu, bỏ translate/scale; scroll-behavior: auto",
+        "purpose": "globals.css đổi .page-enter/.stagger sang fade thuần và giới hạn transition-property; bản đồ tắt animate trong fitBounds và đổi easeTo thành jumpTo."
       }
     ],
     "breakpoints": [
@@ -240,127 +273,143 @@
         {
           "fg": "ink",
           "bg": "chalk",
-          "ratio": 14.7
+          "ratio": 14.65
         },
         {
           "fg": "ink",
           "bg": "white",
-          "ratio": 16.22
+          "ratio": 16.26
         },
         {
           "fg": "ink-soft",
           "bg": "chalk",
-          "ratio": 7.41
+          "ratio": 7.28
         },
         {
           "fg": "ink-soft",
           "bg": "white",
-          "ratio": 8.17
+          "ratio": 8.08
+        },
+        {
+          "fg": "ink-soft",
+          "bg": "accent-tint",
+          "ratio": 7.2
         },
         {
           "fg": "white",
-          "bg": "shutter",
-          "ratio": 7.85
+          "bg": "brand",
+          "ratio": 7.21
         },
         {
           "fg": "white",
-          "bg": "shutter-deep",
-          "ratio": 11.76
+          "bg": "brand-deep",
+          "ratio": 11.13
         },
         {
           "fg": "white",
-          "bg": "roof",
-          "ratio": 6.09
+          "bg": "danger",
+          "ratio": 5.98
         },
         {
-          "fg": "shutter",
+          "fg": "brand",
           "bg": "white",
-          "ratio": 7.85
+          "ratio": 7.21
         },
         {
-          "fg": "shutter-deep",
-          "bg": "shutter-tint",
-          "ratio": 9.56
+          "fg": "brand",
+          "bg": "chalk",
+          "ratio": 6.5
         },
         {
-          "fg": "shutter-deep",
-          "bg": "wall",
-          "ratio": 7.41
-        },
-        {
-          "fg": "ink",
-          "bg": "wall",
-          "ratio": 10.22
+          "fg": "brand",
+          "bg": "brand-tint",
+          "ratio": 5.92
         },
         {
           "fg": "ink",
-          "bg": "wall-tint",
-          "ratio": 14.18
+          "bg": "accent",
+          "ratio": 10.11
         },
         {
-          "fg": "wall",
-          "bg": "shutter-deep",
-          "ratio": 7.41
+          "fg": "ink",
+          "bg": "accent-tint",
+          "ratio": 14.5
         },
         {
-          "fg": "roof",
-          "bg": "roof-tint",
-          "ratio": 4.72,
+          "fg": "accent",
+          "bg": "brand-deep",
+          "ratio": 6.92
+        },
+        {
+          "fg": "brand-tint",
+          "bg": "brand-deep",
+          "ratio": 9.14
+        },
+        {
+          "fg": "ok",
+          "bg": "ok-tint",
+          "ratio": 5.46
+        },
+        {
+          "fg": "danger",
+          "bg": "danger-tint",
+          "ratio": 4.74,
           "note": "text-sm, sát ngưỡng AA"
         },
         {
-          "fg": "sea",
-          "bg": "sea-tint",
-          "ratio": 5.38
+          "fg": "info",
+          "bg": "info-tint",
+          "ratio": 4.77
         },
         {
-          "fg": "placeholder (ink-soft 80% trên trắng = #6B756F)",
+          "fg": "ink-soft",
+          "bg": "rule",
+          "ratio": 5.28
+        },
+        {
+          "fg": "placeholder (ink-soft 80% trên trắng)",
           "bg": "white",
-          "ratio": 4.77
+          "ratio": 4.74
         },
         {
           "fg": "rule-strong",
           "bg": "white",
+          "ratio": 4.28,
+          "note": "chỉ UI >= 3:1, không làm chữ"
+        },
+        {
+          "fg": "rule-strong",
+          "bg": "chalk",
           "ratio": 3.86,
-          "note": "chỉ đạt 3:1 cho viền thành phần giao diện, không làm chữ"
+          "note": "chỉ UI >= 3:1, không làm chữ"
+        },
+        {
+          "fg": "brand-deep",
+          "bg": "chalk",
+          "ratio": 10.03,
+          "note": "vòng focus trên nền sáng"
         },
         {
           "fg": "rule",
           "bg": "chalk",
-          "ratio": 1.49,
-          "note": "dưới 3:1, chủ ý: đường ngăn cách trang trí"
-        },
-        {
-          "fg": "wall",
-          "bg": "chalk",
-          "ratio": 1.44,
-          "note": "không dùng làm chữ hoặc viền trên nền sáng"
-        },
-        {
-          "fg": "focus ring shutter-deep",
-          "bg": "chalk",
-          "ratio": 10.65
-        },
-        {
-          "fg": "focus ring wall",
-          "bg": "shutter-deep",
-          "ratio": 7.41
+          "ratio": 1.38,
+          "note": "viền hairline trang trí, dưới 3:1 có chủ ý"
         }
       ]
     },
     "map": {
       "provider": "MapLibre GL + OpenFreeMap positron (https://tiles.openfreemap.org/styles/positron), tải động, lazy bằng IntersectionObserver rootMargin 200px",
       "repaint": {
-        "land": "#F3EFD9",
-        "park": "#D9E4C6",
-        "water": "#B9D7D3",
-        "building": "#E9DFB4",
+        "land": "#F1EEE3",
+        "park": "#D6E4CE",
+        "water": "#BDDCEA",
+        "building": "#E6E1D0",
         "road": "#FFFFFF",
-        "roadEdge": "#DAD3B0",
-        "major": "#F2C94C",
-        "majorEdge": "#B89A22",
-        "label": "#2A3B33",
-        "waterLabel": "#1D4A54"
+        "roadEdge": "#D9D4C1",
+        "major": "#FFD97A",
+        "majorEdge": "#D9A532",
+        "label": "#24343F",
+        "waterLabel": "#16526F"
       },
       "view": {
         "center": "[107.09, 10.36]",
@@ -382,12 +431,12 @@
         "border": "2px (3px khi chọn)",
         "hitArea": "::after mở rộng -inset-x-1 -inset-y-2 cho đủ 48px",
         "tones": {
-          "open": "bg shutter, chữ trắng",
-          "urgent": "bg roof, chữ trắng",
-          "full": "bg trắng, chữ và viền shutter",
-          "pending": "bg wall, chữ ink",
+          "open": "bg brand, chữ trắng",
+          "urgent": "bg danger, chữ trắng",
+          "full": "bg trắng, chữ và viền brand",
+          "pending": "bg accent, chữ ink",
           "removed": "bg rule, chữ ink-soft",
-          "selectedOrLit": "bg wall, chữ ink, viền 3px shutter-deep, nhấc 4px"
+          "selectedOrLit": "bg accent, chữ ink, viền 3px brand-deep, nhấc 4px"
         }
       },
       "stacking": {
@@ -401,7 +450,7 @@
       },
       "locationPicker": {
         "interactions": "bấm bản đồ, kéo chấm ghim, dùng vị trí hiện tại, nhập tọa độ",
-        "dot": "tròn 1.5rem, nền roof, viền trắng 3px, shadow-md",
+        "dot": "tròn 1.5rem, nền danger, viền trắng 3px, shadow-md",
         "precision": "6 chữ số thập phân",
         "hiddenInputs": "lat, lng; chỉ gửi khi form được lưu"
       },
@@ -415,7 +464,6 @@
       "Khối trống ở /login ở 1280px.",
       "Pin dạng số ở bản đồ cơ sở (/admin/facilities) chưa có chú giải.",
       "Chưa thử trong trình duyệt nhúng thật của Zalo/Facebook.",
-      "Pin pending và removed có viền gần như cùng màu nền đất bản đồ (1,37:1 và 1,42:1); chữ trong pin vẫn đạt.",
       "Một số chỗ dùng rounded mặc định (4,5px) thay vì rounded-ui 6px: Badge, link nav trong rail/menu, mục lục Doc; không phải bán kính thứ hai của hệ."
     ]
   },
@@ -426,15 +474,15 @@
       "refersTo": "button-primary",
       "description": "Nút chính, một nút mỗi màn hình; hover/active đậm hơn.",
       "html": "<button class=\"ds-btn-primary\">Đăng ca</button>",
-      "css": ".ds-btn-primary{display:inline-flex;min-height:3rem;align-items:center;justify-content:center;gap:0.5rem;border-radius:6px;padding:0.5rem 1.5rem;font-size:1.125rem;line-height:1.75rem;font-weight:600;cursor:pointer;transition:background-color 150ms cubic-bezier(0.4,0,0.2,1);font-family:'Be Vietnam Pro',system-ui,sans-serif;border:0;background:#1F5C45;color:#FFFFFF;} .ds-btn-primary:hover,.ds-btn-primary:active{background:#153F30;} .ds-btn-primary:focus-visible{outline:3px solid #153F30;outline-offset:2px;} .ds-btn-primary:disabled{opacity:0.5;cursor:not-allowed;}"
+      "css": ".ds-btn-primary{display:inline-flex;min-height:3rem;align-items:center;justify-content:center;gap:0.5rem;border-radius:6px;padding:0.5rem 1.5rem;font-size:1.125rem;line-height:1.75rem;font-weight:600;cursor:pointer;transition:background-color 150ms cubic-bezier(0.4,0,0.2,1);font-family:'Be Vietnam Pro',system-ui,sans-serif;border:0;background:#0B5C8A;color:#FFFFFF;} .ds-btn-primary:hover,.ds-btn-primary:active{background:#083F5F;} .ds-btn-primary:focus-visible{outline:3px solid #083F5F;outline-offset:2px;} .ds-btn-primary:disabled{opacity:0.5;cursor:not-allowed;}"
     },
     {
       "name": "Secondary Button",
       "kind": "button",
       "refersTo": "button-secondary",
-      "description": "Nút phụ: nền trắng, viền 2px xanh cửa chớp.",
+      "description": "Nút phụ: nền trắng, viền 2px xanh biển.",
       "html": "<button class=\"ds-btn-secondary\">Sao chép</button>",
-      "css": ".ds-btn-secondary{display:inline-flex;min-height:3rem;align-items:center;justify-content:center;gap:0.5rem;border-radius:6px;padding:0.5rem 1.5rem;font-size:1.125rem;line-height:1.75rem;font-weight:600;cursor:pointer;transition:background-color 150ms cubic-bezier(0.4,0,0.2,1);font-family:'Be Vietnam Pro',system-ui,sans-serif;border:2px solid #1F5C45;background:#FFFFFF;color:#1F5C45;} .ds-btn-secondary:hover{background:#DDEBE3;} .ds-btn-secondary:focus-visible{outline:3px solid #153F30;outline-offset:2px;}"
+      "css": ".ds-btn-secondary{display:inline-flex;min-height:3rem;align-items:center;justify-content:center;gap:0.5rem;border-radius:6px;padding:0.5rem 1.5rem;font-size:1.125rem;line-height:1.75rem;font-weight:600;cursor:pointer;transition:background-color 150ms cubic-bezier(0.4,0,0.2,1);font-family:'Be Vietnam Pro',system-ui,sans-serif;border:2px solid #0B5C8A;background:#FFFFFF;color:#0B5C8A;} .ds-btn-secondary:hover{background:#DCEBF5;} .ds-btn-secondary:focus-visible{outline:3px solid #083F5F;outline-offset:2px;}"
     },
     {
       "name": "Danger Button",
@@ -442,7 +490,7 @@
       "refersTo": "button-danger",
       "description": "Hủy hoặc xóa; luôn kèm bước xác nhận (window.confirm ở trang đăng nhập; câu nhắc cố định ở trang token).",
       "html": "<button class=\"ds-btn-danger\">Hủy suất của tôi</button>",
-      "css": ".ds-btn-danger{display:inline-flex;min-height:3rem;align-items:center;justify-content:center;gap:0.5rem;border-radius:6px;padding:0.5rem 1.5rem;font-size:1.125rem;line-height:1.75rem;font-weight:600;cursor:pointer;transition:background-color 150ms cubic-bezier(0.4,0,0.2,1);font-family:'Be Vietnam Pro',system-ui,sans-serif;border:0;background:#B0391F;color:#FFFFFF;} .ds-btn-danger:hover{filter:brightness(0.9);} .ds-btn-danger:focus-visible{outline:3px solid #153F30;outline-offset:2px;}"
+      "css": ".ds-btn-danger{display:inline-flex;min-height:3rem;align-items:center;justify-content:center;gap:0.5rem;border-radius:6px;padding:0.5rem 1.5rem;font-size:1.125rem;line-height:1.75rem;font-weight:600;cursor:pointer;transition:background-color 150ms cubic-bezier(0.4,0,0.2,1);font-family:'Be Vietnam Pro',system-ui,sans-serif;border:0;background:#B8321F;color:#FFFFFF;} .ds-btn-danger:hover{filter:brightness(0.9);} .ds-btn-danger:focus-visible{outline:3px solid #083F5F;outline-offset:2px;}"
     },
     {
       "name": "Input Field",
@@ -450,7 +498,7 @@
       "refersTo": "input",
       "description": "Nhãn phía trên, ô trắng viền 2px; focus vừa đổi viền xanh vừa hiện vòng 3px.",
       "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Lương theo giờ (đ)</span><input class=\"ds-input\" type=\"text\" placeholder=\"27000\"><span class=\"ds-field-hint\">Không thấp hơn mức tối thiểu.</span></label>",
-      "css": ".ds-field{display:block;font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-field-label{display:block;margin-bottom:0.5rem;font-size:1rem;line-height:1.5rem;font-weight:600;color:#17231D;} .ds-input{display:block;box-sizing:border-box;width:100%;min-height:3rem;border-radius:6px;border:2px solid #7C8479;background:#FFFFFF;padding:0.5rem 1rem;font:inherit;font-size:1.125rem;color:#17231D;} .ds-input::placeholder{color:rgba(70,82,75,0.8);} .ds-input:focus{border-color:#1F5C45;} .ds-input:focus-visible{outline:3px solid #153F30;outline-offset:2px;} .ds-field-hint{display:block;margin-top:0.5rem;font-size:0.875rem;line-height:1.25rem;color:#46524B;}"
+      "css": ".ds-field{display:block;font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-field-label{display:block;margin-bottom:0.5rem;font-size:1rem;line-height:1.5rem;font-weight:600;color:#0F2230;} .ds-input{display:block;box-sizing:border-box;width:100%;min-height:3rem;border-radius:6px;border:2px solid #6F7C86;background:#FFFFFF;padding:0.5rem 1rem;font:inherit;font-size:1.125rem;color:#0F2230;} .ds-input::placeholder{color:rgba(70,82,75,0.8);} .ds-input:focus{border-color:#0B5C8A;} .ds-input:focus-visible{outline:3px solid #083F5F;outline-offset:2px;} .ds-field-hint{display:block;margin-top:0.5rem;font-size:0.875rem;line-height:1.25rem;color:#42525E;}"
     },
     {
       "name": "Check Row",
@@ -458,15 +506,15 @@
       "refersTo": "input",
       "description": "Cả hàng là một nhãn bấm được; được chọn thì đổi viền và nền, không chỉ dấu tick.",
       "html": "<label class=\"ds-check\"><input type=\"checkbox\" checked><span>Tôi cam kết không thu phí, không đặt cọc, không giữ giấy tờ.</span></label>",
-      "css": ".ds-check{display:flex;align-items:flex-start;gap:1rem;border-radius:6px;border:2px solid #7C8479;background:#FFFFFF;padding:1rem;cursor:pointer;font-size:1rem;line-height:1.5rem;color:#17231D;font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-check:has(:checked){border-color:#1F5C45;background:#DDEBE3;} .ds-check input{width:1.5rem;height:1.5rem;flex-shrink:0;accent-color:#1F5C45;} .ds-check:has(:focus-visible){outline:3px solid #153F30;outline-offset:2px;}"
+      "css": ".ds-check{display:flex;align-items:flex-start;gap:1rem;border-radius:6px;border:2px solid #6F7C86;background:#FFFFFF;padding:1rem;cursor:pointer;font-size:1rem;line-height:1.5rem;color:#0F2230;font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-check:has(:checked){border-color:#0B5C8A;background:#DCEBF5;} .ds-check input{width:1.5rem;height:1.5rem;flex-shrink:0;accent-color:#0B5C8A;} .ds-check:has(:focus-visible){outline:3px solid #083F5F;outline-offset:2px;}"
     },
     {
       "name": "Page Title Band",
       "kind": "custom",
       "refersTo": "page-title",
-      "description": "Băng tường vàng đầu trang; một việc chính của trang nằm ngay dưới.",
+      "description": "Tiêu đề trang: chữ trên nền vôi, gạch nắng ngắn 3rem x 4,5px bên dưới; một việc chính của trang nằm ngay dưới.",
       "html": "<div class=\"ds-title\"><h1>Ca của quán</h1><p>Đăng ca khi thiếu người, xác nhận sau ca bằng một cú bấm.</p></div>",
-      "css": ".ds-title{border-radius:6px;background:#F2C94C;padding:1rem;font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-title h1{margin:0;font-size:1.5rem;line-height:1.25;font-weight:700;color:#17231D;} .ds-title p{margin:0.5rem 0 0;font-size:1rem;line-height:1.5rem;color:#153F30;}"
+      "css": ".ds-title{border-radius:6px;background:#FFC247;padding:1rem;font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-title h1{margin:0;font-size:1.5rem;line-height:1.25;font-weight:700;color:#0F2230;} .ds-title p{margin:0.5rem 0 0;font-size:1rem;line-height:1.5rem;color:#083F5F;}"
     },
     {
       "name": "Badge",
@@ -474,39 +522,39 @@
       "refersTo": "badge-green",
       "description": "Nhãn trạng thái ngắn: tông green, amber, red, blue, gray. Luôn kèm chữ; trạng thái ca có thêm icon (StateBadge).",
       "html": "<span class=\"ds-badge ds-badge-green\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m9 12 2 2 4-4\"/></svg>Đã xác nhận</span> <span class=\"ds-badge ds-badge-amber\">Nhận dưới 18 tuổi</span> <span class=\"ds-badge ds-badge-red\">GẤP</span> <span class=\"ds-badge ds-badge-blue\">Thông tin</span> <span class=\"ds-badge ds-badge-gray\">Nháp</span>",
-      "css": ".ds-badge{display:inline-flex;min-height:2rem;align-items:center;gap:0.5rem;white-space:nowrap;border-radius:4.5px;padding:0 0.5rem;font-size:0.875rem;line-height:1.25rem;font-weight:600;font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-badge-green{background:#DDEBE3;color:#153F30;} .ds-badge-amber{background:#FBF0C4;color:#17231D;} .ds-badge-red{background:#F8DDD5;color:#B0391F;} .ds-badge-blue{background:#D6E6EF;color:#1C5F8A;} .ds-badge-gray{border:1px solid #CFCAB2;background:#F6F4E8;color:#46524B;}"
+      "css": ".ds-badge{display:inline-flex;min-height:2rem;align-items:center;gap:0.5rem;white-space:nowrap;border-radius:4.5px;padding:0 0.5rem;font-size:0.875rem;line-height:1.25rem;font-weight:600;font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-badge-green{background:#DCEBF5;color:#083F5F;} .ds-badge-amber{background:#FFF1CE;color:#0F2230;} .ds-badge-red{background:#FBDFD8;color:#B8321F;} .ds-badge-blue{background:#D4EDEF;color:#0F6F7E;} .ds-badge-gray{border:1px solid #D6D1BE;background:#F6F3EA;color:#42525E;}"
     },
     {
       "name": "Alert",
       "kind": "custom",
       "refersTo": "card",
       "description": "Nền tint + viền 1px + icon + chữ. Lỗi role=alert, còn lại role=status.",
-      "html": "<div class=\"ds-alert\" role=\"status\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#1F5C45\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m9 12 2 2 4-4\"/></svg><div>Đã đăng ca. Người làm sẽ thấy ca trong danh sách.</div></div>",
-      "css": ".ds-alert{display:flex;gap:0.5rem;border-radius:6px;border:1px solid #1F5C45;background:#DDEBE3;padding:0.5rem 1rem;font-size:1rem;line-height:1.5rem;color:#17231D;font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-alert svg{flex-shrink:0;}"
+      "html": "<div class=\"ds-alert\" role=\"status\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#0B5C8A\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m9 12 2 2 4-4\"/></svg><div>Đã đăng ca. Người làm sẽ thấy ca trong danh sách.</div></div>",
+      "css": ".ds-alert{display:flex;gap:0.5rem;border-radius:6px;border:1px solid #0B5C8A;background:#DCEBF5;padding:0.5rem 1rem;font-size:1rem;line-height:1.5rem;color:#0F2230;font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-alert svg{flex-shrink:0;}"
     },
     {
       "name": "Shift Card",
       "kind": "card",
       "refersTo": "card-tab",
-      "description": "Mô-đun hairline: dải đầu wall-tint chứa dữ liệu thật, giờ ca là số lớn nhất, kèm Dãy cửa chớp. Dữ liệu mẫu.",
-      "html": "<article class=\"ds-shift\"><div class=\"ds-shift-tab\"><strong>Pha chế</strong></div><div class=\"ds-shift-body\"><p class=\"ds-shift-date\">Thứ Năm, 19/11</p><p class=\"ds-shift-hours\">08:00–12:00</p><p class=\"ds-shift-where\">Quán Demo 1 · Bãi Trước</p><p class=\"ds-shift-wage\">27.000đ/giờ <span>· 4 giờ</span></p><div class=\"ds-strip\"><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#1F5C45\" stroke=\"#153F30\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"8\" y2=\"8\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"14\" y2=\"14\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"20\" y2=\"20\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"26\" y2=\"26\" stroke=\"#FFFFFF\" stroke-width=\"2\"/></svg><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#1F5C45\" stroke=\"#153F30\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"8\" y2=\"8\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"14\" y2=\"14\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"20\" y2=\"20\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"26\" y2=\"26\" stroke=\"#FFFFFF\" stroke-width=\"2\"/></svg><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#FFFFFF\" stroke=\"#7C8479\" stroke-width=\"2\"/></svg><span class=\"ds-pillar\"></span><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#FFFFFF\" stroke=\"#7C8479\" stroke-width=\"2\" stroke-dasharray=\"4 3\"/></svg><span class=\"ds-strip-note\">Dự phòng</span></div><p class=\"ds-shift-count\">2/3 người chính · chưa có dự phòng</p></div></article>",
-      "css": ".ds-shift{overflow:hidden;border-radius:6px;border:1px solid #CFCAB2;background:#FFFFFF;font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-shift:hover{border-color:#1F5C45;} .ds-shift-tab{display:flex;flex-wrap:wrap;align-items:center;gap:0.5rem;border-bottom:1px solid #CFCAB2;background:#FBF0C4;padding:0.5rem 1rem;font-size:1rem;line-height:1.5rem;color:#17231D;} .ds-shift-body{padding:1rem;} .ds-shift-body p{margin:0 0 0.5rem;} .ds-shift-date{font-size:1rem;line-height:1.5rem;color:#46524B;} .ds-shift-hours{font-family:'Barlow Condensed',system-ui,sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1;font-size:2.25rem;line-height:1.25;font-weight:700;color:#17231D;} .ds-shift-where{font-size:1rem;line-height:1.5rem;color:#17231D;} .ds-shift-wage{font-size:1.125rem;line-height:1.75rem;font-weight:600;color:#1F5C45;} .ds-shift-wage span{font-weight:400;color:#46524B;} .ds-strip{display:flex;flex-wrap:wrap;align-items:center;gap:0.5rem;} .ds-pillar{display:inline-block;width:0.25rem;height:2.5rem;border-radius:2px;background:#CFCAB2;} .ds-strip-note{font-size:0.875rem;line-height:1.25rem;font-weight:600;color:#46524B;} .ds-shift-count{margin:0.5rem 0 0;font-size:1rem;line-height:1.5rem;color:#17231D;}"
+      "description": "Mô-đun hairline: dải đầu accent-tint chứa dữ liệu thật, giờ ca là số lớn nhất, kèm Dãy cửa chớp. Dữ liệu mẫu.",
+      "html": "<article class=\"ds-shift\"><div class=\"ds-shift-tab\"><strong>Pha chế</strong></div><div class=\"ds-shift-body\"><p class=\"ds-shift-date\">Thứ Năm, 19/11</p><p class=\"ds-shift-hours\">08:00–12:00</p><p class=\"ds-shift-where\">Quán Demo 1 · Bãi Trước</p><p class=\"ds-shift-wage\">27.000đ/giờ <span>· 4 giờ</span></p><div class=\"ds-strip\"><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#0B5C8A\" stroke=\"#083F5F\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"8\" y2=\"8\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"14\" y2=\"14\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"20\" y2=\"20\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"26\" y2=\"26\" stroke=\"#FFFFFF\" stroke-width=\"2\"/></svg><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#0B5C8A\" stroke=\"#083F5F\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"8\" y2=\"8\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"14\" y2=\"14\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"20\" y2=\"20\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"26\" y2=\"26\" stroke=\"#FFFFFF\" stroke-width=\"2\"/></svg><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#FFFFFF\" stroke=\"#6F7C86\" stroke-width=\"2\"/></svg><span class=\"ds-pillar\"></span><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#FFFFFF\" stroke=\"#6F7C86\" stroke-width=\"2\" stroke-dasharray=\"4 3\"/></svg><span class=\"ds-strip-note\">Dự phòng</span></div><p class=\"ds-shift-count\">2/3 người chính · chưa có dự phòng</p></div></article>",
+      "css": ".ds-shift{overflow:hidden;border-radius:6px;border:1px solid #D6D1BE;background:#FFFFFF;font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-shift:hover{border-color:#0B5C8A;} .ds-shift-tab{display:flex;flex-wrap:wrap;align-items:center;gap:0.5rem;border-bottom:1px solid #D6D1BE;background:#FFF1CE;padding:0.5rem 1rem;font-size:1rem;line-height:1.5rem;color:#0F2230;} .ds-shift-body{padding:1rem;} .ds-shift-body p{margin:0 0 0.5rem;} .ds-shift-date{font-size:1rem;line-height:1.5rem;color:#42525E;} .ds-shift-hours{font-family:'Barlow Condensed',system-ui,sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1;font-size:2.25rem;line-height:1.25;font-weight:700;color:#0F2230;} .ds-shift-where{font-size:1rem;line-height:1.5rem;color:#0F2230;} .ds-shift-wage{font-size:1.125rem;line-height:1.75rem;font-weight:600;color:#0B5C8A;} .ds-shift-wage span{font-weight:400;color:#42525E;} .ds-strip{display:flex;flex-wrap:wrap;align-items:center;gap:0.5rem;} .ds-pillar{display:inline-block;width:0.25rem;height:2.5rem;border-radius:2px;background:#D6D1BE;} .ds-strip-note{font-size:0.875rem;line-height:1.25rem;font-weight:600;color:#42525E;} .ds-shift-count{margin:0.5rem 0 0;font-size:1rem;line-height:1.5rem;color:#0F2230;}"
     },
     {
       "name": "Dãy cửa chớp (SlotStrip)",
       "kind": "custom",
       "refersTo": "card",
       "description": "Hình đặc trưng: ô đóng = đã có người, ô trống = còn chỗ, một ô nét đứt = người dự phòng. Hình chỉ minh họa, luôn kèm câu chữ.",
-      "html": "<div class=\"ds-slots\"><div class=\"ds-slots-row\"><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#1F5C45\" stroke=\"#153F30\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"8\" y2=\"8\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"14\" y2=\"14\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"20\" y2=\"20\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"26\" y2=\"26\" stroke=\"#FFFFFF\" stroke-width=\"2\"/></svg><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#FFFFFF\" stroke=\"#7C8479\" stroke-width=\"2\"/></svg><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#FFFFFF\" stroke=\"#7C8479\" stroke-width=\"2\"/></svg><span class=\"ds-pillar\"></span><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#FFFFFF\" stroke=\"#7C8479\" stroke-width=\"2\" stroke-dasharray=\"4 3\"/></svg><span class=\"ds-slots-note\">Dự phòng</span></div><p class=\"ds-slots-text\">1/3 người chính · chưa có dự phòng</p></div>",
-      "css": ".ds-slots{font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-slots-row{display:flex;flex-wrap:wrap;align-items:center;gap:0.5rem;} .ds-pillar{display:inline-block;width:0.25rem;height:2.5rem;border-radius:2px;background:#CFCAB2;} .ds-slots-note{font-size:0.875rem;line-height:1.25rem;font-weight:600;color:#46524B;} .ds-slots-text{margin:0.5rem 0 0;font-size:1rem;line-height:1.5rem;color:#17231D;}"
+      "html": "<div class=\"ds-slots\"><div class=\"ds-slots-row\"><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#0B5C8A\" stroke=\"#083F5F\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"8\" y2=\"8\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"14\" y2=\"14\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"20\" y2=\"20\" stroke=\"#FFFFFF\" stroke-width=\"2\"/><line x1=\"4\" x2=\"20\" y1=\"26\" y2=\"26\" stroke=\"#FFFFFF\" stroke-width=\"2\"/></svg><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#FFFFFF\" stroke=\"#6F7C86\" stroke-width=\"2\"/></svg><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#FFFFFF\" stroke=\"#6F7C86\" stroke-width=\"2\"/></svg><span class=\"ds-pillar\"></span><svg viewBox=\"0 0 24 32\" width=\"32\" height=\"40\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"22\" height=\"30\" rx=\"2\" fill=\"#FFFFFF\" stroke=\"#6F7C86\" stroke-width=\"2\" stroke-dasharray=\"4 3\"/></svg><span class=\"ds-slots-note\">Dự phòng</span></div><p class=\"ds-slots-text\">1/3 người chính · chưa có dự phòng</p></div>",
+      "css": ".ds-slots{font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-slots-row{display:flex;flex-wrap:wrap;align-items:center;gap:0.5rem;} .ds-pillar{display:inline-block;width:0.25rem;height:2.5rem;border-radius:2px;background:#D6D1BE;} .ds-slots-note{font-size:0.875rem;line-height:1.25rem;font-weight:600;color:#42525E;} .ds-slots-text{margin:0.5rem 0 0;font-size:1rem;line-height:1.5rem;color:#0F2230;}"
     },
     {
       "name": "Rail Nav (desktop)",
       "kind": "nav",
       "refersTo": "nav-surface",
-      "description": "Rail trái 15rem nền xanh đậm; mục đang chọn nền tường vàng; focus vàng trên nền xanh đậm.",
+      "description": "Rail trái 15rem nền xanh đậm; mục đang chọn nền vàng nắng; focus vàng trên nền xanh đậm.",
       "html": "<nav class=\"ds-rail\" aria-label=\"Điều hướng chính\"><a class=\"ds-rail-item ds-rail-active\" href=\"#\" aria-current=\"page\">Điều phối</a><a class=\"ds-rail-item\" href=\"#\">Cơ sở</a><a class=\"ds-rail-item\" href=\"#\">Người làm</a><a class=\"ds-rail-item\" href=\"#\">Báo cáo</a></nav>",
-      "css": ".ds-rail{box-sizing:border-box;width:15rem;background:#153F30;padding:1rem;font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-rail-item{display:flex;min-height:3rem;align-items:center;margin-bottom:0.5rem;border-radius:6px;padding:0 1rem;font-size:1.125rem;line-height:1.75rem;font-weight:600;color:#FFFFFF;text-decoration:none;} .ds-rail-item:hover{background:#1F5C45;} .ds-rail-item.ds-rail-active{background:#F2C94C;color:#17231D;} .ds-rail-item:focus-visible{outline:3px solid #F2C94C;outline-offset:2px;}"
+      "css": ".ds-rail{box-sizing:border-box;width:15rem;background:#083F5F;padding:1rem;font-family:'Be Vietnam Pro',system-ui,sans-serif;} .ds-rail-item{display:flex;min-height:3rem;align-items:center;margin-bottom:0.5rem;border-radius:6px;padding:0 1rem;font-size:1.125rem;line-height:1.75rem;font-weight:600;color:#FFFFFF;text-decoration:none;} .ds-rail-item:hover{background:#0B5C8A;} .ds-rail-item.ds-rail-active{background:#FFC247;color:#0F2230;} .ds-rail-item:focus-visible{outline:3px solid #FFC247;outline-offset:2px;}"
     },
     {
       "name": "Map Pin",
@@ -514,15 +562,15 @@
       "refersTo": "map-pin-open",
       "description": "Biển giờ trên bản đồ. Tông open, urgent, full, pending, removed; khi chọn: nền vàng, viền 3px xanh đậm, nhấc 4px. Bóng là ngoại lệ duy nhất của hệ.",
       "html": "<div class=\"ds-pins\"><div class=\"ds-pin-wrap\"><button class=\"ds-pin ds-pin-open\">08:00</button><span class=\"ds-pin-tail ds-pin-open\"></span></div><div class=\"ds-pin-wrap\"><button class=\"ds-pin ds-pin-urgent\">09:30</button><span class=\"ds-pin-tail ds-pin-urgent\"></span></div><div class=\"ds-pin-wrap\"><button class=\"ds-pin ds-pin-full\">13:00</button><span class=\"ds-pin-tail ds-pin-full\"></span></div><div class=\"ds-pin-wrap\"><button class=\"ds-pin ds-pin-pending\">15:00</button><span class=\"ds-pin-tail ds-pin-pending\"></span></div><div class=\"ds-pin-wrap\"><button class=\"ds-pin ds-pin-removed\">17:00</button><span class=\"ds-pin-tail ds-pin-removed\"></span></div><div class=\"ds-pin-wrap\" style=\"transform:translateY(-0.25rem)\"><button class=\"ds-pin ds-pin-on\">18:00</button><span class=\"ds-pin-tail ds-pin-on\"></span></div></div>",
-      "css": ".ds-pins{display:flex;flex-wrap:wrap;gap:1rem;background:#F3EFD9;padding:1rem;} .ds-pin-wrap{display:flex;flex-direction:column;align-items:center;} .ds-pin{position:relative;z-index:1;min-width:3.5rem;cursor:pointer;border-radius:6px;border:2px solid;padding:0.25rem 0.5rem;font-family:'Barlow Condensed',system-ui,sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1;font-size:1.125rem;line-height:1.5rem;font-weight:700;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -2px rgba(0,0,0,0.1);} .ds-pin::after{content:'';position:absolute;inset:-0.5rem -0.25rem;} .ds-pin:focus-visible{outline:3px solid #153F30;outline-offset:2px;} .ds-pin-tail{width:0.75rem;height:0.75rem;margin-top:-0.375rem;transform:rotate(45deg);border-bottom:2px solid;border-right:2px solid;} .ds-pin-open{background:#1F5C45;color:#FFFFFF;border-color:#1F5C45;} .ds-pin-urgent{background:#B0391F;color:#FFFFFF;border-color:#B0391F;} .ds-pin-full{background:#FFFFFF;color:#1F5C45;border-color:#1F5C45;} .ds-pin-pending{background:#F2C94C;color:#17231D;border-color:#F2C94C;} .ds-pin-removed{background:#CFCAB2;color:#46524B;border-color:#CFCAB2;} .ds-pin.ds-pin-on{background:#F2C94C;color:#17231D;border:3px solid #153F30;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1),0 4px 6px -4px rgba(0,0,0,0.1);} .ds-pin-tail.ds-pin-on{background:#F2C94C;border-color:#153F30;}"
+      "css": ".ds-pins{display:flex;flex-wrap:wrap;gap:1rem;background:#F3EFD9;padding:1rem;} .ds-pin-wrap{display:flex;flex-direction:column;align-items:center;} .ds-pin{position:relative;z-index:1;min-width:3.5rem;cursor:pointer;border-radius:6px;border:2px solid;padding:0.25rem 0.5rem;font-family:'Barlow Condensed',system-ui,sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1;font-size:1.125rem;line-height:1.5rem;font-weight:700;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -2px rgba(0,0,0,0.1);} .ds-pin::after{content:'';position:absolute;inset:-0.5rem -0.25rem;} .ds-pin:focus-visible{outline:3px solid #083F5F;outline-offset:2px;} .ds-pin-tail{width:0.75rem;height:0.75rem;margin-top:-0.375rem;transform:rotate(45deg);border-bottom:2px solid;border-right:2px solid;} .ds-pin-open{background:#0B5C8A;color:#FFFFFF;border-color:#0B5C8A;} .ds-pin-urgent{background:#B8321F;color:#FFFFFF;border-color:#B8321F;} .ds-pin-full{background:#FFFFFF;color:#0B5C8A;border-color:#0B5C8A;} .ds-pin-pending{background:#FFC247;color:#0F2230;border-color:#FFC247;} .ds-pin-removed{background:#D6D1BE;color:#42525E;border-color:#D6D1BE;} .ds-pin.ds-pin-on{background:#FFC247;color:#0F2230;border:3px solid #083F5F;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1),0 4px 6px -4px rgba(0,0,0,0.1);} .ds-pin-tail.ds-pin-on{background:#FFC247;border-color:#083F5F;}"
     }
   ],
   "narrative": {
-    "northStar": "Phố cửa chớp",
-    "overview": "**Creative North Star: \"Phố cửa chớp\"**\n\nMột dãy nhà phố ở Vũng Tàu: tường vàng, cửa chớp xanh, nền vôi. Ca làm là đơn vị của sản phẩm, và hình của nó là một hàng cửa chớp: cánh đóng là đã có người, khung trống là còn chỗ, một ô nét đứt là người dự phòng. Giao diện từ chối kiểu chợ việc làm màu phấn với thẻ bo tròn và ảnh sinh viên cười; nó giống tấm biển hiệu hơn là ứng dụng.\n\nMật độ vừa phải, chữ to, một việc chính mỗi màn hình, vì người đọc là chủ quán lớn tuổi mở link từ Zalo ngoài nắng. Mọi thứ phẳng: không bóng, không gradient, không kính mờ, ngoại lệ duy nhất là bóng mềm của pin bản đồ. Hình dạng là chữ nhật viền hairline bo 6px; khung chrome xanh đậm (thanh trên, rail, nav dưới, chân trang) bao quanh nền vôi.\n\nNhận ra được dù xóa hết chữ: dải tường vàng trên mô-đun viền mảnh có dải đầu nhạt, rail xanh, và các ô cửa chớp.",
+    "northStar": "Biển & Nắng",
+    "overview": "**Creative North Star: \"Biển & Nắng\"**\n\nBãi biển Vũng Tàu lúc sáng: nước xanh biển, nắng vàng, cát vôi sáng. Ca làm là đơn vị của sản phẩm, và hình của nó vẫn là một hàng ô cửa: cánh đóng là đã có người, khung trống là còn chỗ, một ô nét đứt là người dự phòng. Logo là mặt trời nhô trên hai làn sóng. Giao diện từ chối kiểu chợ việc làm màu phấn với thẻ bo tròn và ảnh sinh viên cười; nó giống tấm biển hướng dẫn hơn là ứng dụng.\n\nMật độ vừa phải, chữ to, một việc chính mỗi màn hình, vì người đọc là chủ quán lớn tuổi mở link từ Zalo ngoài nắng. Mọi thứ phẳng: không bóng, không gradient, không kính mờ, ngoại lệ duy nhất là bóng mềm của pin bản đồ. Hình dạng là chữ nhật viền hairline bo 6px; khung chrome xanh biển đậm (thanh trên, rail, nav dưới, chân trang) bao quanh nền vôi. Chuyển động chỉ CSS, ngắn, tắt dịch chuyển khi người dùng chọn giảm chuyển động (mục Motion).\n\nNhận ra được dù xóa hết chữ: tiêu đề trang chữ đậm trên nền vôi với một gạch nắng ngắn bên dưới, mô-đun viền mảnh có dải đầu nhạt, rail xanh biển, mục đang chọn màu nắng, và các ô cửa.",
     "keyCharacteristics": [
-      "Bảng màu 4 họ, mỗi họ ba sắc (đậm, chuẩn, nhạt): xanh cửa chớp, tường vàng, ngói, biển; nền vôi và mực.",
-      "Vàng là điểm nhấn duy nhất (băng tiêu đề, mục đang chọn, dải đầu mô-đun); ngói chỉ cho lỗi và nguy hiểm; biển chỉ cho thông tin.",
+      "Bảng màu: xanh biển (brand), vàng nắng (accent), thành công (ok), lỗi (danger), thông tin (info), mỗi họ có sắc đậm/chuẩn/nhạt khi cần; nền vôi và mực.",
+      "Vàng đặc là điểm nhấn thật (mục đang chọn, nút Đăng nhập, gạch nắng ngắn dưới tiêu đề, pin đang chọn); vàng nhạt cho dải đầu mô-đun; danger chỉ cho lỗi và nguy hiểm; info chỉ cho thông tin; ok chỉ cho thành công.",
       "Số giờ ca là con số lớn nhất trên màn hình, Barlow Condensed với chữ số bảng cố định.",
       "Mỗi trạng thái ca là một cặp icon + chữ + tông, không bao giờ chỉ màu.",
       "Phẳng, viền hairline, 6px, khoảng cách là bội của 0,5rem."
@@ -530,17 +578,17 @@
     "rules": [
       {
         "name": "The One Yellow Rule",
-        "body": "Vàng là nền, không bao giờ là chữ hay viền trên nền sáng (1,44:1 trên `chalk`). Chữ trên vàng luôn là `ink` hoặc `shutter-deep`; chữ vàng chỉ xuất hiện trên `shutter-deep`.",
+        "body": "Vàng là nền, không bao giờ là chữ hay viền trên nền sáng (1,44:1 trên `chalk`). Chữ trên vàng luôn là `ink` hoặc `brand-deep`; chữ vàng chỉ xuất hiện trên `brand-deep`.",
         "section": "colors"
       },
       {
         "name": "The Roof Is Danger Rule",
-        "body": "`roof` chỉ cho lỗi, hủy, nguy hiểm, \"GẤP\". Không dùng làm màu nhấn trang trí. `sea` chỉ cho thông tin.",
+        "body": "`danger` chỉ cho lỗi, hủy, nguy hiểm, \"GẤP\". Không dùng làm màu nhấn trang trí. `info` chỉ cho thông tin.",
         "section": "colors"
       },
       {
         "name": "The Tint Pair Rule",
-        "body": "Mỗi sắc nhạt (`*-tint`) đi với chữ đậm cùng họ (`shutter-deep`, `roof`, `sea`) hoặc `ink`; không đặt chữ xám nhạt trên nền tint.",
+        "body": "Mỗi sắc nhạt (`*-tint`) đi với chữ đậm cùng họ (`brand-deep`, `danger`, `info`) hoặc `ink`; không đặt chữ xám nhạt trên nền tint.",
         "section": "colors"
       },
       {
@@ -560,12 +608,12 @@
       },
       {
         "name": "The Flat-By-Default Rule",
-        "body": "Không thêm bóng ở chỗ nào ngoài pin bản đồ. Muốn nhấn thì dùng viền `shutter` hoặc nền `wall`.",
+        "body": "Không thêm bóng ở chỗ nào ngoài pin bản đồ. Muốn nhấn thì dùng viền `brand` hoặc nền `accent`.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "**Do** dùng tên token (`bg-shutter`, `text-ink-soft`, `border-rule`); đặt `surface-dark` lên mọi vùng nền xanh đậm mới để vòng focus đổi sang vàng.",
+      "**Do** dùng tên token (`bg-brand`, `text-ink-soft`, `border-rule`); đặt `surface-dark` lên mọi vùng nền xanh đậm mới để vòng focus đổi sang vàng.",
       "**Do** lấy nút từ `btn()`, ô nhập từ `inputCls`, trạng thái ca từ `StateBadge`, hộp thông báo từ `Alert`; kéo khoảng cách theo bội `0.5rem`.",
       "**Do** để giờ ca là số lớn nhất của thẻ (`font-num tabular text-4xl font-bold`).",
       "**Do** kèm chữ cho mọi tín hiệu: ô cửa luôn có \"n/m người chính · …\" và chữ \"Dự phòng\"; Badge và `Alert` luôn có icon + chữ.",
@@ -577,7 +625,7 @@
       "**Don't** dùng gradient, kính mờ, bóng đổ (trừ pin bản đồ), viền trái màu, `dark:`.",
       "**Don't** dùng ký tự Unicode hoặc emoji làm icon; icon chỉ từ `lucide-react`, mỗi icon đi kèm chữ và `aria-hidden`.",
       "**Don't** thêm nhãn kicker hoặc eyebrow (dòng chữ nhỏ viết hoa trên tiêu đề).",
-      "**Don't** đặt chữ hoặc viền `wall` trên nền sáng; không đặt chữ nhạt hơn `ink-soft` cho nội dung.",
+      "**Don't** đặt chữ hoặc viền `accent` trên nền sáng; không đặt chữ nhạt hơn `ink-soft` cho nội dung.",
       "**Don't** bọc từng dòng trong thẻ, lồng thẻ trong thẻ, hay dùng thẻ làm trang trí.",
       "**Don't** bỏ `focus-visible` hoặc thêm `outline-none`; không hạ cỡ chữ gốc, không thêm `text-xs`/`text-[...]`.",
       "**Don't** đặt số điện thoại lên bản đồ hoặc vào dữ liệu của pin.",

@@ -177,7 +177,7 @@ Cần `0002_toa_do_co_so.sql` đã áp và `seed.sql` đã chạy lại (seed gh
 
 - Bề rộng 360px: không có thanh cuộn ngang ở mọi trang; nút cao ≥ 48px; chữ ≥ 18px. Lặp lại ở 390px, 414px, 1024px (đổi giữa thanh dưới và rail trái), 1280px và 1440px.
 - Link nằm trong đoạn văn (vd. "Xem trước" ở `/profile`) là chữ gạch chân liền dòng, không làm dòng cao bất thường; link đứng riêng và nút vẫn cao ≥ 48px.
-- Tab trình duyệt hiện biểu tượng ô cửa chớp (`src/app/icon.svg`), đọc được ở 16px.
+- Tab trình duyệt hiện biểu tượng mặt trời trên sóng (`src/app/icon.svg`), đọc được ở 16px.
 - Đưa điện thoại cho một người lớn tuổi thử: đăng ca (mở form → điền → gửi) và xác nhận sau ca (mở link → chọn → gửi) đều ≤ 3 bước.
 - Chân mọi trang có "Không bao giờ thu phí người làm."; `/terms` có câu "SafeShift chỉ kết nối người làm và nơi thuê…".
 - Gửi link trang web cho chính mình qua Zalo, bấm mở **trong Zalo** → `/login` ✔ ba nút demo hiện đủ và bấm được trong Zalo (không cần Google, không mở cửa sổ ngoài). Bấm "chủ quán" → ✔ vào `/employer`.

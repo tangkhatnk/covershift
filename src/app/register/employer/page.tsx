@@ -9,7 +9,7 @@ import { AREA_LABEL, FACILITY_TYPE_LABEL, PROHIBITED_TEXT } from '@/lib/constant
 
 export const metadata = { title: 'Đăng ký cơ sở' };
 
-const linkCls = 'font-semibold text-shutter underline underline-offset-4';
+const linkCls = 'font-semibold text-brand underline underline-offset-4';
 
 export default async function RegisterEmployerPage() {
   const { user, profile } = await getContext();
@@ -64,7 +64,7 @@ export default async function RegisterEmployerPage() {
         <SubmitButton>Đăng ký cơ sở</SubmitButton>
       </ActionForm>
       <p className="flex justify-center">
-        <Link href="/register" className="inline-flex min-h-[3rem] items-center gap-2 font-semibold text-shutter underline underline-offset-4">
+        <Link href="/register" className="inline-flex min-h-[3rem] items-center gap-2 font-semibold text-brand underline underline-offset-4">
           <ChevronLeft className="h-5 w-5" aria-hidden="true" />
           Quay lại chọn vai trò
         </Link>
