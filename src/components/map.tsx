@@ -218,6 +218,7 @@ export function ShiftMap({ points, selectedId, onSelect, highlightId, fitIds, cl
   const moved = useRef(false);
   // onSelect('') = bỏ chọn (bấm lại pin đang chọn, hoặc Esc).
   const sel = onSelect ? selectedId ?? null : inner;
+  const panel = useRef<HTMLDivElement>(null);
   const pick = (id: string) => (onSelect ? onSelect(id) : setInner(id || null));
   const selected = points.find((p) => p.id === sel) ?? null;
   const crowdedSet = new Set(crowded ? crowded.split('|') : []);
@@ -304,6 +305,12 @@ export function ShiftMap({ points, selectedId, onSelect, highlightId, fitIds, cl
     else ctx.map.easeTo({ center });
   }, [ctx, sel]);
 
+  // Chọn ghim thì đưa ô thông tin ca (nằm dưới bản đồ) lên trên thanh điều hướng dưới, khỏi phải tự cuộn.
+  useEffect(() => {
+    // Từ lg ô này nằm trong khối dính cạnh danh sách nên không cần cuộn (cuộn sẽ làm trang nhảy).
+    if (sel && !window.matchMedia('(min-width: 1024px)').matches) panel.current?.scrollIntoView({ block: 'nearest', behavior: reduced() ? 'auto' : 'smooth' });
+  }, [sel]);
+
   // Esc bỏ chọn. Nghe ở document (không dựa vào React bubbling qua portal / marker của MapLibre), trừ khi đang gõ ở ô nhập.
   const pickRef = useRef(pick);
   pickRef.current = pick;
@@ -330,7 +337,7 @@ export function ShiftMap({ points, selectedId, onSelect, highlightId, fitIds, cl
       </MapFrame>
       {caption ? <p className="mt-2 text-sm text-ink-soft">{caption}</p> : null}
       {selected ? (
-        <div role="status" className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-ui border border-rule bg-white p-4">
+        <div ref={panel} role="status" className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-ui border border-rule bg-white p-4">
           <p className="min-w-0 flex-1 text-base text-ink">{selected.label}</p>
           {selected.href ? <Link href={selected.href} className={btn('primary', false)}>Xem ca</Link> : null}
         </div>
@@ -360,7 +367,6 @@ export function ShiftExplorer({ shifts, now }: { shifts: Shift[]; now: number })
   useEffect(() => { const t = setTimeout(() => setEnter(false), 600); return () => clearTimeout(t); }, []);
   const tabBar = useRef<HTMLDivElement>(null);
   const points = shifts.map(toPoint).filter((p): p is MapPoint => p !== null);
-  const mapped = new Set(points.map((p) => p.id));
   const unmapped = shifts.length - points.length;
   const hasMap = points.length > 0;
   const go = (t: 'list' | 'map') => { setEnter(false); setTab(t); };
@@ -369,10 +375,11 @@ export function ShiftExplorer({ shifts, now }: { shifts: Shift[]; now: number })
   useEffect(() => {
     if (sel) document.getElementById(`ca-${sel}`)?.scrollIntoView({ block: 'nearest', behavior: reduced() ? 'auto' : 'smooth' });
   }, [sel, tab]);
-  // Mở tab Bản đồ từ giữa danh sách dài (nút trên thẻ ca): đưa thanh Danh sách/Bản đồ (nằm ngay trên bản đồ) vào khung nhìn,
-  // để thấy bản đồ và vẫn quay lại được; đang ở đầu trang thì không cuộn.
+
+  // Mở tab Bản đồ: đưa thanh Danh sách/Bản đồ lên sát thanh trên (theo scroll-padding của <html>), để cả khung bản đồ
+  // (cao theo khung nhìn, xem className bên dưới) nằm trên thanh điều hướng dưới và ghim nào cũng bấm được.
   useEffect(() => {
-    if (tab === 'map') tabBar.current?.scrollIntoView({ block: 'nearest', behavior: reduced() ? 'auto' : 'smooth' });
+    if (tab === 'map') tabBar.current?.scrollIntoView({ block: 'start', behavior: reduced() ? 'auto' : 'smooth' });
   }, [tab]);
 
   return (
@@ -402,21 +409,16 @@ export function ShiftExplorer({ shifts, now }: { shifts: Shift[]; now: number })
                     </Badge>
                   ) : undefined} />
               </div>
-              {mapped.has(s.id) ? (
-                <button type="button" onClick={() => { setSel(s.id); go('map'); }} className={`${btn('ghost', false)} mt-1 lg:hidden`}>
-                  Xem vị trí trên bản đồ
-                </button>
-              ) : null}
             </li>
           ))}
         </ul>
         {hasMap ? (
           <div className={`${tab === 'list' ? 'hidden lg:block' : ''} lg:sticky lg:top-8`}>
             <ShiftMap points={points} selectedId={sel} highlightId={hover}
-              caption="Bản đồ các ca. Ghim đỏ là ca gấp, ghim trắng là ca đã đủ người."
+              caption="Bản đồ các ca. Ghim xanh là ca còn chỗ, ghim đỏ là ca gấp, ghim trắng là ca đã đủ người, ghim vàng là ca đang chọn."
               failText={tab === 'map' ? 'Chưa tải được bản đồ. Bấm Danh sách để xem các ca.' : 'Chưa tải được bản đồ. Danh sách ca vẫn ở bên trái.'}
               onSelect={(id) => setSel(id || null)}
-              className="h-[28rem] lg:h-[min(36rem,calc(100dvh_-_8rem))]" />
+              className="h-[max(14rem,min(28rem,calc(100dvh_-_var(--chrome-bottom)_-_11rem)))] lg:h-[min(36rem,calc(100dvh_-_8rem))]" />
           </div>
         ) : null}
       </div>

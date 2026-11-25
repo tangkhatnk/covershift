@@ -11,7 +11,7 @@ const partsFmt = new Intl.DateTimeFormat('en-US', {
 });
 const WEEKDAY: Record<string, string> = { Sun: 'CN', Mon: 'Thứ 2', Tue: 'Thứ 3', Wed: 'Thứ 4', Thu: 'Thứ 5', Fri: 'Thứ 6', Sat: 'Thứ 7' };
 /** Các thành phần ngày giờ theo giờ Việt Nam. */
-function vn(d: Date | string) {
+function vn(d: Date | string | number) {
   const o: Record<string, string> = {};
   for (const p of partsFmt.formatToParts(new Date(d))) o[p.type] = p.value;
   return o;
@@ -19,6 +19,14 @@ function vn(d: Date | string) {
 
 /** "Thứ 7, 21/11" ("CN, 22/11" cho Chủ nhật) */
 export const fmtDate = (iso: string) => { const p = vn(iso); return `${WEEKDAY[p.weekday]}, ${p.day}/${p.month}`; };
+/** Như `fmtDate`, nhưng ngày hôm nay và ngày mai (theo giờ Việt Nam, so với `now` tính bằng ms) ghi "Hôm nay, 26/11" / "Ngày mai, 27/11". */
+export const fmtDateRel = (iso: string, now: number) => {
+  const day = vnDateInput(iso);
+  const tag = day === vnDateInput(now) ? 'Hôm nay' : day === vnDateInput(now + 86_400_000) ? 'Ngày mai' : null;
+  if (!tag) return fmtDate(iso);
+  const p = vn(iso);
+  return `${tag}, ${p.day}/${p.month}`;
+};
 /** "08:00" */
 export const fmtTime = (iso: string) => { const p = vn(iso); return `${p.hour}:${p.minute}`; };
 /** "Thứ 7, 21/11 · 08:00–12:00" */
@@ -26,7 +34,12 @@ export const fmtRange = (start: string, end: string) => `${fmtDate(start)} · ${
 /** "08:00 21/11/2026" */
 export const fmtDateTime = (iso: string) => { const p = vn(iso); return `${p.hour}:${p.minute} ${p.day}/${p.month}/${p.year}`; };
 /** "2026-11-21" theo giờ Việt Nam, dùng cho <input type="date"> và tham số ngày của RPC */
-export const vnDateInput = (d: Date | string = new Date()) => { const p = vn(d); return `${p.year}-${p.month}-${p.day}`; };
+export const vnDateInput = (d: Date | string | number = new Date()) => { const p = vn(d); return `${p.year}-${p.month}-${p.day}`; };
+/** Tuổi tròn tại ngày `onYmd` (cả hai dạng YYYY-MM-DD). Khớp age_on() ở database. */
+export function ageOn(dobYmd: string, onYmd: string) {
+  const years = Number(onYmd.slice(0, 4)) - Number(dobYmd.slice(0, 4));
+  return onYmd.slice(5) < dobYmd.slice(5) ? years - 1 : years;
+}
 /** "21/11/2026" từ chuỗi ngày thuần "2026-11-21" */
 export const fmtPlainDate = (ymd: string) => ymd.split('-').reverse().join('/');
 /** "27.000đ" (số nguyên tự ghép dấu chấm hàng nghìn, để server và trình duyệt giống nhau) */

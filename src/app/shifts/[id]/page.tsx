@@ -8,7 +8,7 @@ import { Alert, Badge, Card, DemoPhoneNote, PageTitle, SlotStrip, StateBadge, St
 import { requireRole } from '@/lib/auth';
 import { AREA_LABEL, FACILITY_TYPE_LABEL, JOB_LABEL, PAYMENT_LABEL, type PaymentAnswer } from '@/lib/constants';
 import { friendlyError } from '@/lib/errors';
-import { fmtDate, fmtMoney, fmtTime, hoursBetween, shiftState, vnDateInput } from '@/lib/format';
+import { ageOn, fmtDateRel, fmtMoney, fmtTime, hoursBetween, shiftState, vnDateInput } from '@/lib/format';
 import type { Contacts, ShiftDetail } from '@/lib/types';
 
 export const metadata = { title: 'Chi tiết ca' };
@@ -16,12 +16,6 @@ export const metadata = { title: 'Chi tiết ca' };
 const linkCls = 'font-semibold text-brand underline underline-offset-4';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PAY_VARIANT: Record<PaymentAnswer, 'primary' | 'secondary' | 'danger'> = { full: 'primary', partial: 'secondary', unpaid: 'danger' };
-
-/** Tuổi tròn tại ngày `onYmd` (cả hai dạng YYYY-MM-DD). Khớp age_on() ở database. */
-function ageOn(dobYmd: string, onYmd: string) {
-  const years = Number(onYmd.slice(0, 4)) - Number(dobYmd.slice(0, 4));
-  return onYmd.slice(5) < dobYmd.slice(5) ? years - 1 : years;
-}
 
 export default async function ShiftDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -118,7 +112,7 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
           Từ lg: hai cột, việc cần làm dính ở cột phải (`contents` ở điện thoại để các khối con tự xếp theo `order` của lưới). */}
       <div className={`grid gap-4 lg:items-start ${hasSide ? 'lg:grid-cols-[minmax(0,1fr)_20rem]' : ''}`}>
         <Card tab={claimBadges}>
-          <p className="text-base text-ink-soft">{fmtDate(s.starts_at)} · {hoursBetween(s.starts_at, s.ends_at)} giờ</p>
+          <p className="text-base text-ink-soft">{fmtDateRel(s.starts_at, now)} · {hoursBetween(s.starts_at, s.ends_at)} giờ</p>
           <p className="tabular font-num text-5xl font-bold leading-tight text-ink">
             {fmtTime(s.starts_at)}–{fmtTime(s.ends_at)}
           </p>
@@ -165,9 +159,8 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
                 ) : null}
                 {contact ? (
                   <div className="mt-4">
-                    <p className="text-lg">
-                      Liên hệ quán: <b>{contact.contact_name}</b> · <Tel phone={contact.phone} />
-                    </p>
+                    <p className="text-lg">Liên hệ quán: <b>{contact.contact_name}</b></p>
+                    <Tel phone={contact.phone} block />
                     <DemoPhoneNote />
                   </div>
                 ) : null}
@@ -268,9 +261,8 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
 
           <Card>
             <h2 className="text-xl font-bold text-ink">Nơi làm</h2>
-            <p className="mt-2 break-words text-lg font-semibold text-ink">{s.facility_name}</p>
-            <p className="text-base text-ink-soft">{FACILITY_TYPE_LABEL[s.facility_type]} · {AREA_LABEL[s.area]}</p>
-            <p className="mt-2 break-words text-base text-ink">{s.address}</p>
+            <p className="mt-2 text-base text-ink-soft">{FACILITY_TYPE_LABEL[s.facility_type]}</p>
+            <p className="break-words text-base text-ink">{s.address}</p>
             <div className="flex flex-wrap gap-x-6">
               <a href={mapsHref} target="_blank" rel="noopener noreferrer" className={`${linkCls} block min-h-[3rem] text-base leading-[3rem]`}>Xem bản đồ</a>
               {directionsHref ? (

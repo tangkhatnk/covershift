@@ -5,7 +5,7 @@ import { LiveRefresh, ShiftExplorer } from '@/components/map';
 import { requireRole } from '@/lib/auth';
 import { AREA_LABEL, JOB_LABEL } from '@/lib/constants';
 import { friendlyError } from '@/lib/errors';
-import { vnDateInput } from '@/lib/format';
+import { ageOn, vnDateInput } from '@/lib/format';
 import type { Shift } from '@/lib/types';
 
 export const metadata = { title: 'Tìm ca' };
@@ -35,13 +35,26 @@ export default async function FeedPage({ searchParams }: {
   const isWorker = profile.role === 'worker';
   // Ba truy vấn độc lập: chạy song song để không cộng dồn độ trễ.
   const [wp, pc, { data, error }] = await Promise.all([
-    isWorker ? supabase.from('worker_profiles').select('approval, review_note').eq('user_id', user.id).maybeSingle() : null,
+    isWorker ? supabase.from('worker_profiles').select('approval, review_note, date_of_birth').eq('user_id', user.id).maybeSingle() : null,
     isWorker ? supabase.from('parental_consents').select('status').eq('worker_id', user.id).maybeSingle() : null,
     supabase.rpc('feed_shifts', { p_date: ngay || null, p_area: khu || null, p_job: viec || null }),
   ]);
   const approval = (wp?.data?.approval as string | undefined) ?? null;
   const reviewNote = (wp?.data?.review_note as string | null | undefined) ?? null;
   const consentStatus = (pc?.data?.status as string | undefined) ?? null;
+  const dob = (wp?.data?.date_of_birth as string | undefined) ?? null;
+  const today = vnDateInput();
+  // Chỉ để giải thích vì sao ít ca; database (feed_shifts, _minor_safe) mới là nơi lọc.
+  const minor = dob != null && ageOn(dob, today) < 18;
+  const chipHref = (day: string) => {
+    const q = new URLSearchParams();
+    if (ngay !== day) q.set('ngay', day);
+    if (khu) q.set('khu', khu);
+    if (viec) q.set('viec', viec);
+    const qs = q.toString();
+    return qs ? `/shifts?${qs}` : '/shifts';
+  };
+  const tomorrow = vnDateInput(Date.now() + 86_400_000);
   const shifts = (data ?? []) as Shift[];
 
   return (
@@ -77,6 +90,10 @@ export default async function FeedPage({ searchParams }: {
         )
       ) : null}
 
+      {minor ? (
+        <Alert tone="blue">Bạn dưới 18 tuổi nên chỉ thấy ca quán cho phép người dưới 18, trong khung 06:00–22:00, dài tối đa 8 giờ.</Alert>
+      ) : null}
+
       <div className="rounded-ui border border-rule bg-white">
         <Disclosure summary={<span className="inline-flex items-center gap-2"><SlidersHorizontal className="h-5 w-5" aria-hidden="true" />Bộ lọc ({active})</span>}>
           <form method="get" className="grid grid-cols-2 gap-4 border-t border-rule p-4 lg:grid-cols-[2fr_2fr_2fr_auto] lg:items-end">
@@ -103,6 +120,15 @@ export default async function FeedPage({ searchParams }: {
             </div>
           </form>
         </Disclosure>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {([['Hôm nay', today], ['Ngày mai', tomorrow]] as const).map(([label, day]) => (
+          <Link key={day} href={chipHref(day)} aria-current={ngay === day ? 'date' : undefined}
+            className={`inline-flex min-h-[3rem] items-center rounded-ui border px-4 text-base font-semibold ${ngay === day ? 'border-brand bg-brand-tint text-brand-deep' : 'border-rule bg-white text-brand'}`}>
+            {label}
+          </Link>
+        ))}
       </div>
 
       {error ? (
