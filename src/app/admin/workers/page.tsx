@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { reviewWorker, setAccountStatus } from '@/app/actions';
 import { ActionForm, SubmitButton } from '@/components/client';
-import { Alert, Badge, Card, Disclosure, Empty, Field, PageTitle, Tel, inputCls } from '@/components/ui';
+import { Search } from 'lucide-react';
+import { Alert, Badge, Card, Disclosure, Empty, Field, PageTitle, Tel, btn, inputCls } from '@/components/ui';
+import { Pager, pageOf } from '../pager';
 import { requireRole } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
 import { APPROVAL_LABEL, AREA_LABEL, AVAILABILITY_LABEL, CONSENT_LABEL } from '@/lib/constants';
@@ -11,6 +13,11 @@ import type { AdminWorker } from '@/lib/types';
 export const metadata = { title: 'Duyệt người làm' };
 
 const APPROVAL_TONE = { pending: 'amber', approved: 'green', rejected: 'gray' } as const;
+const PAGE_SIZE = 4;
+
+// Bỏ dấu để gõ "nguyen" vẫn ra "Nguyễn". Chỉ tìm theo tên, trường, lớp: không tìm theo SĐT (tránh đưa SĐT lên URL).
+const fold = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase();
+
 const FILTERS = ['cho-duyet', 'da-duyet', 'tat-ca'] as const;
 type Filter = (typeof FILTERS)[number];
 const FILTER_LABEL: Record<Filter, string> = { 'cho-duyet': 'Chờ duyệt', 'da-duyet': 'Đã duyệt', 'tat-ca': 'Tất cả' };
@@ -145,10 +152,11 @@ function Actions({ w }: { w: AdminWorker }) {
   );
 }
 
-export default async function WorkersPage({ searchParams }: { searchParams: Promise<{ loc?: string | string[] }> }) {
+export default async function WorkersPage({ searchParams }: { searchParams: Promise<{ loc?: string | string[]; q?: string | string[]; trang?: string | string[] }> }) {
   const { supabase } = await requireRole('admin');
   const sp = await searchParams;
   const raw = Array.isArray(sp.loc) ? sp.loc[0] : sp.loc;
+  const q = (Array.isArray(sp.q) ? sp.q[0] : sp.q)?.trim().slice(0, 60) ?? '';
   const filter: Filter = FILTERS.includes(raw as Filter) ? (raw as Filter) : 'tat-ca';
 
   const { data, error } = await supabase.rpc('admin_list_workers');
@@ -166,17 +174,35 @@ export default async function WorkersPage({ searchParams }: { searchParams: Prom
     'da-duyet': all.filter((w) => w.approval === 'approved').length,
     'tat-ca': all.length,
   };
-  const list =
+  const byFilter =
     filter === 'cho-duyet' ? all.filter((w) => w.approval === 'pending')
     : filter === 'da-duyet' ? all.filter((w) => w.approval === 'approved')
     : all;
+  const needle = fold(q);
+  const matched = needle ? byFilter.filter((w) => fold(`${w.full_name} ${w.school} ${w.class_name ?? ''}`).includes(needle)) : byFilter;
+  const { page, pages } = pageOf(sp.trang, matched.length, PAGE_SIZE);
+  const list = matched.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const keep = { loc: filter === 'tat-ca' ? '' : filter, q };
+  const qs = (p: Record<string, string>) => {
+    const t = new URLSearchParams(Object.entries(p).filter(([, v]) => v)).toString();
+    return t ? `/admin/workers?${t}` : '/admin/workers';
+  };
 
   return (
     <div className="space-y-6">
       <PageTitle>Duyệt người làm</PageTitle>
+      <form action="/admin/workers" role="search" className="flex flex-col gap-4 sm:flex-row sm:items-end">
+        {filter !== 'tat-ca' ? <input type="hidden" name="loc" value={filter} /> : null}
+        <div className="sm:flex-1">
+          <Field label="Tìm theo tên, trường hoặc lớp">
+            <input type="search" name="q" defaultValue={q} maxLength={60} autoComplete="off" className={inputCls} />
+          </Field>
+        </div>
+        <button type="submit" className={`${btn('primary')} sm:w-auto`}><Search className="h-5 w-5" aria-hidden="true" />Tìm</button>
+      </form>
       <nav className="flex flex-wrap gap-2" aria-label="Bộ lọc">
         {FILTERS.map((f) => (
-          <Link key={f} href={f === 'tat-ca' ? '/admin/workers' : `/admin/workers?loc=${f}`}
+          <Link key={f} href={qs({ loc: f === 'tat-ca' ? '' : f, q })}
             aria-current={f === filter ? 'page' : undefined}
             className={`inline-flex min-h-[3rem] items-center rounded-ui border-2 px-4 text-base font-semibold ${
               f === filter
@@ -188,9 +214,12 @@ export default async function WorkersPage({ searchParams }: { searchParams: Prom
         ))}
       </nav>
       {list.length === 0 ? (
-        <Empty>Không có người làm nào trong nhóm này</Empty>
+        <Empty>{q ? `Không có người làm nào khớp "${q}" trong nhóm này.` : 'Không có người làm nào trong nhóm này.'}</Empty>
       ) : (
         <>
+          <p className="text-base text-ink-soft">
+            Hiện {(page - 1) * PAGE_SIZE + 1}–{(page - 1) * PAGE_SIZE + list.length} trong {matched.length} người.
+          </p>
           {/* Một thẻ cho mỗi người ở mọi bề rộng; từ 1024px phần thông tin chia ba cột, thao tác trải hết bề ngang. */}
           <div className="space-y-4">
             {list.map((w) => (
@@ -207,6 +236,7 @@ export default async function WorkersPage({ searchParams }: { searchParams: Prom
               </Card>
             ))}
           </div>
+          <Pager base="/admin/workers" params={keep} page={page} pages={pages} />
         </>
       )}
     </div>

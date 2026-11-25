@@ -48,7 +48,7 @@ function UpcomingCard({ s, now }: { s: DispatchShift; now: number }) {
           <StateBadge state={state} />
           <Badge tone="blue">{JOB_LABEL[s.job_type]}</Badge>
           {s.urgent ? <Badge tone="red">GẤP</Badge> : null}
-          {missing > 0 ? <Badge tone="red">THIẾU {missing} người chính</Badge> : null}
+          {missing > 0 ? <Badge tone="red">Thiếu {missing} người chính</Badge> : null}
         </>
       }
     >

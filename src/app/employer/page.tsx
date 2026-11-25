@@ -6,12 +6,22 @@ import { LocationPicker } from '@/components/map';
 import { Alert, Disclosure, Empty, PageTitle, ShiftCard, btn } from '@/components/ui';
 import { requireRole } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
-import { shiftState } from '@/lib/format';
+import { hoursBetween, shiftState, type ShiftState } from '@/lib/format';
 import type { Shift } from '@/lib/types';
 
 export const metadata = { title: 'Ca của quán' };
 
 type Facility = { id: string; name: string; address: string; verified: boolean; status: 'pending' | 'active' | 'removed'; lat: number | null; lng: number | null };
+
+// Bộ lọc nhanh qua ?loc=, lọc phía server. Mỗi ô lọc gom một nhóm trạng thái ca (trạng thái suy ra từ shiftState).
+const FILTERS = {
+  'dang-tim': { label: 'Đang tìm người', states: ['open'] },
+  'da-du': { label: 'Đã đủ người', states: ['filled'] },
+  'cho-xac-nhan': { label: 'Chờ xác nhận', states: ['awaiting_confirm'] },
+  'da-qua': { label: 'Đã qua', states: ['confirmed', 'expired', 'unfilled', 'cancelled'] },
+} as const satisfies Record<string, { label: string; states: readonly ShiftState[] }>;
+type Filter = keyof typeof FILTERS;
+const isFilter = (v: unknown): v is Filter => typeof v === 'string' && Object.hasOwn(FILTERS, v);
 
 function Group({ title, shifts }: { title: string; shifts: Shift[] }) {
   if (!shifts.length) return null;
@@ -43,8 +53,11 @@ function Group({ title, shifts }: { title: string; shifts: Shift[] }) {
   );
 }
 
-export default async function EmployerHomePage() {
+export default async function EmployerHomePage({ searchParams }: { searchParams: Promise<{ loc?: string | string[] }> }) {
   const { supabase, profile } = await requireRole('employer');
+  const rawLoc = (await searchParams).loc;
+  const loc = Array.isArray(rawLoc) ? rawLoc[0] : rawLoc;
+  const filter = isFilter(loc) ? loc : null;
   const [{ data: facData, error: facError }, { data: shiftData, error: shiftError }] = await Promise.all([
     supabase.from('facilities').select('id, name, address, verified, status, lat, lng').eq('owner_id', profile.id).maybeSingle(),
     supabase.rpc('employer_shifts'),
@@ -56,8 +69,14 @@ export default async function EmployerHomePage() {
   const awaiting: Shift[] = [];
   const upcoming: Shift[] = [];
   const past: Shift[] = [];
+  const counts: Record<Filter, number> = { 'dang-tim': 0, 'da-du': 0, 'cho-xac-nhan': 0, 'da-qua': 0 };
+  // Tỉ lệ lấp đầy: suất người chính đã có / suất cần, trên các ca chưa hủy. Giờ: tổng độ dài các ca đã xác nhận (không nhân số người).
+  let seats = 0, filledSeats = 0, doneHours = 0;
   for (const s of shifts) {
     const st = shiftState(s, now);
+    for (const f of Object.keys(FILTERS) as Filter[]) if ((FILTERS[f].states as readonly ShiftState[]).includes(st)) counts[f]++;
+    if (s.status !== 'cancelled') { seats += s.headcount; filledSeats += Math.min(s.primary_count, s.headcount); }
+    if (s.status === 'completed') doneHours += hoursBetween(s.starts_at, s.ends_at);
     if (st === 'awaiting_confirm') awaiting.push(s);
     else if (st === 'open' || st === 'filled' || st === 'in_progress') upcoming.push(s);
     else past.push(s);
@@ -66,6 +85,7 @@ export default async function EmployerHomePage() {
   upcoming.reverse();
 
   const canPost = !!facility && facility.verified && facility.status === 'active';
+  const filtered = filter ? shifts.filter((s) => (FILTERS[filter].states as readonly ShiftState[]).includes(shiftState(s, now))) : [];
 
   // Việc chính của chủ quán là ca, không phải ghim: thẻ vị trí thu gọn, chưa ghim thì nằm sau nhóm "Cần xác nhận", đã ghim thì nằm cuối trang.
   const pinned = facility && facility.status !== 'removed' ? facility.lat != null && facility.lng != null : null;
@@ -120,20 +140,56 @@ export default async function EmployerHomePage() {
 
       {shiftError ? <Alert tone="red">{friendlyError(shiftError)}</Alert> : null}
 
-      {awaiting.length ? (
-        <div className="space-y-4">
-          <Alert tone="amber">Ca đã xong. Anh/chị bấm vào từng ca để xác nhận ai đã làm.</Alert>
-          <Group title="Cần anh/chị xác nhận" shifts={awaiting} />
-        </div>
+      {shifts.length > 0 ? (
+        <section aria-label="Tóm tắt ca" className="space-y-4">
+          <nav aria-label="Lọc ca" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {(Object.keys(FILTERS) as Filter[]).map((f) => {
+              const on = f === filter;
+              return (
+                // Chạm lại ô đang chọn thì bỏ lọc.
+                <Link key={f} href={on ? '/employer' : `/employer?loc=${f}`} aria-current={on ? 'page' : undefined}
+                  className={`flex min-h-[3rem] flex-col justify-start rounded-ui border-2 px-4 py-2 ${on ? 'border-brand bg-brand-tint' : 'border-rule bg-white hover:border-brand'}`}>
+                  <span className="tabular font-num text-3xl font-bold leading-tight text-ink">{counts[f]}</span>
+                  <span className="text-base font-semibold text-ink">{FILTERS[f].label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+          <p className="text-base text-ink">
+            {seats > 0 ? <>Đã có người chính cho <b>{filledSeats}/{seats}</b> suất ({Math.round((filledSeats / seats) * 100)}%). </> : null}
+            {doneHours > 0 ? <>Các ca đã xác nhận: <b>{doneHours}</b> giờ.</> : null}
+          </p>
+        </section>
       ) : null}
-      {pinned === false ? panel : null}
-      <Group title="Sắp tới / đang diễn ra" shifts={upcoming} />
-      <Group title="Đã qua" shifts={past} />
 
-      {!shiftError && shifts.length === 0 ? (
-        <Empty>{canPost ? 'Anh/chị chưa đăng ca nào. Bấm "Đăng ca mới" để bắt đầu.' : 'Chưa có ca nào.'}</Empty>
-      ) : null}
-      {pinned ? panel : null}
+      {filter ? (
+        <>
+          <div className="flex flex-wrap items-center gap-4">
+            <p className="text-base text-ink">Đang lọc: <b>{FILTERS[filter].label}</b></p>
+            <Link href="/employer" className="inline-flex min-h-[3rem] items-center font-semibold text-brand underline underline-offset-4">Xem tất cả ca</Link>
+          </div>
+          {filtered.length ? <Group title={FILTERS[filter].label} shifts={filtered} /> : <Empty>Không có ca nào trong nhóm này.</Empty>}
+          {pinned ? panel : null}
+        </>
+      ) : (
+        <>
+          {awaiting.length ? (
+            <div className="space-y-4">
+              <Alert tone="amber">Ca đã xong. Anh/chị bấm vào từng ca để xác nhận ai đã làm.</Alert>
+              <Group title="Cần anh/chị xác nhận" shifts={awaiting} />
+            </div>
+          ) : null}
+          {pinned === false ? panel : null}
+          <Group title="Sắp tới / đang diễn ra" shifts={upcoming} />
+          <Group title="Đã qua" shifts={past} />
+
+          {!shiftError && shifts.length === 0 ? (
+            <Empty>{canPost ? 'Anh/chị chưa đăng ca nào. Bấm "Đăng ca mới" để bắt đầu.' : 'Chưa có ca nào.'}</Empty>
+          ) : null}
+          {pinned ? panel : null}
+        </>
+      )}
     </div>
+
   );
 }

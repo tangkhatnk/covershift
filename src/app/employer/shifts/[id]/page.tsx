@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, CirclePlus, Hourglass } from 'lucide-react';
 import { ActionForm, SubmitButton } from '@/components/client';
-import { Alert, Badge, Card, Empty, PageTitle, SlotStrip, StateBadge, Stars, Tel, btn } from '@/components/ui';
+import { Alert, Badge, Card, DemoPhoneNote, Empty, PageTitle, SlotStrip, StateBadge, Stars, Tel, btn } from '@/components/ui';
 import { cancelShift, hideComment, swapRoles } from '@/app/actions';
 import { requireRole } from '@/lib/auth';
 import { AREA_LABEL, JOB_LABEL } from '@/lib/constants';
@@ -20,7 +20,10 @@ function WorkerRow({ w, children }: { w: Worker; children?: React.ReactNode }) {
   return (
     <li className="space-y-2 py-4 first:pt-0 last:pb-0">
       <p className="text-lg font-bold text-ink">{w.name}</p>
-      <p className="text-lg">Gọi: <Tel phone={w.phone} /></p>
+      <div>
+        <p className="text-lg">Gọi: <Tel phone={w.phone} /></p>
+        <DemoPhoneNote />
+      </div>
       {w.slug ? (
         <Link href={`/p/${w.slug}`} className="inline-flex min-h-[3rem] items-center text-base font-semibold text-brand underline underline-offset-4">
           Xem hồ sơ ca làm
@@ -77,7 +80,7 @@ export default async function EmployerShiftPage({
             <StateBadge state={state} />
             {shift.urgent ? <Badge tone="red">GẤP</Badge> : null}
             <Badge tone="blue">{JOB_LABEL[shift.job_type]}</Badge>
-            {shift.allow_minor ? <Badge tone="green">Nhận dưới 18 tuổi</Badge> : null}
+            {shift.allow_minor ? <Badge tone="green">Hợp với người dưới 18</Badge> : null}
           </>
         }
       >
@@ -224,7 +227,7 @@ export default async function EmployerShiftPage({
       {shift.is_owner ? (
         <Link href={`/employer/new-shift?from=${shift.id}`} className={`${btn('secondary')} sm:w-auto`}>
           <CirclePlus className="h-5 w-5" aria-hidden="true" />
-          Nhân bản ca này
+          Đăng lại ca này
         </Link>
       ) : null}
 
