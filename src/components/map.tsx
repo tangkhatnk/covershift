@@ -389,7 +389,7 @@ export function ShiftExplorer({ shifts, now }: { shifts: Shift[]; now: number })
         <div ref={tabBar} role="group" aria-label="Cách xem" className="grid grid-cols-2 gap-0 rounded-ui border-2 border-brand lg:hidden">
           {(['list', 'map'] as const).map((t) => (
             <button key={t} type="button" aria-pressed={tab === t} onClick={() => go(t)}
-              className={`min-h-[3rem] rounded px-2 text-lg font-semibold transition-colors focus-visible:-outline-offset-4 ${tab === t ? 'bg-brand text-white' : 'bg-white text-brand hover:bg-brand-tint'}`}>
+              className={`min-h-[3rem] rounded-ui px-2 text-lg font-semibold transition-colors focus-visible:-outline-offset-4 ${tab === t ? 'bg-brand text-white' : 'bg-white text-brand hover:bg-brand-tint'}`}>
               {t === 'list' ? 'Danh sách' : 'Bản đồ'}
             </button>
           ))}

@@ -62,8 +62,8 @@ export function Card({ children, className = '', tab }: { children: ReactNode; c
   return <section className={`rounded-ui border border-rule bg-white p-4 ${className}`}>{children}</section>;
 }
 
-// 0, 1, 2 dòng chữ phụ (khớp `PageTitle`, đo ở 360–1440px: 47,25 / 83,25 / 110,25px; 2 dòng chỉ ở điện thoại)
-const SKELETON_TITLE = ['h-[2.625rem]', 'h-[4.625rem]', 'h-[6.125rem] lg:h-[4.625rem]'] as const;
+// 0, 1, 2, 3 dòng chữ phụ (khớp `PageTitle`, đo ở 360–1440px: 47,25 / 83,25 / 110,25 / 137,25px; 2 và 3 dòng chỉ ở điện thoại)
+const SKELETON_TITLE = ['h-[2.625rem]', 'h-[4.625rem]', 'h-[6.125rem] lg:h-[4.625rem]', 'h-[7.625rem] lg:h-[4.625rem]'] as const;
 
 /**
  * Khung chờ cho `loading.tsx`. Mỗi khối có chiều cao xấp xỉ khối thật cùng vị trí (đo theo `PageTitle`, bộ lọc,
@@ -75,7 +75,7 @@ const SKELETON_TITLE = ['h-[2.625rem]', 'h-[4.625rem]', 'h-[6.125rem] lg:h-[4.62
  * Chỉ nhấp nháy khi người dùng không chọn giảm chuyển động.
  */
 export function PageSkeleton({ gap = 4, lead, sub = 1, action = false, form = false, filter = false, map = false, boxes = [], side }: {
-  gap?: 4 | 6; lead?: 'back' | 'refresh'; sub?: 0 | 1 | 2; action?: boolean; form?: boolean; filter?: boolean; map?: boolean; boxes?: string[]; side?: string;
+  gap?: 4 | 6; lead?: 'back' | 'refresh'; sub?: 0 | 1 | 2 | 3; action?: boolean; form?: boolean; filter?: boolean; map?: boolean; boxes?: string[]; side?: string;
 }) {
   const box = (h: string, key: string | number) => (
     <div key={key} className={`${h} space-y-4 rounded-ui border border-rule bg-white p-4`}>
@@ -126,7 +126,7 @@ const TONE: Record<Tone, string> = {
 };
 export function Badge({ tone = 'gray', icon, children }: { tone?: Tone; icon?: ReactNode; children: ReactNode }) {
   return (
-    <span className={`inline-flex min-h-[2rem] items-center gap-2 whitespace-nowrap rounded px-2 text-sm font-semibold ${TONE[tone]}`}>
+    <span className={`inline-flex min-h-[2rem] items-center gap-2 whitespace-nowrap rounded-ui px-2 text-sm font-semibold ${TONE[tone]}`}>
       {icon}
       {children}
     </span>
@@ -331,7 +331,7 @@ export function Doc({ title, sub, toc, notice, children }: {
     <ol className="space-y-2 text-base">
       {toc.map((t, i) => (
         <li key={t.id}>
-          <a href={`#${t.id}`} className="flex min-h-[3rem] items-center rounded px-2 text-ink-soft hover:bg-accent-tint hover:text-ink">{i + 1}. {t.label}</a>
+          <a href={`#${t.id}`} className="flex min-h-[3rem] items-center rounded-ui px-2 text-ink-soft hover:bg-accent-tint hover:text-ink">{i + 1}. {t.label}</a>
         </li>
       ))}
     </ol>
