@@ -176,7 +176,7 @@ Việc tìm hiểu ngoài phần agent chính cần để quyết định hướ
 
 ### Quy tắc khi dùng agent con
 
-- Không quá 3 agent con chạy cùng lúc: 1 `execution-manager` + 2 `worker`. Tài khoản có giới hạn dùng theo cửa sổ 5 giờ; ngày 16/11/2026 ba agent song song từng bị dừng cả ba vì lỗi 429.
+- Không quá 3 agent con chạy cùng lúc: 1 `execution-manager` + 2 `worker`.
 - Mỗi brief ghi rõ: mục tiêu, danh sách file được đọc/sửa, cách kiểm tra, định dạng báo cáo.
 - Worker ghi từng file ra đĩa ngay khi xong và chỉ sửa file được giao. Hai worker không bao giờ cùng sửa một file.
 - Chỉ `execution-manager` làm git. Worker không tạo nhánh, không commit, không push, không mở PR. Agent chính không làm thao tác git ghi.
