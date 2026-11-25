@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { AREA_LABEL, DEMO_PHONE_NOTE, JOB_LABEL } from '@/lib/constants';
 import {
-  fmtDate, fmtMoney, fmtTime, hoursBetween, shiftState, SHIFT_STATE_LABEL, SHIFT_STATE_TONE, type ShiftState,
+  fmtDate, fmtDateRel, fmtMoney, fmtTime, hoursBetween, shiftState, SHIFT_STATE_LABEL, SHIFT_STATE_TONE, type ShiftState,
 } from '@/lib/format';
 import type { Shift } from '@/lib/types';
 
@@ -70,7 +70,7 @@ const SKELETON_TITLE = ['h-[2.625rem]', 'h-[4.625rem]', 'h-[6.125rem] lg:h-[4.62
  * `ShiftCard`...) để khi dữ liệu về nội dung không nhảy (CLS); cả khung cao tối thiểu một màn hình nên chân trang
  * không chui vào tầm nhìn rồi bị đẩy xuống. Cấu hình theo trang thật, không có khối thừa "để dành".
  * - `gap`: `space-y-4` hay `space-y-6` của trang thật. `lead`: khối trước tiêu đề (`back` = link quay lại, `refresh` = dòng LiveRefresh).
- * - `sub`: số dòng chữ phụ của tiêu đề. `action`: nút chính to. `form`: ô lọc. `filter`: thanh "Bộ lọc" thu gọn và (điện thoại) thanh Danh sách/Bản đồ của /shifts. `map`: bản đồ.
+ * - `sub`: số dòng chữ phụ của tiêu đề. `action`: nút chính to. `form`: ô lọc. `filter`: thanh "Bộ lọc" thu gọn, hàng chip ngày và (điện thoại) thanh Danh sách/Bản đồ của /shifts. `map`: bản đồ.
  * - `boxes`: chiều cao (lớp Tailwind) của từng mô-đun; `side`: mô-đun cột phải từ `lg` (xếp dưới cùng trên điện thoại).
  * Chỉ nhấp nháy khi người dùng không chọn giảm chuyển động.
  */
@@ -100,6 +100,7 @@ export function PageSkeleton({ gap = 4, lead, sub = 1, action = false, form = fa
         {filter ? (
           <>
             <div className="h-14 rounded-ui border border-rule bg-white" />
+            <div className="h-12 w-60 rounded-ui bg-white" />
             <div className="h-14 rounded-ui border-2 border-brand-tint bg-white lg:hidden" />
           </>
         ) : null}
@@ -302,7 +303,7 @@ export function ShiftCard({ shift, href, extra, showState = false, now }: { shif
       </div>
       <div className="space-y-2 p-4">
         <div>
-          <p className="text-base text-ink-soft">{fmtDate(shift.starts_at)} · {hoursBetween(shift.starts_at, shift.ends_at)} giờ</p>
+          <p className="text-base text-ink-soft">{now == null ? fmtDate(shift.starts_at) : fmtDateRel(shift.starts_at, now)} · {hoursBetween(shift.starts_at, shift.ends_at)} giờ</p>
           <div className="flex flex-wrap items-baseline justify-between gap-x-4">
             <p className="tabular font-num text-4xl font-bold leading-tight text-ink">
               {fmtTime(shift.starts_at)}–{fmtTime(shift.ends_at)}
