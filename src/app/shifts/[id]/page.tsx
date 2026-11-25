@@ -23,15 +23,6 @@ function ageOn(dobYmd: string, onYmd: string) {
   return onYmd.slice(5) < dobYmd.slice(5) ? years - 1 : years;
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex gap-4 py-2">
-      <dt className="w-24 shrink-0 text-base text-ink-soft">{label}</dt>
-      <dd className="min-w-0 flex-1 break-words text-lg font-semibold text-ink">{children}</dd>
-    </div>
-  );
-}
-
 export default async function ShiftDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { supabase, profile } = await requireRole('worker', 'admin');
@@ -115,7 +106,7 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="space-y-4">
-      <Link href="/shifts" className="inline-flex min-h-[3rem] items-center gap-2 rounded font-semibold text-brand underline underline-offset-4">
+      <Link href="/shifts" className="inline-flex min-h-[3rem] items-center gap-2 rounded-ui font-semibold text-brand underline underline-offset-4">
         <ChevronLeft className="h-5 w-5" aria-hidden="true" />
         Tất cả ca
       </Link>
@@ -123,7 +114,7 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
 
       {s.status === 'cancelled' ? <Alert tone="red">Ca này đã bị hủy. Bạn không cần đến.</Alert> : null}
 
-      {/* Điện thoại: một cột theo thứ tự DOM (giờ, lương, nơi làm; rồi việc cần làm; rồi bản đồ và mô tả; "Chia sẻ ca" cuối).
+      {/* Điện thoại: một cột theo thứ tự DOM (ngày, giờ, lương; rồi việc cần làm; rồi chỗ còn trống, mô tả, nơi làm kèm bản đồ; "Chia sẻ ca" cuối).
           Từ lg: hai cột, việc cần làm dính ở cột phải (`contents` ở điện thoại để các khối con tự xếp theo `order` của lưới). */}
       <div className={`grid gap-4 lg:items-start ${hasSide ? 'lg:grid-cols-[minmax(0,1fr)_20rem]' : ''}`}>
         <Card tab={claimBadges}>
@@ -131,22 +122,7 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
           <p className="tabular font-num text-5xl font-bold leading-tight text-ink">
             {fmtTime(s.starts_at)}–{fmtTime(s.ends_at)}
           </p>
-          <dl className="mt-4 divide-y divide-rule border-t border-rule">
-            <Row label="Lương"><span className="text-brand">{fmtMoney(s.hourly_wage)}/giờ</span></Row>
-            <Row label="Nơi làm">
-              {s.facility_name}
-              <span className="block text-base font-normal text-ink-soft">{FACILITY_TYPE_LABEL[s.facility_type]} · {AREA_LABEL[s.area]}</span>
-            </Row>
-            <Row label="Địa chỉ">
-              <span className="font-normal">{s.address}</span>
-              <span className="flex flex-wrap gap-x-6">
-                <a href={mapsHref} target="_blank" rel="noopener noreferrer" className={`${linkCls} block min-h-[3rem] text-base leading-[3rem]`}>Xem bản đồ</a>
-                {directionsHref ? (
-                  <a href={directionsHref} target="_blank" rel="noopener noreferrer" className={`${linkCls} block min-h-[3rem] text-base leading-[3rem]`}>Chỉ đường</a>
-                ) : null}
-              </span>
-            </Row>
-          </dl>
+          <p className="text-lg font-semibold text-brand">{fmtMoney(s.hourly_wage)}/giờ</p>
         </Card>
 
         {hasSide ? (
@@ -277,25 +253,37 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
         ) : null}
 
         <div className="space-y-4 lg:col-start-1 lg:row-start-2">
-          {upcoming || hasPin || s.description ? (
+          {upcoming ? (
             <Card>
-              {upcoming ? <SlotStrip headcount={s.headcount} primary={s.primary_count} backup={s.backup_count} /> : null}
-              {hasPin ? (
-                <div className={upcoming ? 'mt-4 border-t border-rule pt-4' : ''}>
-                  <ShiftMap
-                    className="h-56"
-                    points={[{ id: s.id, lat: s.lat!, lng: s.lng!, text: fmtTime(s.starts_at), label: `${s.facility_name}, ${s.address}`, tone: 'open' }]}
-                  />
-                </div>
-              ) : null}
-              {s.description ? (
-                <div className={upcoming || hasPin ? 'mt-4 border-t border-rule pt-4' : ''}>
-                  <p className="text-base font-semibold text-ink">Mô tả công việc</p>
-                  <p className="mt-2 whitespace-pre-line break-words text-base text-ink">{s.description}</p>
-                </div>
-              ) : null}
+              <SlotStrip headcount={s.headcount} primary={s.primary_count} backup={s.backup_count} />
             </Card>
           ) : null}
+
+          {s.description ? (
+            <Card>
+              <h2 className="text-xl font-bold text-ink">Mô tả công việc</h2>
+              <p className="mt-2 whitespace-pre-line break-words text-base text-ink">{s.description}</p>
+            </Card>
+          ) : null}
+
+          <Card>
+            <h2 className="text-xl font-bold text-ink">Nơi làm</h2>
+            <p className="mt-2 break-words text-lg font-semibold text-ink">{s.facility_name}</p>
+            <p className="text-base text-ink-soft">{FACILITY_TYPE_LABEL[s.facility_type]} · {AREA_LABEL[s.area]}</p>
+            <p className="mt-2 break-words text-base text-ink">{s.address}</p>
+            <div className="flex flex-wrap gap-x-6">
+              <a href={mapsHref} target="_blank" rel="noopener noreferrer" className={`${linkCls} block min-h-[3rem] text-base leading-[3rem]`}>Xem bản đồ</a>
+              {directionsHref ? (
+                <a href={directionsHref} target="_blank" rel="noopener noreferrer" className={`${linkCls} block min-h-[3rem] text-base leading-[3rem]`}>Chỉ đường</a>
+              ) : null}
+            </div>
+            {hasPin ? (
+              <ShiftMap
+                className="mt-4 h-56"
+                points={[{ id: s.id, lat: s.lat!, lng: s.lng!, text: fmtTime(s.starts_at), label: `${s.facility_name}, ${s.address}`, tone: 'open' }]}
+              />
+            ) : null}
+          </Card>
 
           <Alert tone="gray">
             Lương và điều kiện làm việc do bạn và quán tự thỏa thuận. Quán <b>không được</b> thu phí, đặt cọc hay giữ giấy tờ của bạn.
