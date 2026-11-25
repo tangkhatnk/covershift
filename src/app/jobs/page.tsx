@@ -59,7 +59,7 @@ export default async function JobsPage({ searchParams }: {
       ) : jobs.length === 0 ? (
         <Empty>{filtering ? 'Không có tin nào khớp bộ lọc. Thử bỏ lọc xem sao.' : 'Hiện chưa có tin tuyển dụng nào. Bạn quay lại sau nhé.'}</Empty>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="stagger grid gap-4 md:grid-cols-2">
           {jobs.map((j) => (
             <JobCard key={j.id} job={j} href={`/jobs/${j.id}`}
               tab={j.my_application ? <Badge tone="green">Bạn đã ứng tuyển</Badge> : undefined} />

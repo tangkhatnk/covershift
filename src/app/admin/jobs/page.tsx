@@ -48,13 +48,13 @@ export default async function AdminJobsPage() {
           {open.length ? (
             <section className="space-y-4">
               <h2 className="text-xl font-bold text-ink">Đang mở <span className="font-normal text-ink-soft">({open.length})</span></h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{open.map(card)}</div>
+              <div className="stagger grid gap-4 md:grid-cols-2 lg:grid-cols-3">{open.map(card)}</div>
             </section>
           ) : null}
           {closed.length ? (
             <section className="space-y-4">
               <h2 className="text-xl font-bold text-ink">Đã đóng <span className="font-normal text-ink-soft">({closed.length})</span></h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{closed.map(card)}</div>
+              <div className="stagger grid gap-4 md:grid-cols-2 lg:grid-cols-3">{closed.map(card)}</div>
             </section>
           ) : null}
         </>

@@ -103,7 +103,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       ) : (
         <>
           {/* Một thẻ cho mỗi báo cáo ở mọi bề rộng; từ 1024px nội dung và người liên quan chia hai cột. */}
-          <div className="space-y-4">
+          <div className="stagger space-y-4">
             {shown.map((r) => (
               <Card key={r.id} tab={<><Kind r={r} /><span className="text-base text-ink-soft">{fmtDateTime(r.created_at)}</span></>}>
                 <div className="space-y-4">

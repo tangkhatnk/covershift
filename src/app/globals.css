@@ -74,13 +74,23 @@ summary::-webkit-details-marker { display: none; }
 .stagger > :nth-child(6) { animation-delay: 200ms; }
 .stagger > :nth-child(n+7) { animation: none; }
 
+/* Chỉ trong .page-enter (nên không bao giờ ở trang token/công khai):
+   - khối thu gọn (<details>) mở ra thì phần dưới <summary> vào bằng `rise` 160ms; đóng thì tức thì (không animation);
+   - thông báo của ActionForm/Flash (lớp `flash-in`) vào bằng `rise` 200ms. */
+.page-enter details[open]:not(.maplibregl-ctrl-attrib) > :not(summary) { animation: rise 160ms var(--ease-out) backwards; }
+.page-enter .flash-in { animation: rise 200ms var(--ease-out) backwards; }
+
+/* Menu "Thêm" của nhóm vận hành (popover mở lên trên, neo góc dưới phải ở nav dưới; ngoài .page-enter, chỉ có ở nhóm vận hành). */
+@keyframes pop { from { opacity: 0; transform: scale(0.97); } }
+.more-pop { transform-origin: bottom right; animation: pop 150ms var(--ease-out) backwards; }
+
 /* Giảm chuyển động: giữ mờ dần (đổi màu, độ mờ), bỏ mọi dịch chuyển và co giãn. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
     transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity !important;
   }
-  .page-enter, .stagger > * { animation-name: fade; }
+  .page-enter, .stagger > *, .page-enter details[open]:not(.maplibregl-ctrl-attrib) > :not(summary), .page-enter .flash-in, .more-pop { animation-name: fade; }
 }
 
 @media print {

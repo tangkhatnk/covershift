@@ -193,7 +193,7 @@ export default async function FacilitiesPage() {
           )}
 
           {/* Một thẻ cho mỗi cơ sở ở mọi bề rộng; từ 1024px phần thông tin chia ba cột, thao tác trải hết bề ngang. */}
-          <div className="space-y-4">
+          <div className="stagger space-y-4">
             {list.map((f, i) => (
               <Card key={f.id} tab={<StatusBadges f={f} pin={f.lat == null || f.lng == null ? null : i + 1} />}>
                 <div className="space-y-4">

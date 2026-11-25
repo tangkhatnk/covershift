@@ -30,7 +30,7 @@ function Group({ title, shifts }: { title: string; shifts: Shift[] }) {
       <h2 className="text-xl font-bold text-ink">
         {title} <span className="font-normal text-ink-soft">({shifts.length})</span>
       </h2>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="stagger grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {shifts.map((s) => {
           const st = shiftState(s);
           return (

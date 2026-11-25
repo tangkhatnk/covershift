@@ -32,7 +32,7 @@ export default async function AdminReviewsPage() {
       {list.length === 0 ? (
         <Empty>Chưa có đánh giá nào.</Empty>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="stagger grid gap-4 lg:grid-cols-2">
           {list.map((r) => (
             <Card
               key={r.id}
