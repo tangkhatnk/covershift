@@ -98,7 +98,10 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
     </>
   );
 
-  // Một khối dùng chung: có cột phải (hasSide) thì ở cột phải dưới các việc cần làm, không thì ở khối trái / đơn cột.
+  // Một khối dùng chung, đặt theo cột nào cao hơn ở desktop. Thường (còn sắp tới, hoặc đã qua nhưng chỉ có thẻ người chính/dự phòng) nó ở cột phải dưới các việc cần làm.
+  // Ca đã qua có thẻ tiền công hoặc kết quả (cao): hai nhóm đổi chỗ, thẻ đó ở dưới thẻ giờ-lương bên trái, còn mô tả, lưu ý và nơi làm ở cột phải.
+  const swap = askPayment || Boolean(s.my_result);
+  const placeRight = hasSide && !swap;
   const place = (
     <Card className="max-lg:order-1">
       <h2 className="text-xl font-bold text-ink">Nơi làm</h2>
@@ -153,7 +156,7 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
         </Card>
 
         {hasSide ? (
-          <div className="contents lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-4">
+          <div className={swap ? 'contents lg:col-start-1 lg:row-start-2 lg:block lg:space-y-4' : 'contents lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-4'}>
 
             {/* Nhận ca */}
             {showClaim ? (
@@ -267,13 +270,13 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
               </Card>
             ) : null}
 
-            {place}
+            {placeRight ? place : null}
 
             {upcoming && !shareLeft ? share : null}
           </div>
         ) : null}
 
-        <div className={hasSide ? 'contents lg:col-start-1 lg:row-start-2 lg:block lg:space-y-4' : 'space-y-4'}>
+        <div className={!hasSide ? 'space-y-4' : swap ? 'contents lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-4' : 'contents lg:col-start-1 lg:row-start-2 lg:block lg:space-y-4'}>
           {upcoming ? (
             <Card>
               <SlotStrip headcount={s.headcount} primary={s.primary_count} backup={s.backup_count} />
@@ -287,7 +290,7 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
             </Card>
           ) : null}
 
-          {hasSide ? null : place}
+          {placeRight ? null : place}
 
           <Alert tone="gray" className="max-lg:order-2">
             Lương và điều kiện làm việc do bạn và quán tự thỏa thuận. Quán <b>không được</b> thu phí, đặt cọc hay giữ giấy tờ của bạn.
