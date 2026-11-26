@@ -98,6 +98,40 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
     </>
   );
 
+  // Một khối dùng chung, đặt theo cột nào cao hơn ở desktop. Thường (còn sắp tới, hoặc đã qua nhưng chỉ có thẻ người chính/dự phòng) nó ở cột phải dưới các việc cần làm.
+  // Ca đã qua có thẻ tiền công hoặc kết quả (cao): hai nhóm đổi chỗ, thẻ đó ở dưới thẻ giờ-lương bên trái, còn mô tả, lưu ý và nơi làm ở cột phải.
+  const swap = askPayment || Boolean(s.my_result);
+  const placeRight = hasSide && !swap;
+  const place = (
+    <Card className="max-lg:order-1">
+      <h2 className="text-xl font-bold text-ink">Nơi làm</h2>
+      <p className="mt-2 text-base text-ink-soft">{FACILITY_TYPE_LABEL[s.facility_type]}</p>
+      <p className="break-words text-base text-ink">{s.address}</p>
+      <div className="flex flex-wrap gap-x-6">
+        <a href={mapsHref} target="_blank" rel="noopener noreferrer" className={`${linkCls} block min-h-[3rem] text-base leading-[3rem]`}>Xem bản đồ</a>
+        {directionsHref ? (
+          <a href={directionsHref} target="_blank" rel="noopener noreferrer" className={`${linkCls} block min-h-[3rem] text-base leading-[3rem]`}>Chỉ đường</a>
+        ) : null}
+      </div>
+      {hasPin ? (
+        <ShiftMap
+          className="mt-4 h-56"
+          points={[{ id: s.id, lat: s.lat!, lng: s.lng!, text: fmtTime(s.starts_at), label: `${s.facility_name}, ${s.address}`, tone: 'open' }]}
+        />
+      ) : null}
+    </Card>
+  );
+
+  // "Chia sẻ ca": cuối cùng trên điện thoại. Từ lg nằm cuối cột phải; khi cột phải đã có thẻ "Bạn là người chính/dự phòng" (cao) thì sang cuối cột trái cho hai cột cân nhau.
+  const shareLeft = showActive;
+  const share = (
+    <Card className="max-lg:order-3">
+      <h2 className="text-xl font-bold text-ink">Chia sẻ ca</h2>
+      <p className="mb-4 mt-2 text-base text-ink-soft">Ai mở link cũng xem được ca này, không cần đăng nhập.</p>
+      <ShareButton path={`/s/${s.id}`} title={`${JOB_LABEL[s.job_type]} tại ${s.facility_name}`} />
+    </Card>
+  );
+
   return (
     <div className="space-y-4">
       <Link href="/shifts" className="inline-flex min-h-[3rem] items-center gap-2 rounded-ui font-semibold text-brand underline underline-offset-4">
@@ -108,9 +142,11 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
 
       {s.status === 'cancelled' ? <Alert tone="red">Ca này đã bị hủy. Bạn không cần đến.</Alert> : null}
 
-      {/* Điện thoại: một cột theo thứ tự DOM (ngày, giờ, lương; rồi việc cần làm; rồi chỗ còn trống, mô tả, nơi làm kèm bản đồ; "Chia sẻ ca" cuối).
-          Từ lg: hai cột, việc cần làm dính ở cột phải (`contents` ở điện thoại để các khối con tự xếp theo `order` của lưới). */}
-      <div className={`grid gap-4 lg:items-start ${hasSide ? 'lg:grid-cols-[minmax(0,1fr)_20rem]' : ''}`}>
+      {/* Điện thoại: một cột theo thứ tự (ngày, giờ, lương; việc cần làm; chỗ còn trống; mô tả; nơi làm kèm bản đồ; lưu ý; "Chia sẻ ca" cuối).
+          Các khối con của hai wrapper là `contents` nên tự xếp vào lưới theo thứ tự DOM và `max-lg:order-*`.
+          Từ lg: hai cột bằng nhau. Cột phải (việc cần làm, nơi làm, chia sẻ ca) trải hai hàng; cột trái (giờ-lương, chỗ trống, mô tả, lưu ý) ở hàng 1 và 2.
+          Hàng 2 là `1fr` để phần cao dư của cột phải dồn xuống đó, không tạo khoảng hở dưới thẻ giờ-lương. Không dính (sticky): cột phải đủ cao để cắt mất. */}
+      <div className={`grid grid-cols-[minmax(0,1fr)] gap-4 lg:items-start ${hasSide ? 'lg:grid-cols-2 lg:grid-rows-[auto_1fr]' : ''}`}>
         <Card tab={claimBadges}>
           <p className="text-base text-ink-soft">{fmtDateRel(s.starts_at, now)} · {hoursBetween(s.starts_at, s.ends_at)} giờ</p>
           <p className="tabular font-num text-5xl font-bold leading-tight text-ink">
@@ -120,7 +156,7 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
         </Card>
 
         {hasSide ? (
-          <div className="contents space-y-4 lg:sticky lg:top-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:block">
+          <div className={swap ? 'contents lg:col-start-1 lg:row-start-2 lg:block lg:space-y-4' : 'contents lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-4'}>
 
             {/* Nhận ca */}
             {showClaim ? (
@@ -234,18 +270,13 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
               </Card>
             ) : null}
 
-            {/* Chia sẻ ca: sau cùng trên điện thoại, dưới việc cần làm ở cột phải */}
-            {upcoming ? (
-              <Card className="max-lg:order-last">
-                <h2 className="text-xl font-bold text-ink">Chia sẻ ca</h2>
-                <p className="mb-4 mt-2 text-base text-ink-soft">Ai mở link cũng xem được ca này, không cần đăng nhập.</p>
-                <ShareButton path={`/s/${s.id}`} title={`${JOB_LABEL[s.job_type]} tại ${s.facility_name}`} />
-              </Card>
-            ) : null}
+            {placeRight ? place : null}
+
+            {upcoming && !shareLeft ? share : null}
           </div>
         ) : null}
 
-        <div className="space-y-4 lg:col-start-1 lg:row-start-2">
+        <div className={!hasSide ? 'space-y-4' : swap ? 'contents lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-4' : 'contents lg:col-start-1 lg:row-start-2 lg:block lg:space-y-4'}>
           {upcoming ? (
             <Card>
               <SlotStrip headcount={s.headcount} primary={s.primary_count} backup={s.backup_count} />
@@ -259,28 +290,14 @@ export default async function ShiftDetailPage({ params }: { params: Promise<{ id
             </Card>
           ) : null}
 
-          <Card>
-            <h2 className="text-xl font-bold text-ink">Nơi làm</h2>
-            <p className="mt-2 text-base text-ink-soft">{FACILITY_TYPE_LABEL[s.facility_type]}</p>
-            <p className="break-words text-base text-ink">{s.address}</p>
-            <div className="flex flex-wrap gap-x-6">
-              <a href={mapsHref} target="_blank" rel="noopener noreferrer" className={`${linkCls} block min-h-[3rem] text-base leading-[3rem]`}>Xem bản đồ</a>
-              {directionsHref ? (
-                <a href={directionsHref} target="_blank" rel="noopener noreferrer" className={`${linkCls} block min-h-[3rem] text-base leading-[3rem]`}>Chỉ đường</a>
-              ) : null}
-            </div>
-            {hasPin ? (
-              <ShiftMap
-                className="mt-4 h-56"
-                points={[{ id: s.id, lat: s.lat!, lng: s.lng!, text: fmtTime(s.starts_at), label: `${s.facility_name}, ${s.address}`, tone: 'open' }]}
-              />
-            ) : null}
-          </Card>
+          {placeRight ? null : place}
 
-          <Alert tone="gray">
+          <Alert tone="gray" className="max-lg:order-2">
             Lương và điều kiện làm việc do bạn và quán tự thỏa thuận. Quán <b>không được</b> thu phí, đặt cọc hay giữ giấy tờ của bạn.
             Nếu bị đòi, hãy báo ngay cho nhóm vận hành ở cuối trang.
           </Alert>
+
+          {upcoming && shareLeft ? share : null}
         </div>
       </div>
 

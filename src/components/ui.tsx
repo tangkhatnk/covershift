@@ -72,10 +72,11 @@ const SKELETON_TITLE = ['h-[2.625rem]', 'h-[4.625rem]', 'h-[6.125rem] lg:h-[4.62
  * - `gap`: `space-y-4` hay `space-y-6` của trang thật. `lead`: khối trước tiêu đề (`back` = link quay lại, `refresh` = dòng LiveRefresh).
  * - `sub`: số dòng chữ phụ của tiêu đề. `action`: nút chính to. `form`: ô lọc. `filter`: thanh "Bộ lọc" thu gọn, hàng chip ngày và (điện thoại) thanh Danh sách/Bản đồ của /shifts. `map`: bản đồ.
  * - `boxes`: chiều cao (lớp Tailwind) của từng mô-đun; `side`: mô-đun cột phải từ `lg` (xếp dưới cùng trên điện thoại).
+ *   `equal`: từ `lg` hai cột bằng nhau thay vì cột phải rộng `20rem` (khớp `/shifts/[id]`); chiều cao riêng cho `lg` viết thêm `lg:h-...` vào lớp của khối.
  * Chỉ nhấp nháy khi người dùng không chọn giảm chuyển động.
  */
-export function PageSkeleton({ gap = 4, lead, sub = 1, action = false, form = false, filter = false, map = false, boxes = [], side }: {
-  gap?: 4 | 6; lead?: 'back' | 'refresh'; sub?: 0 | 1 | 2 | 3; action?: boolean; form?: boolean; filter?: boolean; map?: boolean; boxes?: string[]; side?: string;
+export function PageSkeleton({ gap = 4, lead, sub = 1, action = false, form = false, filter = false, map = false, boxes = [], side, equal = false }: {
+  gap?: 4 | 6; lead?: 'back' | 'refresh'; sub?: 0 | 1 | 2 | 3; action?: boolean; form?: boolean; filter?: boolean; map?: boolean; boxes?: string[]; side?: string; equal?: boolean;
 }) {
   const box = (h: string, key: string | number) => (
     <div key={key} className={`${h} space-y-4 rounded-ui border border-rule bg-white p-4`}>
@@ -106,7 +107,7 @@ export function PageSkeleton({ gap = 4, lead, sub = 1, action = false, form = fa
         ) : null}
         {map ? <div className="h-72 rounded-ui border border-rule bg-chalk lg:h-96" /> : null}
         {side ? (
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+          <div className={`grid gap-4 lg:items-start ${equal ? 'lg:grid-cols-2' : 'lg:grid-cols-[minmax(0,1fr)_20rem]'}`}>
             <div className="space-y-4">{left}</div>
             {box(side, 'side')}
           </div>
